@@ -25,7 +25,7 @@
   "homepage": "https://github.com/osloer-industries/typescript-node-template#readme",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "22.20.1",
+    "@types/node": "26.1.2",
     "@vitest/coverage-v8": "4.1.10",
     "oxlint": "1.76.0",
     "typescript": "7.0.2",
