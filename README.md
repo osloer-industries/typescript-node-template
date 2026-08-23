@@ -68,12 +68,12 @@ Never commit the token. On eligible plans, organization administrators can also 
 
 Release Please opens and maintains a release pull request from Conventional Commits. Merging that pull request updates `CHANGELOG.md` and package versions, creates a `vX.Y.Z` tag, and publishes a GitHub release.
 
-1. Create a fine-grained personal access token or GitHub App token for a maintainer identity with access to this repository. Grant repository Contents and Pull requests read/write access. If your organization requires it, also grant Actions read access.
-2. Add the token under **Settings > Secrets and variables > Actions** as `RELEASE_TOKEN`.
+1. Have an organization administrator create or rotate the organization Actions secret named `RELEASE_TOKEN`. Back it with a fine-grained maintainer token or GitHub App token that has repository Contents and Pull requests read/write access. If your organization requires it, also grant Actions read access.
+2. In the organization secret's repository access policy, select each repository created from this template that uses Release Please. Do not expose the secret to unrelated repositories.
 3. Confirm GitHub Actions may create pull requests under **Settings > Actions > General**. Organization policy may manage this setting.
 4. Use Conventional Commit prefixes such as `feat:`, `fix:`, and `chore:`. Merge the Release Please pull request when the proposed version and changelog are ready.
 
-The separate token is intentional. Pull requests created with the built-in `GITHUB_TOKEN` do not trigger other GitHub Actions workflows, which prevents required CI checks from running on a protected release pull request. For stricter environments, prefer a short-lived GitHub App token over a long-lived personal access token.
+The organization-level token is intentional. Pull requests created with the built-in `GITHUB_TOKEN` do not trigger other GitHub Actions workflows, which prevents required CI checks from running on a protected release pull request. Prefer a short-lived GitHub App token over a long-lived personal access token when practical.
 
 ## Recommended branch protection
 
