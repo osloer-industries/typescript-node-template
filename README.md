@@ -10,6 +10,7 @@ A minimal Node.js 22 and TypeScript starter with secure defaults, exact dependen
 - 80% minimum coverage for branches, functions, lines, and statements
 - Pull request and `main` CI with `npm audit --omit=dev`
 - CodeQL, SonarQube Cloud, Dependabot, and pull request dependency review
+- Release Please for Conventional Commit-based release pull requests, changelogs, tags, and GitHub releases
 - Full commit SHA pins, minimal permissions, timeouts, and concurrency cancellation
 - Secret-safe ignores, issue forms, and pull request guidance
 - Provider-neutral `AGENTS.md`
@@ -63,6 +64,17 @@ The Sonar workflow skips safely until configured.
 
 Never commit the token. On eligible plans, organization administrators can also disable Automatic Analysis for new projects under **Organization Settings > Analysis**.
 
+## Release Please setup
+
+Release Please opens and maintains a release pull request from Conventional Commits. Merging that pull request updates `CHANGELOG.md` and package versions, creates a `vX.Y.Z` tag, and publishes a GitHub release.
+
+1. Create a fine-grained personal access token or GitHub App token for a maintainer identity with access to this repository. Grant repository Contents and Pull requests read/write access. If your organization requires it, also grant Actions read access.
+2. Add the token under **Settings > Secrets and variables > Actions** as `RELEASE_TOKEN`.
+3. Confirm GitHub Actions may create pull requests under **Settings > Actions > General**. Organization policy may manage this setting.
+4. Use Conventional Commit prefixes such as `feat:`, `fix:`, and `chore:`. Merge the Release Please pull request when the proposed version and changelog are ready.
+
+The separate token is intentional. Pull requests created with the built-in `GITHUB_TOKEN` do not trigger other GitHub Actions workflows, which prevents required CI checks from running on a protected release pull request. For stricter environments, prefer a short-lived GitHub App token over a long-lived personal access token.
+
 ## Recommended branch protection
 
 Branch protection is intentionally not automated. After the first successful runs, protect `main` with:
@@ -76,6 +88,8 @@ Branch protection is intentionally not automated. After the first successful run
 - Signed commits and linear history when the contributor workflow supports them
 
 Do not require Sonar until its placeholders and secret are configured.
+
+Allow the maintainer identity behind `RELEASE_TOKEN` to open pull requests, but do not bypass required reviews or checks for Release Please pull requests.
 
 ## Low-cost security and automation
 
