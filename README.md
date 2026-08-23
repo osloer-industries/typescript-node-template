@@ -11,6 +11,7 @@ A minimal Node.js 22 and TypeScript starter with secure defaults, exact dependen
 - Pull request and `main` CI with `npm audit --omit=dev`
 - CodeQL, SonarQube Cloud, Dependabot, and pull request dependency review
 - Release Please for Conventional Commit-based release pull requests, changelogs, tags, and GitHub releases
+- Conventional pull request title validation and matching Dependabot commit prefixes
 - Full commit SHA pins, minimal permissions, timeouts, and concurrency cancellation
 - Secret-safe ignores, issue forms, and pull request guidance
 - Provider-neutral `AGENTS.md`
@@ -75,17 +76,20 @@ Release Please opens and maintains a release pull request from Conventional Comm
 
 The organization-level token is intentional. Pull requests created with the built-in `GITHUB_TOKEN` do not trigger other GitHub Actions workflows, which prevents required CI checks from running on a protected release pull request. Prefer a short-lived GitHub App token over a long-lived personal access token when practical.
 
+Pull request titles are validated against the Conventional Commits format. Configure squash merges to use the pull request title as the commit title so Release Please receives a predictable Conventional Commit on `main`. Dependabot prefixes npm updates with `chore(deps):` and GitHub Actions updates with `ci(deps):`.
+
 ## Recommended branch protection
 
 Branch protection is intentionally not automated. After the first successful runs, protect `main` with:
 
 - Pull requests required with at least one approval
 - Stale approval dismissal and conversation resolution
-- Required checks: `CI / Quality`, `CodeQL / Analyze JavaScript and TypeScript`, `Dependency review / Review dependency changes`, and `SonarQube Cloud / Analyze` after Sonar is configured
+- Required checks: `CI / Quality`, `CodeQL / Analyze JavaScript and TypeScript`, `Dependency review / Review dependency changes`, `Pull request title / Semantic pull request`, and `SonarQube Cloud / Analyze` after Sonar is configured
 - Up-to-date branches when parallel development makes it useful
 - Force pushes and branch deletion blocked
 - Rules applied to administrators unless an emergency process exists
 - Signed commits and linear history when the contributor workflow supports them
+- Squash merging only, with the pull request title used as the squash commit title
 
 Do not require Sonar until its placeholders and secret are configured.
 
