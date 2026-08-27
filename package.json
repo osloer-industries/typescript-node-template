@@ -6,28 +6,43 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
-  "files": ["dist"],
-  "engines": { "node": ">=22 <23" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22 <23"
+  },
   "packageManager": "npm@10.9.8",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "check": "npm run lint && npm run typecheck && npm run test:coverage && npm run build",
-    "lint": "oxlint src scripts",
+    "lint": "oxlint -c .oxlintrc.json --type-aware --report-unused-disable-directives src scripts",
     "setup": "node scripts/setup.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
-  "repository": { "type": "git", "url": "git+https://github.com/osloer-industries/typescript-node-template.git" },
-  "bugs": { "url": "https://github.com/osloer-industries/typescript-node-template/issues" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/osloer-industries/typescript-node-template.git"
+  },
+  "bugs": {
+    "url": "https://github.com/osloer-industries/typescript-node-template/issues"
+  },
   "homepage": "https://github.com/osloer-industries/typescript-node-template#readme",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "22.20.1",
     "@vitest/coverage-v8": "4.1.11",
     "oxlint": "1.79.0",
+    "oxlint-tsgolint": "7.0.2001",
     "typescript": "7.0.2",
     "vitest": "4.1.11"
   }

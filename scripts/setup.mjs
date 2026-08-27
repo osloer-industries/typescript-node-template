@@ -11,7 +11,7 @@ const profiles = {
     source: `export interface PluginContext { log(message: string): void; }
 export interface Plugin { name: string; activate(context: PluginContext): void; }
 export function createPlugin(name: string): Plugin {
-  return { name, activate(context) { context.log(\`${"${name}"} activated\`); } };
+  return { name, activate(context) { context.log(\`\${name} activated\`); } };
 }
 `,
     test: `import { describe, expect, it, vi } from "vitest";
@@ -25,7 +25,7 @@ describe("createPlugin", () => { it("activates", () => { const log = vi.fn(); co
     source: `import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-export function createGreetingResult(name: string) { return { content: [{ type: "text" as const, text: \`Hello, ${"${name}"}!\` }] }; }
+export function createGreetingResult(name: string) { return { content: [{ type: "text" as const, text: \`Hello, \${name}!\` }] }; }
 export function createServer(): McpServer {
   const server = new McpServer({ name: "example-mcp-server", version: "0.1.0" });
   server.registerTool("greet", { description: "Return a greeting", inputSchema: { name: z.string().trim().min(1).default("world") } },
@@ -58,7 +58,7 @@ describe("slugify", () => { it("normalizes text", () => expect(slugify(" Hello, 
     publishable: true,
     bin: true,
     source: `#!/usr/bin/env node
-export function formatGreeting(args: readonly string[]): string { return \`Hello, ${"${args[0]?.trim() || \"world\"}"}!\`; }
+export function formatGreeting(args: readonly string[]): string { return \`Hello, \${args[0]?.trim() || "world"}!\`; }
 /* v8 ignore start */
 if (import.meta.url === new URL(process.argv[1] ?? "", "file:").href) console.log(formatGreeting(process.argv.slice(2)));
 /* v8 ignore stop */
