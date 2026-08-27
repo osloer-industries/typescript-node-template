@@ -6,7 +6,7 @@ A minimal Node.js 22 and TypeScript starter with secure defaults, exact dependen
 
 - Node.js 22.23.1, npm, ECMAScript modules, and strict TypeScript 7
 - Exact versions, `.npmrc` with `save-exact=true`, and committed `package-lock.json`
-- Oxlint, typechecking, build, Vitest unit tests, and V8 coverage
+- Oxlint with type-aware TypeScript rules, typechecking, build, Vitest unit tests, and V8 coverage
 - 80% minimum coverage for branches, functions, lines, and statements
 - Pull request and `main` CI with `npm audit --omit=dev`
 - CodeQL, SonarQube Cloud, Dependabot, and pull request dependency review
@@ -45,7 +45,7 @@ Review `SETUP.md`, update repository URLs in `package.json`, run `npm run check`
 
 | Command | Purpose |
 | --- | --- |
-| `npm run lint` | Lint with Oxlint |
+| `npm run lint` | Lint with the explicit `.oxlintrc.json` policy, including type-aware rules |
 | `npm run typecheck` | Check types without emitting files |
 | `npm test` | Run unit tests |
 | `npm run test:coverage` | Test and enforce coverage thresholds |
@@ -94,6 +94,18 @@ Branch protection is intentionally not automated. After the first successful run
 Do not require Sonar until its placeholders and secret are configured.
 
 Allow the maintainer identity behind `RELEASE_TOKEN` to open pull requests, but do not bypass required reviews or checks for Release Please pull requests.
+
+## Quality policy
+
+Oxlint rejects import cycles, focused tests, floating or misused promises,
+nesting deeper than four levels, and cyclomatic complexity above 15. It warns
+when a production function exceeds five parameters or 80 nonblank,
+non-comment lines. Tests are exempt from the two size warnings, but not from
+correctness, promise-safety, or focused-test rules.
+
+Type-aware Oxlint rules are an additional fast feedback layer. `npm run
+typecheck` remains required because experimental Oxlint compiler diagnostics
+are intentionally not enabled.
 
 ## Low-cost security and automation
 
