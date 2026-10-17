@@ -32,7 +32,9 @@ instruction files.
   cyclomatic complexity above 15.
 - Prefer focused modules and pure functions. Do not hide lint findings with
   disable comments unless the exception is narrowly scoped and explained.
-- Preserve all four setup scenarios: `plugin`, `mcp`, `npm-package`, and `cli`.
+- Preserve all four setup scenarios: `plugin`, `mcp`, `npm-package`, and `cli`. Unattended
+  setup (`--yes`) should keep running `npm run check` (and `npm pack --dry-run` when
+  publishable) unless `--no-verify` is passed.
 
 ## Tests and security
 
