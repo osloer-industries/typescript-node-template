@@ -1,0 +1,36 @@
+name: Task
+description: Propose verifiable work with acceptance criteria and verification commands.
+title: "[Task]: "
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What should change and why it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: >-
+        Checklist-style outcomes that define done (human- and agent-readable).
+        Use `- [ ]` items when helpful.
+    validations:
+      required: true
+  - type: textarea
+    id: verification-commands
+    attributes:
+      label: Verification commands
+      description: >-
+        Commands reviewers or agents should run to confirm the work (for example
+        `npm run check`). Do not include secrets or machine-specific paths.
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+      description: Boundaries to prevent scope creep. Write "None" if not applicable.
+    validations:
+      required: false
