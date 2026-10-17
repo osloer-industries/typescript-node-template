@@ -14,7 +14,7 @@ A minimal Node.js 22 and TypeScript starter with secure defaults, exact dependen
 - Conventional pull request title validation and matching Dependabot commit prefixes
 - Full commit SHA pins, minimal permissions, timeouts, and concurrency cancellation
 - Secret-safe ignores, issue forms, and pull request guidance
-- Provider-neutral `AGENTS.md`
+- Provider-neutral `AGENTS.md` and [docs/architecture.md](docs/architecture.md) for contributors and coding agents
 
 ## Start a project
 

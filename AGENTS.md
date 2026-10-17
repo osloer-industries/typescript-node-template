@@ -4,6 +4,45 @@ These instructions apply to every human or automated contributor. Keep this file
 provider-neutral. Do not add `CLAUDE.md`, `.cursor/`, or equivalent duplicate
 instruction files.
 
+## Repository map
+
+| Path | Purpose |
+| --- | --- |
+| `src/` | Application or library source and colocated Vitest files. |
+| `scripts/setup.mjs` | CLI entry for `npm run setup`. |
+| `scripts/setup-lib.mjs` | Setup profiles and testable helpers. |
+| `scripts/setup.test.ts` | Setup unit and integration tests. |
+| `docs/architecture.md` | Module boundaries, scenarios, and dependency rules. |
+| `.github/workflows/` | CI and security automation. |
+
+## Verification
+
+Run gates in this order when iterating locally:
+
+1. `npm run lint`
+2. `npm run typecheck`
+3. `npm run test` or `npm run test:coverage`
+4. `npm run build`
+5. `npm run check` (all of the above) before opening a pull request
+6. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes
+
+After editing setup profiles, rely on `scripts/setup.test.ts` integration cases for all four scenarios.
+
+## Change recipes
+
+| Change | Touch | Tests |
+| --- | --- | --- |
+| New exported function or type | `src/index.ts`, README if public | `src/index.test.ts` success, failure, boundary |
+| New MCP tool | MCP profile in `scripts/setup-lib.mjs`, generated handler | Profile tests + integration scenario `mcp` |
+| New CLI flag or argv rule | CLI profile in `scripts/setup-lib.mjs` | Profile tests + integration scenario `cli` |
+| New setup scenario | `scripts/setup-lib.mjs`, README, SETUP docs | `scripts/setup.test.ts` unit + integration |
+
+## Do not edit without reason
+
+- `package-lock.json` — only with intentional dependency changes via `npm ci` / exact install policy.
+- Release Please manifest, changelogs, and version bumps outside the release pull request.
+- Pin SHAs in GitHub Actions workflows except when bumping dependencies via Dependabot or a focused CI change.
+
 ## Priorities
 
 1. Keep the template small, reusable, secure, and provider-neutral.
@@ -52,3 +91,5 @@ instruction files.
 - Do not edit generated Release Please versions or changelogs outside its
   release pull request unless correcting release metadata deliberately.
 - Never bypass required reviews, checks, or organization rules.
+
+For system design and scenario behavior, read [docs/architecture.md](docs/architecture.md).
