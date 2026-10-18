@@ -39,7 +39,9 @@ instruction files.
 ## Tests and security
 
 - Add tests for success, failure, and boundary behavior affected by a change.
-- Keep branch, function, line, and statement coverage at or above 80%.
+- Keep branch, function, line, and statement coverage at or above 80% for `src/`
+  and testable `scripts/` modules. Cover CLI wiring with focused unit tests or
+  CI smoke jobs when direct unit coverage is impractical.
 - Treat external input, environment variables, file paths, and network results
   as untrusted. Validate before use and avoid logging sensitive values.
 - Keep GitHub Actions permissions minimal and pin third-party actions to full

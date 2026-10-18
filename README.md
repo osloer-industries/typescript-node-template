@@ -7,7 +7,7 @@ A minimal Node.js 24 and TypeScript starter with secure defaults, exact dependen
 - Node.js 24.22.0, npm, ECMAScript modules, and strict TypeScript 7
 - Exact versions, `.npmrc` with `save-exact=true` and `engine-strict=true`, and committed `package-lock.json`
 - Oxlint with type-aware TypeScript rules, typechecking, build, Vitest unit tests, and V8 coverage
-- 80% minimum coverage for branches, functions, lines, and statements
+- 80% minimum coverage for branches, functions, lines, and statements in `src/` and testable `scripts/` helpers (CLI entry `scripts/setup.mjs` is exercised by CI smoke jobs)
 - Pull request and `main` CI with `npm run check`, `npm audit --omit=dev`, and a four-scenario setup smoke matrix
 - CodeQL, SonarQube Cloud, Dependabot, and pull request dependency review
 - Release Please for Conventional Commit-based release pull requests, changelogs, tags, and GitHub releases

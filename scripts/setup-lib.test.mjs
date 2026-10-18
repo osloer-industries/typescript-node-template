@@ -10,6 +10,10 @@ describe("parseArgs", () => {
     });
   });
 
+  it("parses verify flags", () => {
+    expect(parseArgs(["--verify", "--no-verify"])).toEqual({ verify: true, noVerify: true });
+  });
+
   it("rejects missing option values", () => {
     expect(() => parseArgs(["--name"])).toThrow("Missing value for --name");
   });
@@ -48,5 +52,10 @@ describe("assertNodeEngine", () => {
 
   it("rejects majors at or above the exclusive upper bound", () => {
     expect(() => assertNodeEngine("25.0.0", ">=24 <25")).toThrow("below 25");
+  });
+
+  it("ignores empty or unrecognized engine ranges", () => {
+    expect(() => assertNodeEngine("20.0.0", undefined)).not.toThrow();
+    expect(() => assertNodeEngine("20.0.0", "node")).not.toThrow();
   });
 });
