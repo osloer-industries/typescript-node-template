@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { execFileSync } from "node:child_process";
+import { runNpm } from "./run-npm.mjs";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
@@ -103,11 +103,11 @@ writeFileSync(
   "SETUP.md",
   `# Setup result\n\nScenario: ${selected.scenario}\n\nPackage: ${selected.name}\n\nUpdate repository URLs in \`package.json\`, then remove this file.\n`,
 );
-execFileSync("npm", ["install", "--save-exact"], { stdio: "inherit" });
+runNpm(["install", "--save-exact", "--ignore-scripts"], { stdio: "inherit" });
 console.log(`Configured ${selected.name} as a ${selected.scenario} project.`);
 if (shouldVerifyAfterSetup(parsedCli)) {
-  execFileSync("npm", ["run", "check"], { stdio: "inherit" });
+  runNpm(["run", "check"], { stdio: "inherit" });
   if (selected.profile.publishable) {
-    execFileSync("npm", ["pack", "--dry-run"], { stdio: "inherit" });
+    runNpm(["pack", "--dry-run"], { stdio: "inherit" });
   }
 }
