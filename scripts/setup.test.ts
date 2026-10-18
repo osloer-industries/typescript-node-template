@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { runNpm } from "./run-npm.mjs";
 import { mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -166,7 +166,7 @@ describe.sequential("setup integration", () => {
         const indexSource = readFileSync(join(tempDir, "src/index.ts"), "utf8");
         expect(indexSource).toContain(scenarioMarkers[scenario]);
         expect(readPackageName(join(tempDir, "package.json"))).toBe(`demo-${scenario}`);
-        execFileSync("npm", ["run", "check"], {
+        runNpm(["run", "check"], {
           cwd: tempDir,
           stdio: "pipe",
           timeout: 300_000,

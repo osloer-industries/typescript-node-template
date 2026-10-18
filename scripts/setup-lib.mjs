@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { runNpm } from "./run-npm.mjs";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 
@@ -192,7 +192,7 @@ export function applySetup(selected, options = {}) {
   );
   if (options.runInstall !== false) {
     /* v8 ignore next -- install path covered by manual setup and integration flows */
-    execFileSync("npm", ["install", "--save-exact"], { cwd: baseDir, stdio: "inherit" });
+    runNpm(["install", "--save-exact", "--ignore-scripts"], { cwd: baseDir, stdio: "inherit" });
   }
 }
 

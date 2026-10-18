@@ -29,7 +29,7 @@ const rootFiles = [
 
 const pathGroups = [
   rootFiles,
-  ["scripts/setup.mjs", "scripts/setup-lib.mjs", "scripts/setup-lib.d.mts"],
+  ["scripts/setup.mjs", "scripts/setup-lib.mjs", "scripts/setup-lib.d.mts", "scripts/run-npm.mjs", "scripts/run-npm.d.mts"],
   ["src/index.ts", "src/index.test.ts"]
 ];
 
