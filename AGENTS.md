@@ -52,7 +52,7 @@ After editing setup profiles, rely on `scripts/setup.test.ts` integration cases 
 
 ## Toolchain and commands
 
-- Use the Node.js 22 version declared by `.nvmrc` and `.node-version`.
+- Use the Node.js 24 version declared by `.nvmrc` and `.node-version`.
 - Install reproducibly with `npm ci`. Use `npm install --save-exact` when a
   dependency intentionally changes, then commit `package-lock.json`.
 - Run `npm run check` before submitting a change. This runs Oxlint, the
@@ -71,12 +71,16 @@ After editing setup profiles, rely on `scripts/setup.test.ts` integration cases 
   cyclomatic complexity above 15.
 - Prefer focused modules and pure functions. Do not hide lint findings with
   disable comments unless the exception is narrowly scoped and explained.
-- Preserve all four setup scenarios: `plugin`, `mcp`, `npm-package`, and `cli`.
+- Preserve all four setup scenarios: `plugin`, `mcp`, `npm-package`, and `cli`. Unattended
+  setup (`--yes`) should keep running `npm run check` (and `npm pack --dry-run` when
+  publishable) unless `--no-verify` is passed.
 
 ## Tests and security
 
 - Add tests for success, failure, and boundary behavior affected by a change.
-- Keep branch, function, line, and statement coverage at or above 80%.
+- Keep branch, function, line, and statement coverage at or above 80% for `src/`
+  and testable `scripts/` modules. Cover CLI wiring with focused unit tests or
+  CI smoke jobs when direct unit coverage is impractical.
 - Treat external input, environment variables, file paths, and network results
   as untrusted. Validate before use and avoid logging sensitive values.
 - Keep GitHub Actions permissions minimal and pin third-party actions to full

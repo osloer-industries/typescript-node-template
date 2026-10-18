@@ -116,6 +116,8 @@ export function parseArgs(args) {
   for (let i = 0; i < args.length; i += 1) {
     const argument = args[i];
     if (argument === "--yes") values.yes = true;
+    else if (argument === "--verify") values.verify = true;
+    else if (argument === "--no-verify") values.noVerify = true;
     else if (argument?.startsWith("--")) {
       const value = args[i + 1];
       if (!value || value.startsWith("--")) throw new Error(`Missing value for ${argument}`);
@@ -132,6 +134,37 @@ export function parseArgs(args) {
 export function packageName(value) {
   if (!/^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/.test(value)) throw new Error(`Invalid npm package name: ${value}`);
   return value;
+}
+
+/** @param {{ noVerify?: boolean, verify?: boolean, yes?: boolean }} parsed */
+export function shouldVerifyAfterSetup(parsed) {
+  if (parsed.noVerify) return false;
+  if (parsed.verify) return true;
+  return Boolean(parsed.yes);
+}
+
+/**
+ * @param {string} nodeVersion
+ * @param {string | undefined} engines
+ */
+export function assertNodeEngine(nodeVersion, engines) {
+  if (!engines) return;
+  const major = Number(nodeVersion.split(".")[0]);
+  const minMatch = />=\s*(\d+)/.exec(engines);
+  const maxMatch = /<\s*(\d+)/.exec(engines);
+  if (!minMatch && !maxMatch) return;
+  const minMajor = minMatch ? Number(minMatch[1]) : undefined;
+  const maxExclusive = maxMatch ? Number(maxMatch[1]) : undefined;
+  if (minMajor !== undefined && major < minMajor) {
+    throw new Error(
+      `Node.js ${minMajor}+ is required (${engines}). Found ${nodeVersion}. Use .nvmrc or .node-version.`,
+    );
+  }
+  if (maxExclusive !== undefined && major >= maxExclusive) {
+    throw new Error(
+      `Node.js must be below ${maxExclusive} (${engines}). Found ${nodeVersion}. Use .nvmrc or .node-version.`,
+    );
+  }
 }
 
 /**
@@ -188,7 +221,7 @@ export function applySetup(selected, options = {}) {
   writeFileSync(join(baseDir, "src/index.test.ts"), selected.profile.test);
   writeFileSync(
     join(baseDir, "SETUP.md"),
-    `# Setup result\n\nScenario: ${selected.scenario}\n\nPackage: ${selected.name}\n\nRun \`npm run check\`, update repository URLs, then remove this file.\n`
+    `# Setup result\n\nScenario: ${selected.scenario}\n\nPackage: ${selected.name}\n\nUpdate repository URLs in \`package.json\`, then remove this file.\n`
   );
   if (options.runInstall !== false) {
     /* v8 ignore next -- install path covered by manual setup and integration flows */
@@ -202,11 +235,19 @@ export function applySetup(selected, options = {}) {
 /* v8 ignore start -- thin CLI wrapper; exercised via scripts/setup.mjs */
 export async function runSetupCli(argv) {
   const parsed = parseArgs(argv);
+  const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+  assertNodeEngine(process.versions.node, pkg.engines?.node);
   const reader = parsed.yes ? undefined : createInterface({ input: stdin, output: stdout });
   try {
     const selected = await resolveSetupOptions(parsed, reader);
     applySetup(selected, { runInstall: true });
     console.log(`Configured ${selected.name} as a ${selected.scenario} project.`);
+    if (shouldVerifyAfterSetup(parsed)) {
+      runNpm(["run", "check"], { stdio: "inherit" });
+      if (selected.profile.publishable) {
+        runNpm(["pack", "--dry-run"], { stdio: "inherit" });
+      }
+    }
   } finally {
     reader?.close();
   }

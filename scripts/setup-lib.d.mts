@@ -15,6 +15,14 @@ export function parseArgs(args: readonly string[]): Record<string, string | bool
 
 export function packageName(value: string): string;
 
+export function shouldVerifyAfterSetup(parsed: {
+  noVerify?: boolean;
+  verify?: boolean;
+  yes?: boolean;
+}): boolean;
+
+export function assertNodeEngine(nodeVersion: string, engines: string | undefined): void;
+
 export function assertKnownScenario(scenario: string | undefined): SetupScenario;
 
 export interface SetupReader {

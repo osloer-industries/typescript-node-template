@@ -1,14 +1,14 @@
 # TypeScript Node Template
 
-A minimal Node.js 22 and TypeScript starter with secure defaults, exact dependencies, fast linting, coverage enforcement, and GitHub security automation.
+A minimal Node.js 24 and TypeScript starter with secure defaults, exact dependencies, fast linting, coverage enforcement, and GitHub security automation.
 
 ## Included
 
-- Node.js 22.23.1, npm, ECMAScript modules, and strict TypeScript 7
-- Exact versions, `.npmrc` with `save-exact=true`, and committed `package-lock.json`
+- Node.js 24.22.0, npm, ECMAScript modules, and strict TypeScript 7
+- Exact versions, `.npmrc` with `save-exact=true` and `engine-strict=true`, and committed `package-lock.json`
 - Oxlint with type-aware TypeScript rules, typechecking, build, Vitest unit tests, and V8 coverage
-- 80% minimum coverage for branches, functions, lines, and statements
-- Pull request and `main` CI with `npm audit --omit=dev`
+- 80% minimum coverage for branches, functions, lines, and statements in `src/` and testable `scripts/` helpers (CLI entry `scripts/setup.mjs` is exercised by CI smoke jobs)
+- Pull request and `main` CI with `npm run check`, `npm audit --omit=dev`, and a four-scenario setup smoke matrix
 - CodeQL, SonarQube Cloud, Dependabot, and pull request dependency review
 - Release Please for Conventional Commit-based release pull requests, changelogs, tags, and GitHub releases
 - Conventional pull request title validation and matching Dependabot commit prefixes
@@ -39,7 +39,9 @@ For unattended setup:
 npm run setup -- --scenario cli --name @your-scope/your-cli --description "A useful CLI" --yes
 ```
 
-Review `SETUP.md`, update repository URLs in `package.json`, run `npm run check`, then remove `SETUP.md`.
+With `--yes`, setup runs `npm run check` automatically and dry-runs `npm pack` for publishable scenarios. Pass `--no-verify` to skip that gate, or add `--verify` after an interactive run.
+
+Review `SETUP.md`, update repository URLs in `package.json`, then remove `SETUP.md`.
 
 ## Commands
 
@@ -84,7 +86,7 @@ Branch protection is intentionally not automated. After the first successful run
 
 - Pull requests required with at least one approval
 - Stale approval dismissal and conversation resolution
-- Required checks: `CI / Quality`, `CodeQL / Analyze JavaScript and TypeScript`, `Dependency review / Review dependency changes`, `Pull request title / Semantic pull request`, and `SonarQube Cloud / Analyze` after Sonar is configured
+- Required checks: `CI / Quality`, the four `Setup smoke` jobs, `CodeQL / Analyze JavaScript and TypeScript`, `Dependency review / Review dependency changes`, `Pull request title / Semantic pull request`, and `SonarQube Cloud / Analyze` after Sonar is configured
 - Up-to-date branches when parallel development makes it useful
 - Force pushes and branch deletion blocked
 - Rules applied to administrators unless an emergency process exists
