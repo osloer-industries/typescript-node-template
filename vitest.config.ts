@@ -11,6 +11,7 @@ export default defineConfig({
         "src/**/*.test.ts",
         "src/**/*.spec.ts",
         "scripts/**/*.test.mjs",
+        // CLI entry; covered by CI setup-smoke matrix jobs.
         "scripts/setup.mjs"
       ],
       thresholds: { branches: 80, functions: 80, lines: 80, statements: 80 }
