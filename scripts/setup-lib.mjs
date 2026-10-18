@@ -47,8 +47,8 @@ export function shouldVerifyAfterSetup(parsed) {
 export function assertNodeEngine(nodeVersion, engines) {
   if (!engines) return;
   const major = Number(nodeVersion.split(".")[0]);
-  const minMatch = engines.match(/>=\s*(\d+)/);
-  const maxMatch = engines.match(/<\s*(\d+)/);
+  const minMatch = />=\s*(\d+)/.exec(engines);
+  const maxMatch = /<\s*(\d+)/.exec(engines);
   if (!minMatch && !maxMatch) return;
   const minMajor = minMatch ? Number(minMatch[1]) : undefined;
   const maxExclusive = maxMatch ? Number(maxMatch[1]) : undefined;
