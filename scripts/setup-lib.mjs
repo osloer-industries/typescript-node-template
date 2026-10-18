@@ -45,11 +45,21 @@ export function shouldVerifyAfterSetup(parsed) {
  * @param {string | undefined} engines
  */
 export function assertNodeEngine(nodeVersion, engines) {
-  if (!engines?.includes("22")) return;
+  if (!engines) return;
   const major = Number(nodeVersion.split(".")[0]);
-  if (major !== 22) {
+  const minMatch = engines.match(/>=\s*(\d+)/);
+  const maxMatch = engines.match(/<\s*(\d+)/);
+  if (!minMatch && !maxMatch) return;
+  const minMajor = minMatch ? Number(minMatch[1]) : undefined;
+  const maxExclusive = maxMatch ? Number(maxMatch[1]) : undefined;
+  if (minMajor !== undefined && major < minMajor) {
     throw new Error(
-      `Node.js 22 is required (${engines ?? "engines.node"}). Found ${nodeVersion}. Use .nvmrc or .node-version.`,
+      `Node.js ${minMajor}+ is required (${engines}). Found ${nodeVersion}. Use .nvmrc or .node-version.`,
+    );
+  }
+  if (maxExclusive !== undefined && major >= maxExclusive) {
+    throw new Error(
+      `Node.js must be below ${maxExclusive} (${engines}). Found ${nodeVersion}. Use .nvmrc or .node-version.`,
     );
   }
 }

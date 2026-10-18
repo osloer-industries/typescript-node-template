@@ -38,11 +38,15 @@ describe("shouldVerifyAfterSetup", () => {
 });
 
 describe("assertNodeEngine", () => {
-  it("allows Node 22 when engines require it", () => {
-    expect(() => assertNodeEngine("22.11.0", ">=22 <23")).not.toThrow();
+  it("allows Node 24 when engines require it", () => {
+    expect(() => assertNodeEngine("24.22.0", ">=24 <25")).not.toThrow();
   });
 
   it("rejects the wrong major version", () => {
-    expect(() => assertNodeEngine("20.19.0", ">=22 <23")).toThrow("Node.js 22 is required");
+    expect(() => assertNodeEngine("22.14.0", ">=24 <25")).toThrow("Node.js 24+ is required");
+  });
+
+  it("rejects majors at or above the exclusive upper bound", () => {
+    expect(() => assertNodeEngine("25.0.0", ">=24 <25")).toThrow("below 25");
   });
 });

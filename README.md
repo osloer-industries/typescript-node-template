@@ -1,10 +1,10 @@
 # TypeScript Node Template
 
-A minimal Node.js 22 and TypeScript starter with secure defaults, exact dependencies, fast linting, coverage enforcement, and GitHub security automation.
+A minimal Node.js 24 and TypeScript starter with secure defaults, exact dependencies, fast linting, coverage enforcement, and GitHub security automation.
 
 ## Included
 
-- Node.js 22.23.1, npm, ECMAScript modules, and strict TypeScript 7
+- Node.js 24.22.0, npm, ECMAScript modules, and strict TypeScript 7
 - Exact versions, `.npmrc` with `save-exact=true` and `engine-strict=true`, and committed `package-lock.json`
 - Oxlint with type-aware TypeScript rules, typechecking, build, Vitest unit tests, and V8 coverage
 - 80% minimum coverage for branches, functions, lines, and statements
