@@ -21,13 +21,15 @@
   "packageManager": "npm@10.9.8",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "check": "npm run lint && npm run typecheck && npm run test:coverage && npm run build",
+    "check": "npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run verify:package",
+    "preinstall": "only-allow npm",
     "lint": "oxlint -c .oxlintrc.json src scripts",
     "setup": "node scripts/setup.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify:package": "node scripts/verify-package.mjs"
   },
   "repository": {
     "type": "git",
@@ -39,10 +41,13 @@
   "homepage": "https://github.com/osloer-industries/typescript-node-template#readme",
   "license": "MIT",
   "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
     "@types/node": "24.19.2",
     "@vitest/coverage-v8": "4.1.11",
+    "only-allow": "1.2.2",
     "oxlint": "1.79.0",
     "oxlint-tsgolint": "7.0.2001",
+    "publint": "0.3.25",
     "typescript": "7.0.2",
     "vitest": "4.1.11"
   }

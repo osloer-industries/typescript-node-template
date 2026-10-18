@@ -8,7 +8,9 @@ A minimal Node.js 24 and TypeScript starter with secure defaults, exact dependen
 - Exact versions, `.npmrc` with `save-exact=true` and `engine-strict=true`, and committed `package-lock.json`
 - Oxlint with type-aware TypeScript rules, typechecking, build, Vitest unit tests, and V8 coverage
 - 80% minimum coverage for branches, functions, lines, and statements in `src/` and testable `scripts/` helpers (CLI entry `scripts/setup.mjs` is exercised by CI smoke jobs)
-- Pull request and `main` CI with `npm run check`, `npm audit --omit=dev`, and a four-scenario setup smoke matrix
+- `npm run check` ends with **Publint** and **Are the Types Wrong** (`attw`) when `package.json` defines `exports` or `bin` (ESM profile via `.attw.json`)
+- `preinstall` enforces **npm-only** installs (`only-allow`)
+- Pull request and `main` CI with `npm run check`, `npm audit --omit=dev`, **actionlint**, and a four-scenario setup smoke matrix
 - CodeQL, SonarQube Cloud, Dependabot, and pull request dependency review
 - Release Please for Conventional Commit-based release pull requests, changelogs, tags, and GitHub releases
 - Conventional pull request title validation and matching Dependabot commit prefixes
@@ -53,6 +55,7 @@ Review `SETUP.md`, update repository URLs in `package.json`, then remove `SETUP.
 | `npm run test:coverage` | Test and enforce coverage thresholds |
 | `npm run build` | Compile to `dist/` |
 | `npm run check` | Run all local quality gates |
+| `npm run verify:package` | Lint the packed tarball with Publint and attw (also run at the end of `check`) |
 | `npm audit --omit=dev` | Audit production dependencies |
 
 ## SonarQube Cloud setup
@@ -86,7 +89,7 @@ Branch protection is intentionally not automated. After the first successful run
 
 - Pull requests required with at least one approval
 - Stale approval dismissal and conversation resolution
-- Required checks: `CI / Quality`, the four `Setup smoke` jobs, `CodeQL / Analyze JavaScript and TypeScript`, `Dependency review / Review dependency changes`, `Pull request title / Semantic pull request`, and `SonarQube Cloud / Analyze` after Sonar is configured
+- Required checks: `CI / Quality`, the four `Setup smoke` jobs, `Workflow lint / Lint GitHub Actions`, `CodeQL / Analyze JavaScript and TypeScript`, `Dependency review / Review dependency changes`, `Pull request title / Semantic pull request`, and `SonarQube Cloud / Analyze` after Sonar is configured
 - Up-to-date branches when parallel development makes it useful
 - Force pushes and branch deletion blocked
 - Rules applied to administrators unless an emergency process exists
@@ -115,7 +118,7 @@ This template includes immutable Action pins with Dependabot updates, high-sever
 
 Consider these additions only when the generated project needs them:
 
-- npm Trusted Publishing with OIDC and provenance for published packages, instead of a long-lived token
+- npm Trusted Publishing with OIDC and provenance for published packages, instead of a long-lived token (Publint and attw are already included in `check`)
 - SBOM generation and GitHub artifact attestations for released binaries or containers
 - OpenSSF Scorecard, a real `CODEOWNERS` file, and organization-wide Action SHA-pinning rules
 - Generated-code drift checks, integration tests, container scanning, deployment environments, and observability

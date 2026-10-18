@@ -107,7 +107,4 @@ runNpm(["install", "--save-exact", "--ignore-scripts"], { stdio: "inherit" });
 console.log(`Configured ${selected.name} as a ${selected.scenario} project.`);
 if (shouldVerifyAfterSetup(parsedCli)) {
   runNpm(["run", "check"], { stdio: "inherit" });
-  if (selected.profile.publishable) {
-    runNpm(["pack", "--dry-run"], { stdio: "inherit" });
-  }
 }

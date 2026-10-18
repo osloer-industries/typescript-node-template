@@ -17,7 +17,9 @@ instruction files.
 - Install reproducibly with `npm ci`. Use `npm install --save-exact` when a
   dependency intentionally changes, then commit `package-lock.json`.
 - Run `npm run check` before submitting a change. This runs Oxlint, the
-  TypeScript compiler, coverage, and the production build.
+  TypeScript compiler, coverage, the production build, and package verification
+  (Publint and attw when `exports` or `bin` is present).
+- Install with npm only; `preinstall` rejects other package managers.
 - Run `npm audit --omit=dev` whenever dependencies or the lockfile change.
 - Keep `npm run typecheck` as the authoritative TypeScript diagnostic step.
   Oxlint's type-aware rules supplement it but do not replace it.
