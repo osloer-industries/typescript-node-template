@@ -7,6 +7,7 @@ Use a Conventional Commit title, for example `feat: add JSON output` or `fix(cli
 ## Verification
 
 - [ ] `npm run check`
+- [ ] `npm audit --omit=dev` when dependencies changed
 - [ ] Documentation updated if behavior changed
 - [ ] No secrets, credentials, or generated files committed
 

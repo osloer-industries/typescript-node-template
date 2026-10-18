@@ -25,7 +25,7 @@
   },
   "overrides": [
     {
-      "files": ["**/*.test.ts", "**/*.spec.ts"],
+      "files": ["**/*.test.ts", "**/*.spec.ts", "scripts/**/*.test.mjs"],
       "rules": {
         "max-lines-per-function": "off",
         "max-params": "off"

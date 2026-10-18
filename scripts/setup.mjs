@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
-import { execFileSync } from "node:child_process";
+import { runNpm } from "./run-npm.mjs";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
+import { assertNodeEngine, packageName, parseArgs, shouldVerifyAfterSetup } from "./setup-lib.mjs";
 
 const profiles = {
   plugin: {
@@ -70,26 +71,6 @@ describe("formatGreeting", () => { it("uses an argument", () => expect(formatGre
   }
 };
 
-function parseArgs(args) {
-  const values = {};
-  for (let i = 0; i < args.length; i += 1) {
-    const argument = args[i];
-    if (argument === "--yes") values.yes = true;
-    else if (argument?.startsWith("--")) {
-      const value = args[i + 1];
-      if (!value || value.startsWith("--")) throw new Error(`Missing value for ${argument}`);
-      values[argument.slice(2)] = value;
-      i += 1;
-    }
-  }
-  return values;
-}
-
-function packageName(value) {
-  if (!/^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/.test(value)) throw new Error(`Invalid npm package name: ${value}`);
-  return value;
-}
-
 async function options(args) {
   const parsed = parseArgs(args);
   const reader = parsed.yes ? undefined : createInterface({ input: stdin, output: stdout });
@@ -103,8 +84,11 @@ async function options(args) {
   } finally { reader?.close(); }
 }
 
-const selected = await options(process.argv.slice(2));
+const cliArgs = process.argv.slice(2);
+const parsedCli = parseArgs(cliArgs);
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+assertNodeEngine(process.versions.node, pkg.engines?.node);
+const selected = await options(cliArgs);
 pkg.name = selected.name;
 pkg.description = selected.description;
 pkg.private = !selected.profile.publishable;
@@ -115,6 +99,15 @@ if (selected.profile.dependencies) pkg.dependencies = selected.profile.dependenc
 writeFileSync("package.json", `${JSON.stringify(pkg, null, 2)}\n`);
 writeFileSync("src/index.ts", selected.profile.source);
 writeFileSync("src/index.test.ts", selected.profile.test);
-writeFileSync("SETUP.md", `# Setup result\n\nScenario: ${selected.scenario}\n\nPackage: ${selected.name}\n\nRun \`npm run check\`, update repository URLs, then remove this file.\n`);
-execFileSync("npm", ["install", "--save-exact"], { stdio: "inherit" });
+writeFileSync(
+  "SETUP.md",
+  `# Setup result\n\nScenario: ${selected.scenario}\n\nPackage: ${selected.name}\n\nUpdate repository URLs in \`package.json\`, then remove this file.\n`,
+);
+runNpm(["install", "--save-exact", "--ignore-scripts"], { stdio: "inherit" });
 console.log(`Configured ${selected.name} as a ${selected.scenario} project.`);
+if (shouldVerifyAfterSetup(parsedCli)) {
+  runNpm(["run", "check"], { stdio: "inherit" });
+  if (selected.profile.publishable) {
+    runNpm(["pack", "--dry-run"], { stdio: "inherit" });
+  }
+}
