@@ -13,7 +13,7 @@ Use a Conventional Commit title, for example `feat: add JSON output` or `fix(cli
 
 See [AGENTS.md](../AGENTS.md) for the verification ladder. At minimum:
 
-- [ ] `npm run check`
+- [ ] `npm run check` (includes `lint:md` and `lint:md-links`)
 - [ ] `npm audit --omit=dev` when dependencies or the lockfile changed
 - [ ] Setup or scenario changes exercised via `scripts/setup.test.ts` when `scripts/setup-lib.mjs` profiles changed
 - [ ] Documentation updated if behavior changed

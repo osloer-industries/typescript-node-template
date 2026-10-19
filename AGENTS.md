@@ -28,11 +28,12 @@ Optional **Cursor** bootstrap (rules, skills, Cloud environment) is documented i
 Run gates in this order when iterating locally:
 
 1. `npm run lint`
-2. `npm run typecheck`
-3. `npm run test` or `npm run test:coverage`
-4. `npm run build`
-5. `npm run check` (all of the above) before opening a pull request
-6. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes
+2. `npm run lint:md` and `npm run lint:md-links`
+3. `npm run typecheck`
+4. `npm run test` or `npm run test:coverage`
+5. `npm run build`
+6. `npm run check` (all of the above) before opening a pull request
+7. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes
 
 After editing setup profiles, rely on `scripts/setup.test.ts` integration cases for all four scenarios.
 

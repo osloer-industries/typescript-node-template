@@ -58,14 +58,14 @@ Install org **plugins** once (rules, skills, MCP bundled) via Cursor dashboard i
 
 ## Adding a new skill
 
-1. Create `.agents/skills/<name>/SKILL.md` with YAML frontmatter (`name`, `description`).
+1. Create `.agents/skills/{name}/SKILL.md` with YAML frontmatter (`name`, `description`).
 2. Keep workflow steps in the skill; link to `docs/` for long reference.
-3. Mirror under `skills/<name>/` if you want a provider-neutral copy path.
+3. Mirror under `skills/{name}/` if you want a provider-neutral copy path.
 4. Add one line to **AGENTS.md** repository map if the skill is required reading.
 
 ## Adding a scoped rule
 
-1. Add `.cursor/rules/<topic>.mdc` with frontmatter:
+1. Add `.cursor/rules/{topic}.mdc` with frontmatter:
 
 ```yaml
 ---
@@ -75,7 +75,7 @@ alwaysApply: false
 ---
 ```
 
-2. Body: bullet checklist only; link `@AGENTS.md` or `@docs/sonar-quality-gate.md` instead of pasting content.
+Then add a short body: bullet checklist only; link `@AGENTS.md` or `@docs/sonar-quality-gate.md` instead of pasting content.
 
 ## MCP scenario (`npm run setup --scenario mcp`)
 
@@ -99,5 +99,7 @@ After changing Cursor config:
 ```sh
 npm run check
 ```
+
+Documentation is checked with `npm run lint:md` (markdownlint) and `npm run lint:md-links` (relative paths + HTTP URLs).
 
 Open a new Agent chat and ask it to follow the verification ladder in AGENTS.md; it should cite `npm run check` and linked docs without needing the whole repository in context.

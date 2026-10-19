@@ -25,6 +25,6 @@ Apply this skill when changing JavaScript/TypeScript, `scripts/`, or GitHub Acti
 
 ## Canonical reference
 
-Full checklist and context: [docs/sonar-quality-gate.md](../../docs/sonar-quality-gate.md)
+Full checklist and context: [docs/sonar-quality-gate.md](../../../docs/sonar-quality-gate.md)
 
-Implementation reference: [scripts/run-npm.mjs](../../scripts/run-npm.mjs), [scripts/setup-lib.mjs](../../scripts/setup-lib.mjs), [.github/workflows/ci.yml](../../.github/workflows/ci.yml).
+Implementation reference: [scripts/run-npm.mjs](../../../scripts/run-npm.mjs), [scripts/setup-lib.mjs](../../../scripts/setup-lib.mjs), [.github/workflows/ci.yml](../../../.github/workflows/ci.yml).

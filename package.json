@@ -12,13 +12,19 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
-  "engines": { "node": ">=24 <25" },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24 <25"
+  },
   "packageManager": "npm@10.9.8",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "check": "npm run lint && npm run typecheck && npm run test:coverage && npm run build",
+    "check": "npm run lint && npm run lint:md && npm run lint:md-links && npm run typecheck && npm run test:coverage && npm run build",
     "lint": "oxlint -c .oxlintrc.json src scripts",
+    "lint:md": "markdownlint-cli2",
+    "lint:md-links": "node scripts/check-markdown-links.mjs",
     "setup": "node scripts/setup.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -29,13 +35,17 @@
     "type": "git",
     "url": "git+https://github.com/osloer-industries/typescript-node-template.git"
   },
-  "bugs": { "url": "https://github.com/osloer-industries/typescript-node-template/issues" },
+  "bugs": {
+    "url": "https://github.com/osloer-industries/typescript-node-template/issues"
+  },
   "homepage": "https://github.com/osloer-industries/typescript-node-template#readme",
   "license": "MIT",
   "devDependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",
     "@types/node": "24.19.2",
     "@vitest/coverage-v8": "4.1.11",
+    "link-check": "5.5.0",
+    "markdownlint-cli2": "0.17.2",
     "oxlint": "1.79.0",
     "oxlint-tsgolint": "7.0.2001",
     "typescript": "7.0.2",
