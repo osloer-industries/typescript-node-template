@@ -13,6 +13,8 @@ instruction files.
 | `scripts/setup-lib.mjs` | Setup profiles and testable helpers. |
 | `scripts/setup.test.ts` | Setup unit and integration tests. |
 | `docs/architecture.md` | Module boundaries, scenarios, and dependency rules. |
+| `docs/sonar-quality-gate.md` | SonarCloud gate patterns (PATH-safe npm, CI install flags). |
+| `skills/sonar-quality-gate/SKILL.md` | Optional Cursor skill mirroring the Sonar doc. |
 | `.github/workflows/` | CI and security automation. |
 
 ## Verification
@@ -28,6 +30,8 @@ Run gates in this order when iterating locally:
 
 After editing setup profiles, rely on `scripts/setup.test.ts` integration cases for all four scenarios.
 
+When touching `scripts/`, setup, or CI install steps, follow [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) so **SonarCloud Code Analysis** stays green (use `scripts/run-npm.mjs`, prefer `--ignore-scripts` on npm ci/install).
+
 ## Change recipes
 
 | Change | Touch | Tests |
@@ -36,6 +40,7 @@ After editing setup profiles, rely on `scripts/setup.test.ts` integration cases 
 | New MCP tool | MCP profile in `scripts/setup-lib.mjs`, generated handler | Profile tests + integration scenario `mcp` |
 | New CLI flag or argv rule | CLI profile in `scripts/setup-lib.mjs` | Profile tests + integration scenario `cli` |
 | New setup scenario | `scripts/setup-lib.mjs`, README, SETUP docs | `scripts/setup.test.ts` unit + integration |
+| npm via child_process | `scripts/run-npm.mjs` only | Do not add new `execFileSync("npm", …)` call sites |
 
 ## Do not edit without reason
 

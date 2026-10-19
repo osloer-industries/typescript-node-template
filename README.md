@@ -57,6 +57,8 @@ Review `SETUP.md`, update repository URLs in `package.json`, then remove `SETUP.
 
 ## SonarQube Cloud setup
 
+Contributors and agents should follow [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) to avoid **SonarCloud Code Analysis** failures (PATH-safe npm via `scripts/run-npm.mjs`, `--ignore-scripts` on CI installs). Optional Cursor skill: [skills/sonar-quality-gate/SKILL.md](skills/sonar-quality-gate/SKILL.md).
+
 The Sonar workflow skips safely until configured.
 
 1. Import the repository into SonarQube Cloud.
