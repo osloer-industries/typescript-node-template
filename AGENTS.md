@@ -1,8 +1,12 @@
 # Agent Guidelines
 
 These instructions apply to every human or automated contributor. Keep this file
-provider-neutral. Do not add `CLAUDE.md`, `.cursor/`, or equivalent duplicate
-instruction files.
+provider-neutral: the canonical map, verification ladder, and change recipes live
+here. Do not duplicate this content in `CLAUDE.md` or other vendor instruction files.
+
+Optional **Cursor** bootstrap (rules, skills, Cloud environment) is documented in
+[docs/cursor-agent-setup.md](docs/cursor-agent-setup.md). Those files may link or
+`@`-reference this document; they must not replace it.
 
 ## Repository map
 
@@ -14,7 +18,9 @@ instruction files.
 | `scripts/setup.test.ts` | Setup unit and integration tests. |
 | `docs/architecture.md` | Module boundaries, scenarios, and dependency rules. |
 | `docs/sonar-quality-gate.md` | SonarCloud gate patterns (PATH-safe npm, CI install flags). |
-| `skills/sonar-quality-gate/SKILL.md` | Optional Cursor skill mirroring the Sonar doc. |
+| `.agents/skills/` | Cursor-compatible skills (auto-discovered; mirrors `skills/`). |
+| `docs/cursor-agent-setup.md` | On-demand Cursor rules, skills, Cloud Agents, plugins. |
+| `skills/sonar-quality-gate/SKILL.md` | Provider-neutral skill copy (same as `.agents/skills/`). |
 | `.github/workflows/` | CI and security automation. |
 
 ## Verification

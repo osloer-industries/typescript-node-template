@@ -15,6 +15,7 @@ A minimal Node.js 24 and TypeScript starter with secure defaults, exact dependen
 - Full commit SHA pins, minimal permissions, timeouts, and concurrency cancellation
 - Secret-safe ignores, issue forms, and pull request guidance
 - Provider-neutral `AGENTS.md` and [docs/architecture.md](docs/architecture.md) for contributors and coding agents
+- Optional Cursor on-demand setup: [docs/cursor-agent-setup.md](docs/cursor-agent-setup.md) (`.agents/skills/`, `.cursor/rules/`, Cloud `environment.json`)
 
 ## Start a project
 
