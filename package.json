@@ -40,6 +40,9 @@
   },
   "homepage": "https://github.com/osloer-industries/typescript-node-template#readme",
   "license": "MIT",
+  "overrides": {
+    "basic-ftp": "6.2.3"
+  },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",
     "@types/node": "24.19.2",

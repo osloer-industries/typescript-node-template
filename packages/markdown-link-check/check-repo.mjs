@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, resolve } from "node:path";
 import { checkMarkdownFileLinks } from "./index.mjs";
 
 const skipDirs = new Set(["node_modules", "dist", "coverage", ".git"]);
@@ -20,11 +20,22 @@ function collectMarkdownFiles(dir, files) {
   }
 }
 
+/**
+ * @param {string | undefined} configPath
+ */
+function readLinkCheckOptions(configPath) {
+  if (!configPath) return {};
+  const resolved = resolve(process.cwd(), configPath);
+  const fromRoot = relative(process.cwd(), resolved);
+  if (fromRoot.startsWith("..")) {
+    throw new Error("Config path must stay inside the working directory");
+  }
+  return JSON.parse(readFileSync(resolved, "utf8"));
+}
+
 const configArgIndex = process.argv.indexOf("--config");
 const configPath = configArgIndex >= 0 ? process.argv[configArgIndex + 1] : undefined;
-const linkCheckOptions = configPath
-  ? JSON.parse(readFileSync(configPath, "utf8"))
-  : {};
+const linkCheckOptions = readLinkCheckOptions(configPath);
 
 const markdownFiles = [];
 collectMarkdownFiles(process.cwd(), markdownFiles);

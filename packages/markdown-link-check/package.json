@@ -34,6 +34,9 @@
     "relative"
   ],
   "license": "ISC",
+  "overrides": {
+    "basic-ftp": "6.2.3"
+  },
   "engines": {
     "node": ">=22"
   },
