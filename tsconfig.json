@@ -15,8 +15,18 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "skipLibCheck": true,
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src/**/*.ts", "scripts/**/*.ts", "scripts/**/*.d.ts", "vitest.config.ts"],
-  "exclude": ["dist", "coverage", "node_modules"]
+  "include": [
+    "src/**/*.ts",
+    "scripts/**/*.ts",
+    "scripts/**/*.d.ts",
+    "packages/**/*.mjs",
+    "packages/**/*.d.ts",
+    "vitest.config.ts"
+  ],
+  "exclude": ["dist", "coverage", "node_modules", "packages/**/*.test.mjs"]
 }

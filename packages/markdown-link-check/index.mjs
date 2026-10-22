@@ -26,7 +26,7 @@ export function isSkippableLink(target) {
  * @param {string} target
  */
 export function resolveRepositoryLink(markdownFilePath, target) {
-  const withoutFragment = target.split("#")[0];
+  const withoutFragment = target.split("#")[0] ?? "";
   if (withoutFragment.length === 0) return { ok: true };
   const resolved = resolve(dirname(markdownFilePath), withoutFragment);
   if (existsSync(resolved)) return { ok: true };
@@ -39,7 +39,7 @@ export function resolveRepositoryLink(markdownFilePath, target) {
  */
 export function checkHttpLink(url, options) {
   return new Promise((resolvePromise, reject) => {
-    linkCheck(url, options, (error, result) => {
+    linkCheck(url, options, (/** @type {Error | null} */ error, /** @type {{ status: string; statusCode?: number }} */ result) => {
       if (error) {
         reject(error);
         return;

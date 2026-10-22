@@ -161,8 +161,11 @@ describe.sequential("setup integration", () => {
           { yes: true, scenario, name: `demo-${scenario}`, description: "Integration test" },
           undefined
         );
-        applySetup(selected, { runInstall: false, baseDir: tempDir });
-        symlinkSync(join(repoRoot, "node_modules"), join(tempDir, "node_modules"), "junction");
+        const needsInstall = scenario !== "plugin";
+        applySetup(selected, { runInstall: needsInstall, baseDir: tempDir });
+        if (!needsInstall) {
+          symlinkSync(join(repoRoot, "node_modules"), join(tempDir, "node_modules"), "junction");
+        }
         const indexSource = readFileSync(join(tempDir, "src/index.ts"), "utf8");
         expect(indexSource).toContain(scenarioMarkers[scenario]);
         expect(readPackageName(join(tempDir, "package.json"))).toBe(`demo-${scenario}`);

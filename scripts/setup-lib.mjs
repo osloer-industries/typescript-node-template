@@ -31,23 +31,52 @@ import { z } from "zod";
 export const greetNameSchema = z.string().trim().min(1).default("world");
 export function parseGreetName(input: unknown): string { return greetNameSchema.parse(input); }
 export function createGreetingResult(name: string) { return { content: [{ type: "text" as const, text: \`Hello, \${name}!\` }] }; }
+export function handleGreetTool(input: { name: string }) { return createGreetingResult(input.name); }
 export function createServer(): McpServer {
   const server = new McpServer({ name: "example-mcp-server", version: "0.1.0" });
-  server.registerTool("greet", { description: "Return a greeting", inputSchema: { name: greetNameSchema } },
-    /* v8 ignore next */
-    ({ name }) => createGreetingResult(name));
+  server.registerTool("greet", { description: "Return a greeting", inputSchema: { name: greetNameSchema } }, handleGreetTool);
   return server;
 }
-/* v8 ignore start */
-export async function main(): Promise<void> { await createServer().connect(new StdioServerTransport()); }
-if (import.meta.url === new URL(process.argv[1] ?? "", "file:").href) await main();
-/* v8 ignore stop */
+export type StdioConnectable = { connect(transport: unknown): Promise<void> };
+export async function connectStdio(server: StdioConnectable): Promise<void> { await server.connect(new StdioServerTransport()); }
+export async function main(): Promise<void> { await connectStdio(createServer()); }
+export function shouldRunMain(metaUrl: string, argvEntry: string): boolean {
+  return metaUrl === new URL(argvEntry, "file:").href;
+}
+export async function runEntry(
+  metaUrl: string,
+  argvEntry: string,
+  startMain: () => Promise<void> = main,
+): Promise<void> {
+  if (shouldRunMain(metaUrl, argvEntry)) await startMain();
+}
+await runEntry(import.meta.url, process.argv[1] ?? "");
 `,
-    test: `import { describe, expect, it } from "vitest";
-import { createGreetingResult, createServer, parseGreetName } from "./index.js";
+    test: `import { describe, expect, it, vi } from "vitest";
+import { createGreetingResult, createServer, connectStdio, handleGreetTool, parseGreetName, runEntry, shouldRunMain } from "./index.js";
 describe("MCP server", () => {
   it("creates a server", () => expect(createServer()).toBeDefined());
   it("formats responses", () => expect(createGreetingResult("Oslo")).toEqual({ content: [{ type: "text", text: "Hello, Oslo!" }] }));
+  it("handles greet tool input", () => expect(handleGreetTool({ name: "Oslo" })).toEqual(createGreetingResult("Oslo")));
+  it("connectStdio calls connect", async () => {
+    const connect = vi.fn<(argument?: unknown) => Promise<void>>().mockResolvedValue(undefined);
+    await connectStdio({ connect });
+    expect(connect).toHaveBeenCalledOnce();
+  });
+  it("detects direct execution", () => {
+    expect(shouldRunMain("file:///tmp/demo/dist/index.js", "/tmp/demo/dist/index.js")).toBe(true);
+    expect(shouldRunMain("file:///tmp/demo/dist/index.js", "/other/index.js")).toBe(false);
+  });
+  it("runEntry skips main when not direct", async () => {
+    const startMain = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    await runEntry("file:///a.js", "/b.js", startMain);
+    expect(startMain).not.toHaveBeenCalled();
+  });
+  it("runEntry invokes main for a matching argv entry", async () => {
+    const startMain = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    await runEntry("file:///srv/app/dist/index.js", "/srv/app/dist/index.js", startMain);
+    expect(startMain).toHaveBeenCalledOnce();
+  });
   it("defaults greet name", () => expect(parseGreetName(undefined)).toBe("world"));
   it("trims greet name", () => expect(parseGreetName("  Oslo  ")).toBe("Oslo"));
   it("rejects empty greet name", () => expect(() => parseGreetName("   ")).toThrow(/Too small: expected string to have >=1 characters/));
@@ -90,12 +119,22 @@ export function parseGreetingArgs(args: readonly string[]): string {
   return parsed.data;
 }
 export function formatGreeting(args: readonly string[]): string { return \`Hello, \${parseGreetingArgs(args)}!\`; }
-/* v8 ignore start */
-if (import.meta.url === new URL(process.argv[1] ?? "", "file:").href) console.log(formatGreeting(process.argv.slice(2)));
-/* v8 ignore stop */
+export function runCli(argv: readonly string[]): void { console.log(formatGreeting(argv)); }
+export function shouldRunCli(metaUrl: string, argvEntry: string): boolean {
+  return metaUrl === new URL(argvEntry, "file:").href;
+}
+export function runEntry(
+  argv: readonly string[],
+  metaUrl: string,
+  argvEntry: string,
+  startCli: (args: readonly string[]) => void = runCli,
+): void {
+  if (shouldRunCli(metaUrl, argvEntry)) startCli(argv);
+}
+runEntry(process.argv.slice(2), import.meta.url, process.argv[1] ?? "");
 `,
-    test: `import { describe, expect, it } from "vitest";
-import { formatGreeting, parseGreetingArgs } from "./index.js";
+    test: `import { describe, expect, it, vi } from "vitest";
+import { formatGreeting, parseGreetingArgs, runCli, runEntry, shouldRunCli } from "./index.js";
 describe("formatGreeting", () => {
   it("uses an argument", () => expect(formatGreeting(["Oslo"])).toBe("Hello, Oslo!"));
   it("has a default", () => expect(formatGreeting([])).toBe("Hello, world!"));
@@ -103,6 +142,31 @@ describe("formatGreeting", () => {
 });
 describe("parseGreetingArgs", () => {
   it("trims a valid argument", () => expect(parseGreetingArgs(["  Oslo  "])).toBe("Oslo"));
+});
+describe("runCli", () => {
+  it("prints a greeting", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    runCli(["Oslo"]);
+    expect(log).toHaveBeenCalledWith("Hello, Oslo!");
+    log.mockRestore();
+  });
+});
+describe("runEntry", () => {
+  it("detects direct execution", () => {
+    expect(shouldRunCli("file:///tmp/demo/dist/index.js", "/tmp/demo/dist/index.js")).toBe(true);
+    expect(shouldRunCli("file:///tmp/demo/dist/index.js", "/other/index.js")).toBe(false);
+  });
+  it("skips cli when not direct", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    runEntry(["Oslo"], "file:///a.js", "/b.js");
+    expect(log).not.toHaveBeenCalled();
+    log.mockRestore();
+  });
+  it("runEntry invokes cli for a matching argv entry", () => {
+    const startCli = vi.fn<(args: readonly string[]) => void>();
+    runEntry(["Oslo"], "file:///srv/app/dist/index.js", "/srv/app/dist/index.js", startCli);
+    expect(startCli).toHaveBeenCalledWith(["Oslo"]);
+  });
 });
 `
   }
@@ -224,7 +288,6 @@ export function applySetup(selected, options = {}) {
     `# Setup result\n\nScenario: ${selected.scenario}\n\nPackage: ${selected.name}\n\nUpdate repository URLs in \`package.json\`, then remove this file.\n`
   );
   if (options.runInstall !== false) {
-    /* v8 ignore next -- install path covered by manual setup and integration flows */
     runNpm(["install", "--save-exact", "--ignore-scripts"], { cwd: baseDir, stdio: "inherit" });
   }
 }
@@ -232,7 +295,6 @@ export function applySetup(selected, options = {}) {
 /**
  * @param {readonly string[]} argv
  */
-/* v8 ignore start -- thin CLI wrapper; exercised via scripts/setup.mjs */
 export async function runSetupCli(argv) {
   const parsed = parseArgs(argv);
   const pkg = JSON.parse(readFileSync("package.json", "utf8"));
@@ -252,4 +314,3 @@ export async function runSetupCli(argv) {
     reader?.close();
   }
 }
-/* v8 ignore stop */
