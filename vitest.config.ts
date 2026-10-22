@@ -23,7 +23,6 @@ export default defineConfig({
         "src/**/*.spec.ts",
         "scripts/**/*.test.ts",
         "scripts/**/*.test.mjs",
-        "scripts/test-mcp.mjs",
         "packages/**/*.test.mjs",
       ],
       thresholds: { branches: 80, functions: 80, lines: 80, statements: 80 },

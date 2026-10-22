@@ -11,17 +11,17 @@ import { stdin, stdout } from "node:process";
 
 const setupLibDir = dirname(fileURLToPath(import.meta.url));
 
-const generatedTestMcpScript = `import { resolve } from "node:path";
-import { runMcpStdioSmoke } from "./mcp-stdio-smoke.mjs";
+const generatedTestMcpScript = `import { runProjectMcpSmokeEntry } from "./mcp-stdio-smoke.mjs";
 
-const root = resolve(import.meta.dirname, "..");
-const exitCode = await runMcpStdioSmoke({
-  serverPath: resolve(root, "dist/index.js"),
-  expectedTools: ["greet"],
-  toolCall: { name: "greet", arguments: { name: "smoke" } },
-});
-if (exitCode !== 0) process.exitCode = exitCode;
-else console.log("MCP stdio smoke test passed.");
+/** @param {string} [scriptDir] */
+export async function runTestMcp(scriptDir = import.meta.dirname) {
+  await runProjectMcpSmokeEntry(scriptDir);
+}
+
+const entry = process.argv[1] ?? "";
+if (import.meta.url === new URL(entry, "file:").href) {
+  await runTestMcp();
+}
 `;
 
 /**
