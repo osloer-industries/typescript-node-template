@@ -33,7 +33,7 @@ The setup CLI supports these scenarios:
 | Scenario | Result |
 | --- | --- |
 | `plugin` | Provider-neutral plugin interface and activation example |
-| `mcp` | Stdio MCP server using the official TypeScript SDK |
+| `mcp` | Stdio MCP server using the official TypeScript SDK and `npm run test:mcp` stdio smoke test |
 | `npm-package` | Publishable npm library with exports |
 | `cli` | Publishable command-line package with a `bin` entry |
 
@@ -47,6 +47,13 @@ With `--yes`, setup runs `npm run check` automatically and dry-runs `npm pack` f
 Pass `--no-verify` to skip that gate, or add `--verify` after an interactive run.
 
 Review `SETUP.md`, update repository URLs in `package.json`, then remove `SETUP.md`.
+
+Further patterns (provider-neutral):
+
+- [MCP stdio smoke test](docs/mcp-stdio-smoke-test.md) — credential-free handshake after build
+- [MCP account data and agents](docs/mcp-account-data-agents.md) — approval-gated writes and redaction
+- [Playwright vs CI installs](docs/playwright-ci-dependencies.md) — keep `--ignore-scripts` in CI
+- [npm overrides for audits](docs/npm-overrides.md) — transitive production fixes
 
 ## Commands
 

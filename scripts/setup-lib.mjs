@@ -1,12 +1,34 @@
 #!/usr/bin/env node
 
-import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { runNpm } from "./run-npm.mjs";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 
 /** @typedef {"plugin" | "mcp" | "npm-package" | "cli"} SetupScenario */
+
+const setupLibDir = dirname(fileURLToPath(import.meta.url));
+
+const generatedTestMcpScript = `import { runGeneratedTestMcpCli } from "./mcp-stdio-smoke.mjs";
+
+await runGeneratedTestMcpCli(import.meta.url, process.argv[1], import.meta.dirname);
+`;
+
+/**
+ * @param {string} baseDir
+ */
+export function writeMcpSmokeScripts(baseDir) {
+  const scriptsDir = join(baseDir, "scripts");
+  mkdirSync(scriptsDir, { recursive: true });
+  const smokeSource = join(setupLibDir, "mcp-stdio-smoke.mjs");
+  const smokeDest = join(scriptsDir, "mcp-stdio-smoke.mjs");
+  if (resolve(smokeSource) !== resolve(smokeDest)) {
+    cpSync(smokeSource, smokeDest);
+  }
+  writeFileSync(join(scriptsDir, "test-mcp.mjs"), generatedTestMcpScript);
+}
 
 export const profiles = {
   plugin: {
@@ -280,6 +302,11 @@ export function applySetup(selected, options = {}) {
   else delete pkg.bin;
   if (selected.profile.dependencies) pkg.dependencies = selected.profile.dependencies;
   else delete pkg.dependencies;
+  if (selected.scenario === "mcp") {
+    pkg.scripts["test:mcp"] = "npm run build && node scripts/test-mcp.mjs";
+  } else {
+    delete pkg.scripts["test:mcp"];
+  }
   writeFileSync(join(baseDir, "package.json"), `${JSON.stringify(pkg, null, 2)}\n`);
   writeFileSync(join(baseDir, "src/index.ts"), selected.profile.source);
   writeFileSync(join(baseDir, "src/index.test.ts"), selected.profile.test);
@@ -287,6 +314,9 @@ export function applySetup(selected, options = {}) {
     join(baseDir, "SETUP.md"),
     `# Setup result\n\nScenario: ${selected.scenario}\n\nPackage: ${selected.name}\n\nUpdate repository URLs in \`package.json\`, then remove this file.\n`
   );
+  if (selected.scenario === "mcp") {
+    writeMcpSmokeScripts(baseDir);
+  }
   if (options.runInstall !== false) {
     runNpm(["install", "--save-exact", "--ignore-scripts"], { cwd: baseDir, stdio: "inherit" });
   }
@@ -306,6 +336,9 @@ export async function runSetupCli(argv) {
     console.log(`Configured ${selected.name} as a ${selected.scenario} project.`);
     if (shouldVerifyAfterSetup(parsed)) {
       runNpm(["run", "check"], { stdio: "inherit" });
+      if (selected.scenario === "mcp") {
+        runNpm(["run", "test:mcp"], { stdio: "inherit" });
+      }
       if (selected.profile.publishable) {
         runNpm(["pack", "--dry-run"], { stdio: "inherit" });
       }

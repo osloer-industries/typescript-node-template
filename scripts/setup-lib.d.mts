@@ -39,6 +39,8 @@ export function resolveSetupOptions(
   profile: SetupProfile;
 }>;
 
+export function writeMcpSmokeScripts(baseDir: string): void;
+
 export function applySetup(
   selected: {
     scenario: SetupScenario;
