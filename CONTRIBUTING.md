@@ -11,3 +11,16 @@ Coverage must remain at least 80% for branches, functions, lines, and statements
 Use Conventional Commit prefixes such as `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, and `chore:`. Release Please treats `feat:` as a minor release and `fix:` as a patch release. Use a `BREAKING CHANGE:` footer or `!` marker for a major release.
 
 Pull request titles are validated automatically. Squash merging uses the validated title as the commit subject on `main`, giving Release Please one reliable Conventional Commit per pull request. Dependabot uses `chore(deps):` for npm updates and `ci(deps):` for GitHub Actions updates.
+
+## Merge order
+
+When several pull requests are open at once, merge in this order to keep `main` and downstream branches consistent:
+
+1. Feature and baseline pull requests (human or agent work on `main`).
+2. The Release Please release pull request (version bump and changelog).
+3. Grouped GitHub Actions Dependabot updates for minor and patch releases (`ci(deps)`).
+4. Grouped npm development-dependency Dependabot updates for minor and patch releases (`chore(deps)`).
+5. Individual Dependabot pull requests for major version updates (GitHub Actions or npm dev dependencies).
+6. Single transitive lockfile bumps that Dependabot opens on their own.
+
+After each merge, refresh or rebase any later pull requests in the queue so they pick up the latest `main` before you merge them.
