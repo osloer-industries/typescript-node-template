@@ -235,6 +235,14 @@ export async function runMcpStdioSmoke(options) {
   }
 }
 
+/**
+ * @param {string} metaUrl
+ * @param {string | undefined} argvEntry
+ */
+export function isScriptEntry(metaUrl, argvEntry) {
+  return metaUrl === new URL(argvEntry ?? "", "file:").href;
+}
+
 /** Default MCP tools exercised by generated `scripts/test-mcp.mjs`. */
 export const defaultProjectMcpSmoke = {
   expectedTools: ["greet"],
@@ -266,4 +274,17 @@ export async function runProjectMcpSmokeEntry(scriptDir, deps = {}) {
   }
   console.log("MCP stdio smoke test passed.");
   return exitCode;
+}
+
+/**
+ * Entry used by generated `scripts/test-mcp.mjs` (no branching in that file).
+ *
+ * @param {string} metaUrl
+ * @param {string | undefined} argvEntry
+ * @param {string} scriptDir
+ * @param {ProjectMcpSmokeEntryDeps} [deps]
+ */
+export async function runGeneratedTestMcpCli(metaUrl, argvEntry, scriptDir, deps = {}) {
+  if (!isScriptEntry(metaUrl, argvEntry)) return;
+  await runProjectMcpSmokeEntry(scriptDir, deps);
 }

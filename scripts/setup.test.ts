@@ -134,7 +134,7 @@ describe("applySetup metadata", () => {
       if (typeof scripts !== "object" || scripts === null) throw new Error("Invalid scripts");
       expect(Reflect.get(scripts, "test:mcp")).toMatch(/scripts\/test-mcp\.mjs/);
       expect(readFileSync(join(tempDir, "scripts/test-mcp.mjs"), "utf8")).toContain(
-        "runProjectMcpSmokeEntry"
+        "runGeneratedTestMcpCli"
       );
       expect(readFileSync(join(tempDir, "scripts/mcp-stdio-smoke.mjs"), "utf8")).toContain("runMcpStdioSmoke");
     } finally {

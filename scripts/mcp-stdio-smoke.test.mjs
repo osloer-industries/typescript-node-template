@@ -5,6 +5,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   findMissingTools,
   isToolCallError,
+  isScriptEntry,
+  runGeneratedTestMcpCli,
   runMcpStdioSmoke,
   runProjectMcpSmokeEntry,
   toolNamesFromListResult,
@@ -37,6 +39,31 @@ describe("toolsListMatches", () => {
     expect(toolsListMatches(["greet"], ["greet"])).toBe(true);
     expect(toolsListMatches(["greet"], ["greet", "other"])).toBe(false);
     expect(toolsListMatches(["a", "b"], ["a"])).toBe(false);
+  });
+});
+
+describe("isScriptEntry", () => {
+  it("detects when a module is the node entrypoint", () => {
+    const entry = "/tmp/project/scripts/test-mcp.mjs";
+    const metaUrl = new URL(entry, "file:").href;
+    expect(isScriptEntry(metaUrl, entry)).toBe(true);
+    expect(isScriptEntry(metaUrl, "/other/script.mjs")).toBe(false);
+  });
+});
+
+describe("runGeneratedTestMcpCli", () => {
+  it("runs the project smoke entry when executed directly", async () => {
+    const runSmoke = vi.fn().mockResolvedValue(0);
+    const entry = "/tmp/project/scripts/test-mcp.mjs";
+    const metaUrl = new URL(entry, "file:").href;
+    await runGeneratedTestMcpCli(metaUrl, entry, "/tmp/project/scripts", { runSmoke });
+    expect(runSmoke).toHaveBeenCalledOnce();
+  });
+
+  it("does nothing when imported as a module", async () => {
+    const runSmoke = vi.fn().mockResolvedValue(0);
+    await runGeneratedTestMcpCli("file:///a.mjs", "/b.mjs", "/tmp/project/scripts", { runSmoke });
+    expect(runSmoke).not.toHaveBeenCalled();
   });
 });
 
