@@ -26,3 +26,15 @@ uses `chore(deps):` for npm updates and `ci(deps):` for GitHub Actions updates.
 
 Dependabot version updates use explicit `cooldown` settings in `.github/dependabot.yml` so newly
 published versions stabilize before pull requests are opened (security updates are not delayed).
+
+## Merge order
+
+When several pull requests are open at once, merge in this order to keep `main` and downstream branches consistent:
+
+1. Feature and baseline pull requests (human or agent work on `main`).
+2. The Release Please release pull request (version bump and changelog).
+3. Grouped GitHub Actions Dependabot updates (`ci(deps)`).
+4. Grouped npm development-dependency Dependabot updates (`chore(deps)`).
+5. Single transitive lockfile bumps that Dependabot opens on their own.
+
+After each merge, refresh or rebase any later pull requests in the queue so they pick up the latest `main` before you merge them.
