@@ -38,6 +38,13 @@ describe("agent documentation contract", () => {
     expect(check).toContain("lint:dup");
   });
 
+  it("links MCP and dependency pattern docs from AGENTS.md", () => {
+    expect(agentsMd).toMatch(/docs\/mcp-stdio-smoke-test\.md/);
+    expect(agentsMd).toMatch(/docs\/mcp-account-data-agents\.md/);
+    expect(agentsMd).toMatch(/docs\/playwright-ci-dependencies\.md/);
+    expect(agentsMd).toMatch(/docs\/npm-overrides\.md/);
+  });
+
   it("describes layout and setup scenarios in architecture.md", () => {
     expect(architectureMd).toMatch(/`src\//);
     expect(architectureMd).toMatch(/scripts\/setup-lib\.mjs/);
