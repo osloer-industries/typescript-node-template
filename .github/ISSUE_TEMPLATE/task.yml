@@ -1,0 +1,36 @@
+name: Task
+description: Planned work with explicit acceptance criteria for humans and agents.
+title: "[Task]: "
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What should change and why?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checklist-style outcomes that define done (behavior, docs, tests).
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification commands
+      description: Commands that must pass before closing (usually npm run check).
+      placeholder: npm run check
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+      description: Work that should not be included in this task.
+    validations:
+      required: false

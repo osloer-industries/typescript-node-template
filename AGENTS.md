@@ -1,8 +1,61 @@
 # Agent Guidelines
 
 These instructions apply to every human or automated contributor. Keep this file
-provider-neutral. Do not add `CLAUDE.md`, `.cursor/`, or equivalent duplicate
-instruction files.
+provider-neutral: the canonical map, verification ladder, and change recipes live
+here. Do not duplicate this content in `CLAUDE.md` or other vendor instruction files.
+
+Optional **Cursor** bootstrap (rules, skills, Cloud environment) is documented in
+[docs/cursor-agent-setup.md](docs/cursor-agent-setup.md). Those files may link or
+`@`-reference this document; they must not replace it.
+
+## Repository map
+
+| Path | Purpose |
+| --- | --- |
+| `src/` | Application or library source and colocated Vitest files. |
+| `scripts/setup.mjs` | CLI entry for `npm run setup`. |
+| `scripts/setup-lib.mjs` | Setup profiles and testable helpers. |
+| `scripts/setup.test.ts` | Setup unit and integration tests. |
+| `docs/architecture.md` | Module boundaries, scenarios, and dependency rules. |
+| `docs/sonar-quality-gate.md` | SonarCloud gate patterns (PATH-safe npm, CI install flags). |
+| `.agents/skills/` | Cursor-compatible skills (auto-discovered; mirrors `skills/`). |
+| `docs/cursor-agent-setup.md` | On-demand Cursor rules, skills, Cloud Agents, plugins. |
+| `skills/sonar-quality-gate/SKILL.md` | Provider-neutral skill copy (same as `.agents/skills/`). |
+| `.github/workflows/` | CI and security automation. |
+
+## Verification
+
+Run gates in this order when iterating locally:
+
+1. `npm run lint`
+2. `npm run lint:md` and `npm run lint:md-links`
+3. `npm run typecheck`
+4. `npm run test` or `npm run test:coverage`
+5. `npm run build`
+6. `npm run check` (all of the above) before opening a pull request
+7. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes
+
+After editing setup profiles, rely on `scripts/setup.test.ts` integration cases for all four scenarios.
+
+When touching `scripts/`, setup, or CI install steps, follow
+[docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) so **SonarCloud Code Analysis** stays green
+(use `scripts/run-npm.mjs`, prefer `--ignore-scripts` on npm ci/install).
+
+## Change recipes
+
+| Change | Touch | Tests |
+| --- | --- | --- |
+| New exported function or type | `src/index.ts`, README if public | `src/index.test.ts` success, failure, boundary |
+| New MCP tool | MCP profile in `scripts/setup-lib.mjs`, generated handler | Profile tests + integration scenario `mcp` |
+| New CLI flag or argv rule | CLI profile in `scripts/setup-lib.mjs` | Profile tests + integration scenario `cli` |
+| New setup scenario | `scripts/setup-lib.mjs`, README, SETUP docs | `scripts/setup.test.ts` unit + integration |
+| npm via child_process | `scripts/run-npm.mjs` only | Do not add new `execFileSync("npm", …)` call sites |
+
+## Do not edit without reason
+
+- `package-lock.json` — only with intentional dependency changes via `npm ci` / exact install policy.
+- Release Please manifest, changelogs, and version bumps outside the release pull request.
+- Pin SHAs in GitHub Actions workflows except when bumping dependencies via Dependabot or a focused CI change.
 
 ## Priorities
 
@@ -56,3 +109,5 @@ instruction files.
 - Do not edit generated Release Please versions or changelogs outside its
   release pull request unless correcting release metadata deliberately.
 - Never bypass required reviews, checks, or organization rules.
+
+For system design and scenario behavior, read [docs/architecture.md](docs/architecture.md).

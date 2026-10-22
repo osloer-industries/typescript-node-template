@@ -21,8 +21,10 @@
   "packageManager": "npm@10.9.8",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "check": "npm run lint && npm run typecheck && npm run test:coverage && npm run build",
-    "lint": "oxlint -c .oxlintrc.json src scripts",
+    "check": "npm run lint && npm run lint:md && npm run lint:md-links && npm run typecheck && npm run test:coverage && npm run build",
+    "lint": "oxlint -c .oxlintrc.json src scripts packages",
+    "lint:md": "markdownlint-cli2",
+    "lint:md-links": "markdown-link-check-repo --config .markdown-link-check.json",
     "setup": "node scripts/setup.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -38,9 +40,14 @@
   },
   "homepage": "https://github.com/osloer-industries/typescript-node-template#readme",
   "license": "MIT",
+  "overrides": {
+    "basic-ftp": "6.2.3"
+  },
   "devDependencies": {
     "@types/node": "24.19.2",
     "@vitest/coverage-v8": "4.1.11",
+    "@osloer-industries/markdown-link-check": "file:packages/markdown-link-check",
+    "markdownlint-cli2": "0.17.2",
     "oxlint": "1.79.0",
     "oxlint-tsgolint": "7.0.2001",
     "typescript": "7.0.2",

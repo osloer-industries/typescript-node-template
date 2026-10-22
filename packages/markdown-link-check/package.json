@@ -1,0 +1,47 @@
+{
+  "name": "@osloer-industries/markdown-link-check",
+  "version": "4.0.0",
+  "description": "Fork of markdown-link-check with repository-relative link validation for Node.js ESM projects.",
+  "type": "module",
+  "main": "./index.mjs",
+  "exports": "./index.mjs",
+  "bin": {
+    "markdown-link-check-repo": "./check-repo.mjs"
+  },
+  "files": [
+    "index.mjs",
+    "check-repo.mjs",
+    "LICENSE.md",
+    "NOTICE.md",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/osloer-industries/markdown-link-check.git"
+  },
+  "bugs": {
+    "url": "https://github.com/osloer-industries/markdown-link-check/issues"
+  },
+  "homepage": "https://github.com/osloer-industries/markdown-link-check#readme",
+  "keywords": [
+    "markdown",
+    "link",
+    "check",
+    "repository",
+    "relative"
+  ],
+  "license": "ISC",
+  "overrides": {
+    "basic-ftp": "6.2.3"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "link-check": "5.5.0",
+    "markdown-link-extractor": "4.0.4"
+  }
+}

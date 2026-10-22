@@ -1,113 +1,26 @@
 #!/usr/bin/env node
 
-import { runNpm } from "./run-npm.mjs";
-import { readFileSync, writeFileSync } from "node:fs";
-import { createInterface } from "node:readline/promises";
-import { stdin, stdout } from "node:process";
-import { assertNodeEngine, packageName, parseArgs, shouldVerifyAfterSetup } from "./setup-lib.mjs";
+import { runSetupCli } from "./setup-lib.mjs";
 
-const profiles = {
-  plugin: {
-    description: "Provider-neutral plugin package",
-    source: `export interface PluginContext { log(message: string): void; }
-export interface Plugin { name: string; activate(context: PluginContext): void; }
-export function createPlugin(name: string): Plugin {
-  return { name, activate(context) { context.log(\`\${name} activated\`); } };
-}
-`,
-    test: `import { describe, expect, it, vi } from "vitest";
-import { createPlugin } from "./index.js";
-describe("createPlugin", () => { it("activates", () => { const log = vi.fn<(message: string) => void>(); const plugin = createPlugin("example"); plugin.activate({ log }); expect(log).toHaveBeenCalledWith("example activated"); }); });
-`
-  },
-  mcp: {
-    description: "Model Context Protocol stdio server",
-    dependencies: { "@modelcontextprotocol/sdk": "1.30.0", "zod": "4.4.3" },
-    source: `import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
-export function createGreetingResult(name: string) { return { content: [{ type: "text" as const, text: \`Hello, \${name}!\` }] }; }
-export function createServer(): McpServer {
-  const server = new McpServer({ name: "example-mcp-server", version: "0.1.0" });
-  server.registerTool("greet", { description: "Return a greeting", inputSchema: { name: z.string().trim().min(1).default("world") } },
-    /* v8 ignore next */
-    ({ name }) => createGreetingResult(name));
-  return server;
-}
-/* v8 ignore start */
-export async function main(): Promise<void> { await createServer().connect(new StdioServerTransport()); }
-if (import.meta.url === new URL(process.argv[1] ?? "", "file:").href) await main();
-/* v8 ignore stop */
-`,
-    test: `import { describe, expect, it } from "vitest";
-import { createGreetingResult, createServer } from "./index.js";
-describe("MCP server", () => { it("creates a server", () => expect(createServer()).toBeDefined()); it("formats responses", () => expect(createGreetingResult("Oslo")).toEqual({ content: [{ type: "text", text: "Hello, Oslo!" }] })); });
-`
-  },
-  "npm-package": {
-    description: "Publishable npm library",
-    publishable: true,
-    source: `export function slugify(value: string): string { return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
-`,
-    test: `import { describe, expect, it } from "vitest";
-import { slugify } from "./index.js";
-describe("slugify", () => { it("normalizes text", () => expect(slugify(" Hello, TypeScript! ")).toBe("hello-typescript")); });
-`
-  },
-  cli: {
-    description: "Command-line application",
-    publishable: true,
-    bin: true,
-    source: `#!/usr/bin/env node
-export function formatGreeting(args: readonly string[]): string { return \`Hello, \${args[0]?.trim() || "world"}!\`; }
-/* v8 ignore start */
-if (import.meta.url === new URL(process.argv[1] ?? "", "file:").href) console.log(formatGreeting(process.argv.slice(2)));
-/* v8 ignore stop */
-`,
-    test: `import { describe, expect, it } from "vitest";
-import { formatGreeting } from "./index.js";
-describe("formatGreeting", () => { it("uses an argument", () => expect(formatGreeting(["Oslo"])).toBe("Hello, Oslo!")); it("has a default", () => expect(formatGreeting([])).toBe("Hello, world!")); });
-`
-  }
-};
-
-async function options(args) {
-  const parsed = parseArgs(args);
-  const reader = parsed.yes ? undefined : createInterface({ input: stdin, output: stdout });
-  try {
-    const scenario = parsed.scenario ?? await reader?.question(`Scenario (${Object.keys(profiles).join(", ")}): `);
-    if (!scenario || !(scenario in profiles)) throw new Error(`Unknown scenario: ${scenario ?? ""}`);
-    const name = packageName(parsed.name ?? await reader?.question("npm package name: ") ?? "");
-    const profile = profiles[scenario];
-    const answer = parsed.description ?? await reader?.question(`Description [${profile.description}]: `);
-    return { scenario, name, description: answer || profile.description, profile };
-  } finally { reader?.close(); }
+/**
+ * @param {string} metaUrl
+ * @param {string} argvEntry
+ */
+export function isSetupEntry(metaUrl, argvEntry) {
+  return metaUrl === new URL(argvEntry, "file:").href;
 }
 
-const cliArgs = process.argv.slice(2);
-const parsedCli = parseArgs(cliArgs);
-const pkg = JSON.parse(readFileSync("package.json", "utf8"));
-assertNodeEngine(process.versions.node, pkg.engines?.node);
-const selected = await options(cliArgs);
-pkg.name = selected.name;
-pkg.description = selected.description;
-pkg.private = !selected.profile.publishable;
-pkg.keywords = ["typescript", "nodejs", selected.scenario];
-if (selected.profile.publishable) pkg.scripts.prepublishOnly = "npm run check"; else delete pkg.scripts.prepublishOnly;
-if (selected.profile.bin) pkg.bin = { [selected.name.replace(/^@[^/]+\//, "")]: "./dist/index.js" }; else delete pkg.bin;
-if (selected.profile.dependencies) pkg.dependencies = selected.profile.dependencies; else delete pkg.dependencies;
-writeFileSync("package.json", `${JSON.stringify(pkg, null, 2)}\n`);
-writeFileSync("src/index.ts", selected.profile.source);
-writeFileSync("src/index.test.ts", selected.profile.test);
-writeFileSync(
-  "SETUP.md",
-  `# Setup result\n\nScenario: ${selected.scenario}\n\nPackage: ${selected.name}\n\nUpdate repository URLs in \`package.json\`, then remove this file.\n`,
-);
-runNpm(["install", "--save-exact", "--ignore-scripts"], { stdio: "inherit" });
-console.log(`Configured ${selected.name} as a ${selected.scenario} project.`);
-if (shouldVerifyAfterSetup(parsedCli)) {
-  runNpm(["run", "check"], { stdio: "inherit" });
-  if (selected.profile.publishable) {
-    runNpm(["pack", "--dry-run"], { stdio: "inherit" });
+/**
+ * @param {string} metaUrl
+ * @param {string} argvEntry
+ * @param {readonly string[]} argv
+ * @param {(args: readonly string[]) => Promise<void>} [runCli]
+ */
+export async function runSetupEntry(metaUrl, argvEntry, argv, runCli = runSetupCli) {
+  if (isSetupEntry(metaUrl, argvEntry)) {
+    await runCli(argv);
   }
 }
+
+const entry = process.argv[1] ?? "";
+await runSetupEntry(import.meta.url, entry, process.argv.slice(2));
