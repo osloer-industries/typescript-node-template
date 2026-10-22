@@ -1,11 +1,12 @@
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   findMissingTools,
   isToolCallError,
   runMcpStdioSmoke,
+  runProjectMcpSmokeEntry,
   toolNamesFromListResult,
   toolsListMatches,
 } from "./mcp-stdio-smoke.mjs";
@@ -36,6 +37,31 @@ describe("toolsListMatches", () => {
     expect(toolsListMatches(["greet"], ["greet"])).toBe(true);
     expect(toolsListMatches(["greet"], ["greet", "other"])).toBe(false);
     expect(toolsListMatches(["a", "b"], ["a"])).toBe(false);
+  });
+});
+
+describe("runProjectMcpSmokeEntry", () => {
+  it("logs success when the smoke test passes", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const runSmoke = vi.fn().mockResolvedValue(0);
+    const exitCode = await runProjectMcpSmokeEntry("/tmp/project/scripts", { runSmoke });
+    expect(exitCode).toBe(0);
+    expect(process.exitCode).toBeUndefined();
+    expect(log).toHaveBeenCalledWith("MCP stdio smoke test passed.");
+    expect(runSmoke).toHaveBeenCalledOnce();
+    log.mockRestore();
+  });
+
+  it("sets process.exitCode when the smoke test fails", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const runSmoke = vi.fn().mockResolvedValue(1);
+    const priorExitCode = process.exitCode;
+    const exitCode = await runProjectMcpSmokeEntry("/tmp/project/scripts", { runSmoke });
+    expect(exitCode).toBe(1);
+    expect(process.exitCode).toBe(1);
+    expect(log).not.toHaveBeenCalled();
+    process.exitCode = priorExitCode;
+    log.mockRestore();
   });
 });
 

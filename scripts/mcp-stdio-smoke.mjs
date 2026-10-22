@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 
 /**
  * @typedef {{
@@ -232,4 +233,37 @@ export async function runMcpStdioSmoke(options) {
     client.fail(message);
     return client.finish(1);
   }
+}
+
+/** Default MCP tools exercised by generated `scripts/test-mcp.mjs`. */
+export const defaultProjectMcpSmoke = {
+  expectedTools: ["greet"],
+  toolCall: { name: "greet", arguments: { name: "smoke" } },
+};
+
+/**
+ * @typedef {{ runSmoke?: typeof runMcpStdioSmoke }} ProjectMcpSmokeEntryDeps
+ */
+
+/**
+ * Run the stdio smoke test for a generated MCP project (`dist/index.js` under `scriptDir/..`).
+ *
+ * @param {string} scriptDir Absolute path to the project's `scripts/` directory.
+ * @param {ProjectMcpSmokeEntryDeps} [deps]
+ * @returns {Promise<number>} Process exit code (0 success, 1 failure).
+ */
+export async function runProjectMcpSmokeEntry(scriptDir, deps = {}) {
+  const runSmoke = deps.runSmoke ?? runMcpStdioSmoke;
+  const root = resolve(scriptDir, "..");
+  const exitCode = await runSmoke({
+    serverPath: resolve(root, "dist/index.js"),
+    expectedTools: defaultProjectMcpSmoke.expectedTools,
+    toolCall: defaultProjectMcpSmoke.toolCall,
+  });
+  if (exitCode !== 0) {
+    process.exitCode = exitCode;
+    return exitCode;
+  }
+  console.log("MCP stdio smoke test passed.");
+  return exitCode;
 }

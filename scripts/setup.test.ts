@@ -133,7 +133,9 @@ describe("applySetup metadata", () => {
       const scripts = readPackageField(join(tempDir, "package.json"), "scripts");
       if (typeof scripts !== "object" || scripts === null) throw new Error("Invalid scripts");
       expect(Reflect.get(scripts, "test:mcp")).toMatch(/scripts\/test-mcp\.mjs/);
-      expect(readFileSync(join(tempDir, "scripts/test-mcp.mjs"), "utf8")).toContain("greet");
+      expect(readFileSync(join(tempDir, "scripts/test-mcp.mjs"), "utf8")).toContain(
+        "runProjectMcpSmokeEntry"
+      );
       expect(readFileSync(join(tempDir, "scripts/mcp-stdio-smoke.mjs"), "utf8")).toContain("runMcpStdioSmoke");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });

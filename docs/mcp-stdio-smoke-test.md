@@ -25,11 +25,13 @@ scenario.
 
 ## Implementation
 
-- Reusable helper: `scripts/mcp-stdio-smoke.mjs` (`runMcpStdioSmoke`).
-- Generated project files: `scripts/test-mcp.mjs` (expected tools and optional tool call).
+- Reusable helper: `scripts/mcp-stdio-smoke.mjs` (`runMcpStdioSmoke`, `runProjectMcpSmokeEntry`).
+- Generated project files: `scripts/test-mcp.mjs` (thin CLI wrapper) and a copy of
+  `scripts/mcp-stdio-smoke.mjs`.
 
-When you add or rename MCP tools, update the expected tool list in `scripts/test-mcp.mjs`
-and keep at least one credential-free `tools/call` in the smoke test when possible.
+When you add or rename MCP tools, update `defaultProjectMcpSmoke` in
+`scripts/mcp-stdio-smoke.mjs` and keep at least one credential-free `tools/call` in the
+smoke test when possible.
 
 ## Optional live / session checks
 
