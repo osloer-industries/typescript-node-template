@@ -22,7 +22,8 @@ This template stays small: one library entrypoint, one setup CLI, and shared qua
 - **npm-package** — publishable library with validated string inputs.
 - **cli** — bin package with validated argv handling.
 
-Profiles live in `scripts/setup-lib.mjs`. Changing a profile requires updating its generated tests and running integration tests in `scripts/setup.test.ts`.
+Profiles live in `scripts/setup-lib.mjs`. Changing a profile requires updating its generated tests and
+running integration tests in `scripts/setup.test.ts`.
 
 ## Dependency direction
 
@@ -32,8 +33,11 @@ Profiles live in `scripts/setup-lib.mjs`. Changing a profile requires updating i
 
 ## Public API
 
-Treat exports from `src/index.ts` and `package.json` `exports` as semver-stable once published. Internal helpers should stay unexported or documented as experimental in pull requests.
+Treat exports from `src/index.ts` and `package.json` `exports` as semver-stable once published. Internal
+helpers should stay unexported or documented as experimental in pull requests.
 
 ## Verification
 
-Run `npm run check` before merging. Integration tests copy a minimal fixture into a temporary directory, apply a setup profile, link the workspace `node_modules` (including `zod` and `@modelcontextprotocol/sdk` devDependencies used as scenario fixtures), and run the full check pipeline there.
+Run `npm run check` before merging. Integration tests copy a minimal fixture into a temporary directory,
+apply a setup profile, link the workspace `node_modules` (including `zod` and `@modelcontextprotocol/sdk`
+devDependencies used as scenario fixtures), and run the full check pipeline there.

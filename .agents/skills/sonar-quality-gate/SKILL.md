@@ -5,12 +5,15 @@ description: Avoid SonarCloud quality gate failures on Node/TypeScript changes�
 
 # SonarCloud quality gate (typescript-node-template)
 
-Apply this skill when changing JavaScript/TypeScript, `scripts/`, or GitHub Actions in this repository, or when **SonarCloud Code Analysis** fails on a pull request.
+Apply this skill when changing JavaScript/TypeScript, `scripts/`, or GitHub Actions in this repository, or
+when **SonarCloud Code Analysis** fails on a pull request.
 
 ## Quick rules
 
-1. **Never** use `execFileSync("npm", …)` or `spawn("npm", …)`. Use `runNpm` from `scripts/run-npm.mjs` (absolute npm path via `npm_execpath` or next to `node`).
-2. **CI / setup installs**: use `npm ci --ignore-scripts` or `npm install --save-exact --ignore-scripts` unless a documented lifecycle script is required.
+1. **Never** use `execFileSync("npm", …)` or `spawn("npm", …)`. Use `runNpm` from `scripts/run-npm.mjs`
+   (absolute npm path via `npm_execpath` or next to `node`).
+2. **CI / setup installs**: use `npm ci --ignore-scripts` or `npm install --save-exact --ignore-scripts`
+   unless a documented lifecycle script is required.
 3. Run **`npm run check`** before finishing; fix Oxlint/Vitest issues (including `toThrow` with a message/regex).
 4. Remember **SonarCloud app** quality gate ≠ green **SonarQube Cloud / Analyze** workflow when `SONAR_TOKEN` is unset.
 
@@ -27,4 +30,6 @@ Apply this skill when changing JavaScript/TypeScript, `scripts/`, or GitHub Acti
 
 Full checklist and context: [docs/sonar-quality-gate.md](../../../docs/sonar-quality-gate.md)
 
-Implementation reference: [scripts/run-npm.mjs](../../../scripts/run-npm.mjs), [scripts/setup-lib.mjs](../../../scripts/setup-lib.mjs), [.github/workflows/ci.yml](../../../.github/workflows/ci.yml).
+Implementation reference: [scripts/run-npm.mjs](../../../scripts/run-npm.mjs),
+[scripts/setup-lib.mjs](../../../scripts/setup-lib.mjs),
+[.github/workflows/ci.yml](../../../.github/workflows/ci.yml).

@@ -37,7 +37,9 @@ Run gates in this order when iterating locally:
 
 After editing setup profiles, rely on `scripts/setup.test.ts` integration cases for all four scenarios.
 
-When touching `scripts/`, setup, or CI install steps, follow [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) so **SonarCloud Code Analysis** stays green (use `scripts/run-npm.mjs`, prefer `--ignore-scripts` on npm ci/install).
+When touching `scripts/`, setup, or CI install steps, follow
+[docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) so **SonarCloud Code Analysis** stays green
+(use `scripts/run-npm.mjs`, prefer `--ignore-scripts` on npm ci/install).
 
 ## Change recipes
 

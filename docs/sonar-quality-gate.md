@@ -7,7 +7,8 @@ This template often has **two Sonar integrations**:
 | **SonarCloud Code Analysis** | SonarCloud GitHub App (automatic analysis) | Enforces the **quality gate** on new/changed code; this check can fail the PR. |
 | **SonarQube Cloud / Analyze** | `.github/workflows/sonar.yml` | Runs only when `SONAR_TOKEN` is set; otherwise skips and reports success. |
 
-A green Actions Sonar job does **not** guarantee a green **SonarCloud Code Analysis** check. Fix findings on the PR diff or adjust Sonar project settings deliberately—not by disabling gates without team approval.
+A green Actions Sonar job does **not** guarantee a green **SonarCloud Code Analysis** check. Fix findings
+on the PR diff or adjust Sonar project settings deliberately—not by disabling gates without team approval.
 
 ## Before you push
 
@@ -44,12 +45,14 @@ In setup code, prefer:
 runNpm(["install", "--save-exact", "--ignore-scripts"], { cwd: baseDir, stdio: "inherit" });
 ```
 
-If a dependency truly needs install scripts, document why and scope the exception (single step or package), do not enable scripts globally “just in case”.
+If a dependency truly needs install scripts, document why and scope the exception (single step or package),
+do not enable scripts globally “just in case”.
 
 ### Tests and lint
 
 - Vitest **`toThrow()`** must include a message or regex (Oxlint `vitest/require-to-throw-message`).
-- Keep cyclomatic complexity, promise safety, and import-cycle rules in [`.oxlintrc.json`](../.oxlintrc.json)—they reduce correctness issues Sonar may also report.
+- Keep cyclomatic complexity, promise safety, and import-cycle rules in
+  [`.oxlintrc.json`](../.oxlintrc.json)—they reduce correctness issues Sonar may also report.
 
 ## Change checklist (agents and humans)
 
@@ -64,10 +67,13 @@ When adding or changing:
 
 ## Sonar configuration
 
-See [README.md](../README.md#sonarqube-cloud-setup) for organization/project keys, `SONAR_TOKEN`, and disabling **Automatic Analysis** when using the Actions scanner exclusively.
+See [README.md](../README.md#sonarqube-cloud-setup) for organization/project keys, `SONAR_TOKEN`, and
+disabling **Automatic Analysis** when using the Actions scanner exclusively.
 
 Analysis scope is defined in [`sonar-project.properties`](../sonar-project.properties) (`src`, `scripts`, test inclusions/exclusions).
 
 ## Optional skill
 
-For Cursor and other agents, copy or symlink [`skills/sonar-quality-gate/SKILL.md`](../skills/sonar-quality-gate/SKILL.md) into your environment’s skills directory so the same rules load automatically outside this file.
+For Cursor and other agents, copy or symlink
+[`skills/sonar-quality-gate/SKILL.md`](../skills/sonar-quality-gate/SKILL.md) into your environment’s
+skills directory so the same rules load automatically outside this file.
