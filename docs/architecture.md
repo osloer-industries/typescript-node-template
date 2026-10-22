@@ -18,7 +18,8 @@ This template stays small: one library entrypoint, one setup CLI, and shared qua
 `npm run setup` replaces `src/` and adjusts `package.json` for one of four profiles:
 
 - **plugin** — provider-neutral plugin interface.
-- **mcp** — stdio MCP server with Zod-validated tool inputs.
+- **mcp** — stdio MCP server with Zod-validated tool inputs, plus generated
+  `scripts/test-mcp.mjs` and `npm run test:mcp` (see [mcp-stdio-smoke-test.md](mcp-stdio-smoke-test.md)).
 - **npm-package** — publishable library with validated string inputs.
 - **cli** — bin package with validated argv handling.
 

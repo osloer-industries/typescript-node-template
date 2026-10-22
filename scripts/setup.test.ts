@@ -117,6 +117,29 @@ describe("applySetup metadata", () => {
     }
   });
 
+  it("adds MCP smoke scripts for the mcp scenario", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "setup-mcp-scripts-"));
+    try {
+      copyTemplateFixture(repoRoot, tempDir);
+      applySetup(
+        {
+          scenario: "mcp",
+          name: "demo-mcp",
+          description: "Demo MCP",
+          profile: profiles.mcp
+        },
+        { runInstall: false, baseDir: tempDir }
+      );
+      const scripts = readPackageField(join(tempDir, "package.json"), "scripts");
+      if (typeof scripts !== "object" || scripts === null) throw new Error("Invalid scripts");
+      expect(Reflect.get(scripts, "test:mcp")).toMatch(/scripts\/test-mcp\.mjs/);
+      expect(readFileSync(join(tempDir, "scripts/test-mcp.mjs"), "utf8")).toContain("greet");
+      expect(readFileSync(join(tempDir, "scripts/mcp-stdio-smoke.mjs"), "utf8")).toContain("runMcpStdioSmoke");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
   it("configures publishable bin packages", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "setup-bin-"));
     try {
@@ -175,6 +198,14 @@ describe.sequential("setup integration", () => {
           timeout: 300_000,
           env: { ...process.env, NPM_CONFIG_FUND: "false", NPM_CONFIG_AUDIT: "false" }
         });
+        if (scenario === "mcp") {
+          runNpm(["run", "test:mcp"], {
+            cwd: tempDir,
+            stdio: "pipe",
+            timeout: 120_000,
+            env: { ...process.env, NPM_CONFIG_FUND: "false", NPM_CONFIG_AUDIT: "false" }
+          });
+        }
       } finally {
         rmSync(tempDir, { recursive: true, force: true });
       }
