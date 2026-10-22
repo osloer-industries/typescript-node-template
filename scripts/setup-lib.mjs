@@ -13,15 +13,24 @@ const setupLibDir = dirname(fileURLToPath(import.meta.url));
 
 const generatedTestMcpScript = `import { runProjectMcpSmokeEntry } from "./mcp-stdio-smoke.mjs";
 
+export function isTestMcpDirectEntry(metaUrl, argvEntry) {
+  return metaUrl === new URL(argvEntry, "file:").href;
+}
+
 /** @param {string} [scriptDir] */
 export async function runTestMcp(scriptDir = import.meta.dirname) {
   await runProjectMcpSmokeEntry(scriptDir);
 }
 
-const entry = process.argv[1] ?? "";
-if (import.meta.url === new URL(entry, "file:").href) {
-  await runTestMcp();
+export async function runTestMcpEntry(
+  metaUrl,
+  argvEntry,
+  startTestMcp = runTestMcp,
+) {
+  if (isTestMcpDirectEntry(metaUrl, argvEntry)) await startTestMcp();
 }
+
+await runTestMcpEntry(import.meta.url, process.argv[1] ?? "");
 `;
 
 /**
