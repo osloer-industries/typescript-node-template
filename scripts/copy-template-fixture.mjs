@@ -1,48 +1,5 @@
-import { cpSync, mkdirSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-
-const fixtureTsconfig = `${JSON.stringify(
-  {
-    compilerOptions: {
-      target: "ES2023",
-      lib: ["ES2023"],
-      module: "NodeNext",
-      moduleResolution: "NodeNext",
-      rootDir: ".",
-      strict: true,
-      noUncheckedIndexedAccess: true,
-      exactOptionalPropertyTypes: true,
-      noImplicitOverride: true,
-      noFallthroughCasesInSwitch: true,
-      noUnusedLocals: true,
-      noUnusedParameters: true,
-      verbatimModuleSyntax: true,
-      isolatedModules: true,
-      skipLibCheck: true,
-      noEmit: true,
-      types: ["node", "vitest/globals"],
-    },
-    include: ["src/**/*.ts", "scripts/**/*.ts", "scripts/**/*.d.ts", "vitest.config.ts"],
-    exclude: ["dist", "coverage", "node_modules"],
-  },
-  null,
-  2,
-)}\n`;
-
-const fixtureVitestConfig = `import { defineConfig } from "vitest/config";
-
-export default defineConfig({
-  test: {
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "json"],
-      include: ["src/**/*.ts"],
-      exclude: ["src/**/*.test.ts", "src/**/*.spec.ts"],
-      thresholds: { branches: 80, functions: 80, lines: 80, statements: 80 }
-    }
-  }
-});
-`;
 
 const rootFiles = [
   "package.json",
@@ -90,11 +47,33 @@ const pathGroups = [
 
 /**
  * @param {string} repoRoot
+ */
+export function buildFixtureTsconfig(repoRoot) {
+  const base = JSON.parse(readFileSync(join(repoRoot, "tsconfig.json"), "utf8"));
+  const compilerOptions = { ...base.compilerOptions };
+  delete compilerOptions.allowJs;
+  delete compilerOptions.checkJs;
+  return `${JSON.stringify(
+    {
+      compilerOptions,
+      include: ["src/**/*.ts", "scripts/**/*.ts", "scripts/**/*.d.ts", "vitest.config.ts"],
+      exclude: ["dist", "coverage", "node_modules"],
+    },
+    null,
+    2,
+  )}\n`;
+}
+
+/**
+ * @param {string} repoRoot
  * @param {string} targetDir
  */
 export function copyTemplateFixture(repoRoot, targetDir) {
-  writeFileSync(join(targetDir, "tsconfig.json"), fixtureTsconfig);
-  writeFileSync(join(targetDir, "vitest.config.ts"), fixtureVitestConfig);
+  writeFileSync(join(targetDir, "tsconfig.json"), buildFixtureTsconfig(repoRoot));
+  cpSync(
+    join(repoRoot, "scripts/fixture-vitest.config.ts"),
+    join(targetDir, "vitest.config.ts"),
+  );
   for (const relativePath of pathGroups.flat()) {
     const source = join(repoRoot, relativePath);
     const destination = join(targetDir, relativePath);

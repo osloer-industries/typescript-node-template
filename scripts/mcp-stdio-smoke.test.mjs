@@ -14,6 +14,39 @@ import {
   toolsListMatches,
 } from "./mcp-stdio-smoke.mjs";
 
+/**
+ * @param {string} serverPath
+ * @param {string} onLineBody JavaScript statements using `message` (parsed JSON-RPC).
+ */
+function writeMockStdioMcpServer(serverPath, onLineBody) {
+  writeFileSync(
+    serverPath,
+    `import { createInterface } from "node:readline";
+const rl = createInterface({ input: process.stdin });
+rl.on("line", (line) => {
+  const message = JSON.parse(line);
+${onLineBody}
+});
+`,
+  );
+}
+
+/**
+ * @param {string} tempPrefix
+ * @param {string} onLineBody
+ * @param {(serverPath: string) => Promise<void>} run
+ */
+async function withMockStdioMcpServer(tempPrefix, onLineBody, run) {
+  const tempDir = mkdtempSync(join(tmpdir(), tempPrefix));
+  const serverPath = join(tempDir, "mock-mcp-server.mjs");
+  writeMockStdioMcpServer(serverPath, onLineBody);
+  try {
+    await run(serverPath);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
 describe("findMissingTools", () => {
   it("returns names absent from the actual list", () => {
     expect(findMissingTools(["a", "b"], ["a"])).toEqual(["b"]);
@@ -117,41 +150,25 @@ describe("runMcpStdioSmoke", () => {
   });
 
   it("reports missing tools", async () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "mcp-smoke-missing-"));
-    const serverPath = join(tempDir, "mock-mcp-server.mjs");
-    writeFileSync(
-      serverPath,
-      `import { createInterface } from "node:readline";
-const rl = createInterface({ input: process.stdin });
-rl.on("line", (line) => {
-  const message = JSON.parse(line);
-  if (message.method === "initialize") {
+    await withMockStdioMcpServer(
+      "mcp-smoke-missing-",
+      `  if (message.method === "initialize") {
     process.stdout.write(JSON.stringify({ jsonrpc: "2.0", id: message.id, result: {} }) + "\\n");
   }
   if (message.method === "tools/list") {
     process.stdout.write(JSON.stringify({ jsonrpc: "2.0", id: message.id, result: { tools: [] } }) + "\\n");
-  }
-});
-`,
+  }`,
+      async (serverPath) => {
+        const exitCode = await runMcpStdioSmoke({ serverPath, expectedTools: ["greet"] });
+        expect(exitCode).toBe(1);
+      },
     );
-    try {
-      const exitCode = await runMcpStdioSmoke({ serverPath, expectedTools: ["greet"] });
-      expect(exitCode).toBe(1);
-    } finally {
-      rmSync(tempDir, { recursive: true, force: true });
-    }
   });
 
   it("rejects tool calls that return isError", async () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "mcp-smoke-error-"));
-    const serverPath = join(tempDir, "mock-mcp-server.mjs");
-    writeFileSync(
-      serverPath,
-      `import { createInterface } from "node:readline";
-const rl = createInterface({ input: process.stdin });
-rl.on("line", (line) => {
-  const message = JSON.parse(line);
-  if (message.method === "initialize") {
+    await withMockStdioMcpServer(
+      "mcp-smoke-error-",
+      `  if (message.method === "initialize") {
     process.stdout.write(JSON.stringify({ jsonrpc: "2.0", id: message.id, result: {} }) + "\\n");
     return;
   }
@@ -169,59 +186,39 @@ rl.on("line", (line) => {
       id: message.id,
       result: { isError: true },
     }) + "\\n");
-  }
-});
-`,
+  }`,
+      async (serverPath) => {
+        const exitCode = await runMcpStdioSmoke({
+          serverPath,
+          expectedTools: ["greet"],
+          toolCall: { name: "greet", arguments: {} },
+        });
+        expect(exitCode).toBe(1);
+      },
     );
-    try {
-      const exitCode = await runMcpStdioSmoke({
-        serverPath,
-        expectedTools: ["greet"],
-        toolCall: { name: "greet", arguments: {} },
-      });
-      expect(exitCode).toBe(1);
-    } finally {
-      rmSync(tempDir, { recursive: true, force: true });
-    }
   });
 
   it("surfaces JSON-RPC errors from the server", async () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "mcp-smoke-rpc-error-"));
-    const serverPath = join(tempDir, "mock-mcp-server.mjs");
-    writeFileSync(
-      serverPath,
-      `import { createInterface } from "node:readline";
-const rl = createInterface({ input: process.stdin });
-rl.on("line", (line) => {
-  const message = JSON.parse(line);
-  if (message.method === "initialize") {
+    await withMockStdioMcpServer(
+      "mcp-smoke-rpc-error-",
+      `  if (message.method === "initialize") {
     process.stdout.write(JSON.stringify({
       jsonrpc: "2.0",
       id: message.id,
       error: { message: "nope" },
     }) + "\\n");
-  }
-});
-`,
+  }`,
+      async (serverPath) => {
+        const exitCode = await runMcpStdioSmoke({ serverPath, expectedTools: ["greet"] });
+        expect(exitCode).toBe(1);
+      },
     );
-    try {
-      const exitCode = await runMcpStdioSmoke({ serverPath, expectedTools: ["greet"] });
-      expect(exitCode).toBe(1);
-    } finally {
-      rmSync(tempDir, { recursive: true, force: true });
-    }
   });
 
   it("completes initialize, tools/list, and an optional tool call", async () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "mcp-smoke-"));
-    const serverPath = join(tempDir, "mock-mcp-server.mjs");
-    writeFileSync(
-      serverPath,
-      `import { createInterface } from "node:readline";
-const rl = createInterface({ input: process.stdin });
-rl.on("line", (line) => {
-  const message = JSON.parse(line);
-  if (message.method === "notifications/initialized") return;
+    await withMockStdioMcpServer(
+      "mcp-smoke-",
+      `  if (message.method === "notifications/initialized") return;
   if (message.method === "initialize") {
     process.stdout.write(JSON.stringify({ jsonrpc: "2.0", id: message.id, result: { capabilities: {} } }) + "\\n");
     return;
@@ -240,19 +237,15 @@ rl.on("line", (line) => {
       id: message.id,
       result: { content: [{ type: "text", text: "ok" }] },
     }) + "\\n");
-  }
-});
-`,
+  }`,
+      async (serverPath) => {
+        const exitCode = await runMcpStdioSmoke({
+          serverPath,
+          expectedTools: ["greet"],
+          toolCall: { name: "greet", arguments: { name: "smoke" } },
+        });
+        expect(exitCode).toBe(0);
+      },
     );
-    try {
-      const exitCode = await runMcpStdioSmoke({
-        serverPath,
-        expectedTools: ["greet"],
-        toolCall: { name: "greet", arguments: { name: "smoke" } },
-      });
-      expect(exitCode).toBe(0);
-    } finally {
-      rmSync(tempDir, { recursive: true, force: true });
-    }
   });
 });
