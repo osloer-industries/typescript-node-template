@@ -57,6 +57,17 @@ export function isToolCallError(result) {
 }
 
 /**
+ * @param {unknown} errorField JSON-RPC `error` field from a response.
+ */
+export function jsonRpcErrorMessage(errorField) {
+  if (typeof errorField !== "object" || errorField === null) {
+    return "unknown error";
+  }
+  const message = Reflect.get(errorField, "message");
+  return typeof message === "string" ? message : "unknown error";
+}
+
+/**
  * @param {string} line
  * @param {Map<number, { resolve: (value: unknown) => void, reject: (error: Error) => void, timeout: NodeJS.Timeout }>} pending
  * @param {(message: string) => never} fail
@@ -79,11 +90,7 @@ function handleStdoutLine(line, pending, fail) {
   pending.delete(id);
   const error = Reflect.get(message, "error");
   if (error) {
-    const errorMessage =
-      typeof error === "object" && error !== null && typeof Reflect.get(error, "message") === "string"
-        ? Reflect.get(error, "message")
-        : "unknown error";
-    waiting.reject(new Error(`MCP request failed: ${errorMessage}`));
+    waiting.reject(new Error(`MCP request failed: ${jsonRpcErrorMessage(error)}`));
   } else {
     waiting.resolve(Reflect.get(message, "result"));
   }
@@ -124,13 +131,18 @@ function createStdioClient(server, requestTimeoutMs) {
   }
 
   /** @param {string} message */
-  function fail(message) {
+  function abort(message) {
     for (const waiting of pending.values()) {
       clearTimeout(waiting.timeout);
       waiting.reject(new Error(message));
     }
     pending.clear();
     server.kill();
+  }
+
+  /** @param {string} message */
+  function fail(message) {
+    abort(message);
     throw new Error(message);
   }
 
@@ -159,7 +171,7 @@ function createStdioClient(server, requestTimeoutMs) {
     }
   });
 
-  return { request, notify, fail, finish };
+  return { request, notify, abort, fail, finish };
 }
 
 /**
@@ -226,12 +238,11 @@ export async function runMcpStdioSmoke(options) {
 
   try {
     await runSmokeSteps(client, options);
-    // Notification must not use request(); send after initialize in runSmokeSteps fix
     return client.finish(0);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    client.fail(message);
-    return client.finish(1);
+    client.abort(message);
+    return 1;
   }
 }
 
@@ -263,17 +274,22 @@ export const defaultProjectMcpSmoke = {
 export async function runProjectMcpSmokeEntry(scriptDir, deps = {}) {
   const runSmoke = deps.runSmoke ?? runMcpStdioSmoke;
   const root = resolve(scriptDir, "..");
-  const exitCode = await runSmoke({
-    serverPath: resolve(root, "dist/index.js"),
-    expectedTools: defaultProjectMcpSmoke.expectedTools,
-    toolCall: defaultProjectMcpSmoke.toolCall,
-  });
-  if (exitCode !== 0) {
-    process.exitCode = exitCode;
-    return exitCode;
+  try {
+    const exitCode = await runSmoke({
+      serverPath: resolve(root, "dist/index.js"),
+      expectedTools: defaultProjectMcpSmoke.expectedTools,
+      toolCall: defaultProjectMcpSmoke.toolCall,
+    });
+    if (exitCode !== 0) {
+      process.exitCode = exitCode;
+      return exitCode;
+    }
+    console.log("MCP stdio smoke test passed.");
+    return 0;
+  } catch {
+    process.exitCode = 1;
+    return 1;
   }
-  console.log("MCP stdio smoke test passed.");
-  return exitCode;
 }
 
 /**

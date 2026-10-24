@@ -6,6 +6,7 @@ import {
   findMissingTools,
   isToolCallError,
   isScriptEntry,
+  jsonRpcErrorMessage,
   runGeneratedTestMcpCli,
   runMcpStdioSmoke,
   runProjectMcpSmokeEntry,
@@ -31,6 +32,13 @@ describe("isToolCallError", () => {
   it("detects isError on tool call results", () => {
     expect(isToolCallError({ isError: true })).toBe(true);
     expect(isToolCallError({ content: [] })).toBe(false);
+  });
+});
+
+describe("jsonRpcErrorMessage", () => {
+  it("reads JSON-RPC error messages", () => {
+    expect(jsonRpcErrorMessage({ message: "nope" })).toBe("nope");
+    expect(jsonRpcErrorMessage("bad")).toBe("unknown error");
   });
 });
 
@@ -90,6 +98,15 @@ describe("runProjectMcpSmokeEntry", () => {
     process.exitCode = priorExitCode;
     log.mockRestore();
   });
+
+  it("maps thrown smoke errors to exit code 1", async () => {
+    const runSmoke = vi.fn().mockRejectedValue(new Error("Missing MCP server entrypoint"));
+    const priorExitCode = process.exitCode;
+    const exitCode = await runProjectMcpSmokeEntry("/tmp/project/scripts", { runSmoke });
+    expect(exitCode).toBe(1);
+    expect(process.exitCode).toBe(1);
+    process.exitCode = priorExitCode;
+  });
 });
 
 describe("runMcpStdioSmoke", () => {
@@ -118,9 +135,8 @@ rl.on("line", (line) => {
 `,
     );
     try {
-      await expect(
-        runMcpStdioSmoke({ serverPath, expectedTools: ["greet"] }),
-      ).rejects.toThrow(/Missing MCP tools/);
+      const exitCode = await runMcpStdioSmoke({ serverPath, expectedTools: ["greet"] });
+      expect(exitCode).toBe(1);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
@@ -158,13 +174,12 @@ rl.on("line", (line) => {
 `,
     );
     try {
-      await expect(
-        runMcpStdioSmoke({
-          serverPath,
-          expectedTools: ["greet"],
-          toolCall: { name: "greet", arguments: {} },
-        }),
-      ).rejects.toThrow(/Credential-free tool call greet returned an error/);
+      const exitCode = await runMcpStdioSmoke({
+        serverPath,
+        expectedTools: ["greet"],
+        toolCall: { name: "greet", arguments: {} },
+      });
+      expect(exitCode).toBe(1);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
@@ -190,9 +205,8 @@ rl.on("line", (line) => {
 `,
     );
     try {
-      await expect(
-        runMcpStdioSmoke({ serverPath, expectedTools: ["greet"] }),
-      ).rejects.toThrow(/MCP request failed: nope/);
+      const exitCode = await runMcpStdioSmoke({ serverPath, expectedTools: ["greet"] });
+      expect(exitCode).toBe(1);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
