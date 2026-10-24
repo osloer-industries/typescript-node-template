@@ -10,6 +10,24 @@ This template often has **two Sonar integrations**:
 A green Actions Sonar job does **not** guarantee a green **SonarCloud Code Analysis** check. Fix findings
 on the PR diff or adjust Sonar project settings deliberately—not by disabling gates without team approval.
 
+## Local enforcement (shift left)
+
+Sonar-style JavaScript and TypeScript rules run locally via **`eslint-plugin-sonarjs`** in
+[`packages/eslint-sonarjs/`](../packages/eslint-sonarjs/) (`npm run lint:sonarjs`, included in `npm run check`).
+
+Oxlint’s JS-plugin bridge for SonarJS is not reliable in this repo (plugin load failures), so ESLint runs in a
+small nested package that pins **TypeScript 6** for `@typescript-eslint/parser` while the template keeps
+**TypeScript 7** for `tsc`. The nested runner lints `src/`, `scripts/`, and `packages/*` using
+`eslint-plugin-sonarjs` **`recommended`** (every rule Sonar marks recommended is enabled at error severity).
+
+List enabled rules:
+
+```sh
+npm run list-rules --prefix packages/eslint-sonarjs
+```
+
+Pre-commit (after `npm run prepare`): Lefthook runs Oxlint and SonarJS ESLint on staged `*.ts` / `*.mjs` files.
+
 ## Before you push
 
 1. Run `npm run check` locally.
@@ -33,7 +51,7 @@ Do not call `"npm"` as the executable string in new `scripts/` or `src/` code.
 
 Sonar flags bare `npm ci` / `npm install` without **`--ignore-scripts`** when lifecycle scripts are not required.
 
-This template’s root `package.json` has **no** `preinstall` / `postinstall` scripts. Prefer:
+This template’s root `package.json` has a **`prepare`** script (Lefthook) that must not run in CI. Always use:
 
 ```yaml
 - run: npm ci --ignore-scripts
@@ -53,6 +71,8 @@ do not enable scripts globally “just in case”.
 - Vitest **`toThrow()`** must include a message or regex (Oxlint `vitest/require-to-throw-message`).
 - Keep cyclomatic complexity, promise safety, and import-cycle rules in
   [`.oxlintrc.json`](../.oxlintrc.json)—they reduce correctness issues Sonar may also report.
+- Do not duplicate long guidance across markdown files; `npm run lint:dup` (jscpd) enforces a **0%**
+  duplication threshold on code and docs.
 
 ## Change checklist (agents and humans)
 
@@ -71,9 +91,3 @@ See [README.md](../README.md#sonarqube-cloud-setup) for organization/project key
 disabling **Automatic Analysis** when using the Actions scanner exclusively.
 
 Analysis scope is defined in [`sonar-project.properties`](../sonar-project.properties) (`src`, `scripts`, test inclusions/exclusions).
-
-## Optional skill
-
-For Cursor and other agents, copy or symlink
-[`skills/sonar-quality-gate/SKILL.md`](../skills/sonar-quality-gate/SKILL.md) into your environment’s
-skills directory so the same rules load automatically outside this file.

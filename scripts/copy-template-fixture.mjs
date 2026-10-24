@@ -55,17 +55,27 @@ const rootFiles = [
   ".markdownlint.json",
   ".markdownlint-cli2.jsonc",
   ".markdownlintignore",
-  ".markdown-link-check.json"
+  ".markdown-link-check.json",
+  ".jscpd.json",
+  "lefthook.yml",
+  "AGENTS.md",
+  "CONTRIBUTING.md",
+  "README.md",
+  "SECURITY.md",
 ];
+
+const docFiles = ["docs/architecture.md", "docs/sonar-quality-gate.md"];
 
 const pathGroups = [
   rootFiles,
+  docFiles,
   [
     "scripts/setup.mjs",
     "scripts/setup-lib.mjs",
     "scripts/setup-lib.d.mts",
     "scripts/run-npm.mjs",
-    "scripts/run-npm.d.mts"
+    "scripts/run-npm.d.mts",
+    "scripts/lint-sonarjs.mjs"
   ],
   ["src/index.ts", "src/index.test.ts"],
   [
@@ -73,6 +83,13 @@ const pathGroups = [
     "packages/markdown-link-check/index.mjs",
     "packages/markdown-link-check/check-repo.mjs",
     "packages/markdown-link-check/ambient.d.ts",
+  ],
+  [
+    "packages/eslint-sonarjs/package.json",
+    "packages/eslint-sonarjs/package-lock.json",
+    "packages/eslint-sonarjs/eslint.config.mjs",
+    "packages/eslint-sonarjs/run.mjs",
+    "packages/eslint-sonarjs/list-enabled-rules.mjs",
   ],
 ];
 

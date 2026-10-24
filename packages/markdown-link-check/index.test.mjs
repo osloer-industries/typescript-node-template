@@ -82,7 +82,8 @@ describe("checkMarkdownFileLinks", () => {
   });
 
   it("checks http links via link-check", async () => {
-    await expect(checkMarkdownFileLinks("[Example](https://example.com)\n", "/tmp/README.md")).resolves.toBeUndefined();
+    const readme = join(mkdtempSync(join(tmpdir(), "mlc-http-")), "README.md");
+    await expect(checkMarkdownFileLinks("[Example](https://example.com)\n", readme)).resolves.toBeUndefined();
   });
 });
 
@@ -139,8 +140,10 @@ describe("checkRepositoryMarkdownFiles", () => {
   });
 
   it("detects check-repo cli entry", () => {
-    expect(isCheckRepoCliEntry("file:///tmp/check-repo.mjs", "/tmp/check-repo.mjs")).toBe(true);
-    expect(isCheckRepoCliEntry("file:///tmp/check-repo.mjs", "/other.mjs")).toBe(false);
+    const cliAbs = join(mkdtempSync(join(tmpdir(), "mlc-cli-entry-")), "check-repo.mjs");
+    const cliUrl = `file://${cliAbs}`;
+    expect(isCheckRepoCliEntry(cliUrl, cliAbs)).toBe(true);
+    expect(isCheckRepoCliEntry(cliUrl, "/other.mjs")).toBe(false);
   });
 
   it("returns formatted failures", async () => {

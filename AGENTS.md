@@ -2,11 +2,8 @@
 
 These instructions apply to every human or automated contributor. Keep this file
 provider-neutral: the canonical map, verification ladder, and change recipes live
-here. Do not duplicate this content in `CLAUDE.md` or other vendor instruction files.
-
-Optional **Cursor** bootstrap (rules, skills, Cloud environment) is documented in
-[docs/cursor-agent-setup.md](docs/cursor-agent-setup.md). Those files may link or
-`@`-reference this document; they must not replace it.
+here. Do not duplicate this content in vendor-specific instruction files (`CLAUDE.md`,
+`.cursorrules`, and similar).
 
 ## Repository map
 
@@ -17,23 +14,27 @@ Optional **Cursor** bootstrap (rules, skills, Cloud environment) is documented i
 | `scripts/setup-lib.mjs` | Setup profiles and testable helpers. |
 | `scripts/setup.test.ts` | Setup unit and integration tests. |
 | `docs/architecture.md` | Module boundaries, scenarios, and dependency rules. |
-| `docs/sonar-quality-gate.md` | SonarCloud gate patterns (PATH-safe npm, CI install flags). |
-| `.agents/skills/` | Cursor-compatible skills (auto-discovered; mirrors `skills/`). |
-| `docs/cursor-agent-setup.md` | On-demand Cursor rules, skills, Cloud Agents, plugins. |
-| `skills/sonar-quality-gate/SKILL.md` | Provider-neutral skill copy (same as `.agents/skills/`). |
+| `docs/sonar-quality-gate.md` | SonarCloud patterns and local SonarJS ESLint enforcement. |
+| `packages/eslint-sonarjs/` | SonarJS `recommended` rules via ESLint (TypeScript 6 parser; root uses TS 7). |
+| `packages/markdown-link-check/` | Repository markdown link checker used by `npm run lint:md-links`. |
 | `.github/workflows/` | CI and security automation. |
 
 ## Verification
 
 Run gates in this order when iterating locally:
 
-1. `npm run lint`
-2. `npm run lint:md` and `npm run lint:md-links`
-3. `npm run typecheck`
-4. `npm run test` or `npm run test:coverage`
-5. `npm run build`
-6. `npm run check` (all of the above) before opening a pull request
-7. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes
+1. `npm run lint` (Oxlint)
+2. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs`)
+3. `npm run lint:dup` (jscpd on code and markdown)
+4. `npm run lint:md` and `npm run lint:md-links`
+5. `npm run typecheck`
+6. `npm run test` or `npm run test:coverage`
+7. `npm run build`
+8. `npm run check` (all of the above) before opening a pull request
+9. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes
+
+After `npm ci`, run `npm run prepare` once locally to install Lefthook pre-commit hooks
+(CI uses `npm ci --ignore-scripts`, so hooks are not installed in Actions).
 
 After editing setup profiles, rely on `scripts/setup.test.ts` integration cases for all four scenarios.
 
@@ -69,8 +70,8 @@ When touching `scripts/`, setup, or CI install steps, follow
 - Use the Node.js 24 version declared by `.nvmrc` and `.node-version`.
 - Install reproducibly with `npm ci`. Use `npm install --save-exact` when a
   dependency intentionally changes, then commit `package-lock.json`.
-- Run `npm run check` before submitting a change. This runs Oxlint, the
-  TypeScript compiler, coverage, and the production build.
+- Run `npm run check` before submitting a change. This runs Oxlint, SonarJS ESLint,
+  duplication detection, Markdown checks, the TypeScript compiler, coverage, and the production build.
 - Run `npm audit --omit=dev` whenever dependencies or the lockfile change.
 - Keep `npm run typecheck` as the authoritative TypeScript diagnostic step.
   Oxlint's type-aware rules supplement it but do not replace it.

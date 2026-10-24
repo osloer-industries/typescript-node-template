@@ -64,8 +64,8 @@ describe("MCP server", () => {
     expect(connect).toHaveBeenCalledOnce();
   });
   it("detects direct execution", () => {
-    expect(shouldRunMain("file:///tmp/demo/dist/index.js", "/tmp/demo/dist/index.js")).toBe(true);
-    expect(shouldRunMain("file:///tmp/demo/dist/index.js", "/other/index.js")).toBe(false);
+    expect(shouldRunMain("file:///srv/app/dist/index.js", "/srv/app/dist/index.js")).toBe(true);
+    expect(shouldRunMain("file:///srv/app/dist/index.js", "/other/index.js")).toBe(false);
   });
   it("runEntry skips main when not direct", async () => {
     const startMain = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
@@ -153,8 +153,8 @@ describe("runCli", () => {
 });
 describe("runEntry", () => {
   it("detects direct execution", () => {
-    expect(shouldRunCli("file:///tmp/demo/dist/index.js", "/tmp/demo/dist/index.js")).toBe(true);
-    expect(shouldRunCli("file:///tmp/demo/dist/index.js", "/other/index.js")).toBe(false);
+    expect(shouldRunCli("file:///srv/app/dist/index.js", "/srv/app/dist/index.js")).toBe(true);
+    expect(shouldRunCli("file:///srv/app/dist/index.js", "/other/index.js")).toBe(false);
   });
   it("skips cli when not direct", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});

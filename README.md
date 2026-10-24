@@ -16,9 +16,8 @@ coverage enforcement, and GitHub security automation.
 - Conventional pull request title validation and matching Dependabot commit prefixes
 - Full commit SHA pins, minimal permissions, timeouts, and concurrency cancellation
 - Secret-safe ignores, issue forms, and pull request guidance
-- Provider-neutral `AGENTS.md` and [docs/architecture.md](docs/architecture.md) for contributors and coding agents
-- Optional Cursor on-demand setup: [docs/cursor-agent-setup.md](docs/cursor-agent-setup.md)
-  (`.agents/skills/`, `.cursor/rules/`, Cloud `environment.json`)
+- Provider-neutral [AGENTS.md](AGENTS.md) and [docs/architecture.md](docs/architecture.md) for contributors and coding agents
+- Local SonarJS rules (`npm run lint:sonarjs`), jscpd duplication checks, and Lefthook pre-commit hooks
 
 ## Start a project
 
@@ -53,6 +52,8 @@ Review `SETUP.md`, update repository URLs in `package.json`, then remove `SETUP.
 | Command | Purpose |
 | --- | --- |
 | `npm run lint` | Lint with the explicit `.oxlintrc.json` policy, including type-aware rules |
+| `npm run lint:sonarjs` | SonarJS ESLint `recommended` rules (see `packages/eslint-sonarjs/`) |
+| `npm run lint:dup` | Detect duplicated code and markdown (jscpd, 0% threshold) |
 | `npm run typecheck` | Check types without emitting files |
 | `npm test` | Run unit tests |
 | `npm run test:coverage` | Test and enforce coverage thresholds |
@@ -64,8 +65,7 @@ Review `SETUP.md`, update repository URLs in `package.json`, then remove `SETUP.
 
 Contributors and agents should follow [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) to avoid
 **SonarCloud Code Analysis** failures (PATH-safe npm via `scripts/run-npm.mjs`, `--ignore-scripts` on CI
-installs). Optional Cursor skill:
-[skills/sonar-quality-gate/SKILL.md](skills/sonar-quality-gate/SKILL.md).
+installs, and local `eslint-plugin-sonarjs` via `npm run lint:sonarjs`).
 
 The Sonar workflow skips safely until configured.
 

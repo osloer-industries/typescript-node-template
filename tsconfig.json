@@ -28,5 +28,11 @@
     "packages/**/*.d.ts",
     "vitest.config.ts"
   ],
-  "exclude": ["dist", "coverage", "node_modules", "packages/**/*.test.mjs"]
+  "exclude": [
+    "dist",
+    "coverage",
+    "node_modules",
+    "packages/**/*.test.mjs",
+    "packages/eslint-sonarjs/**"
+  ]
 }

@@ -1,3 +1,5 @@
+# License
+
 Copyright (c) Thomas Cort and contributors (original markdown-link-check)
 
 Permission to use, copy, modify, and/or distribute this software for any

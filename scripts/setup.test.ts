@@ -144,7 +144,7 @@ describe("applySetup metadata", () => {
   });
 });
 
-describe.sequential("setup integration", () => {
+describe("setup integration", () => {
   const scenarioMarkers: Record<string, string> = {
     plugin: "createPlugin",
     mcp: "@modelcontextprotocol/sdk",

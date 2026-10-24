@@ -1,8 +1,11 @@
 # @osloer-industries/markdown-link-check
 
-Fork of [tcort/markdown-link-check](https://github.com/tcort/markdown-link-check) focused on **repository-wide** checks in Node.js ESM projects. Relative and same-repo links are validated on disk; `http(s)` links use [`link-check`](https://www.npmjs.com/package/link-check).
+Fork of [tcort/markdown-link-check](https://github.com/tcort/markdown-link-check) focused on **repository-wide**
+checks in Node.js ESM projects. Relative and same-repo links are validated on disk; `http(s)` links use
+[`link-check`](https://www.npmjs.com/package/link-check).
 
-Upstream validates one Markdown file at a time and treats many relative targets as URLs. This package resolves paths from each Markdown file’s directory and walks the repo for CI-style checks.
+Upstream validates one Markdown file at a time and treats many relative targets as URLs. This package resolves
+paths from each Markdown file’s directory and walks the repo for CI-style checks.
 
 ## Install
 
