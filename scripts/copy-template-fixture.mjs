@@ -90,6 +90,7 @@ const pathGroups = [
     "packages/eslint-sonarjs/eslint.config.mjs",
     "packages/eslint-sonarjs/run.mjs",
     "packages/eslint-sonarjs/list-enabled-rules.mjs",
+    "packages/eslint-sonarjs/tsconfig.json",
   ],
 ];
 

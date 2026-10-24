@@ -32,10 +32,5 @@
       }
     }
   ],
-  "ignorePatterns": [
-    "dist/**",
-    "coverage/**",
-    "node_modules/**",
-    "packages/eslint-sonarjs/**"
-  ]
+  "ignorePatterns": ["dist/**", "coverage/**", "node_modules/**", "packages/eslint-sonarjs/node_modules/**"]
 }

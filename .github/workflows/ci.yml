@@ -19,7 +19,9 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with: { node-version-file: .nvmrc, cache: npm }
       - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --prefix packages/eslint-sonarjs
       - run: npm audit --omit=dev --audit-level=high
+      - run: npm audit --omit=dev --audit-level=high --prefix packages/eslint-sonarjs
       - run: npm run check
   setup-smoke:
     name: Setup smoke (${{ matrix.scenario }})

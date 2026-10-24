@@ -1,10 +1,17 @@
 import sonarjs from "eslint-plugin-sonarjs";
 
-const enabled = Object.entries(sonarjs.configs.recommended.rules)
-  .filter(([, severity]) => severity === "error" || severity === 2)
-  .map(([name]) => name)
-  .toSorted((a, b) => a.localeCompare(b));
+export function listEnabledSonarjsRules() {
+  const recommendedRules = sonarjs.configs.recommended.rules ?? {};
+  return Object.entries(recommendedRules)
+    .filter(([, severity]) => severity === "error" || severity === 2)
+    .map(([name]) => name)
+    .toSorted((a, b) => a.localeCompare(b));
+}
 
-for (const rule of enabled) {
-  process.stdout.write(`${rule}\n`);
+const isMain = process.argv[1] !== undefined && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"));
+
+if (isMain) {
+  for (const rule of listEnabledSonarjsRules()) {
+    process.stdout.write(`${rule}\n`);
+  }
 }

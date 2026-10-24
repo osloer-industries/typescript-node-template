@@ -17,6 +17,8 @@ export default defineConfig({
         "src/**/*.ts",
         "scripts/**/*.mjs",
         "packages/markdown-link-check/**/*.mjs",
+        "packages/eslint-sonarjs/run.mjs",
+        "packages/eslint-sonarjs/list-enabled-rules.mjs",
       ],
       exclude: [
         "src/**/*.test.ts",

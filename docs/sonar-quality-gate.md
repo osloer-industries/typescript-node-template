@@ -15,10 +15,17 @@ on the PR diff or adjust Sonar project settings deliberately—not by disabling 
 Sonar-style JavaScript and TypeScript rules run locally via **`eslint-plugin-sonarjs`** in
 [`packages/eslint-sonarjs/`](../packages/eslint-sonarjs/) (`npm run lint:sonarjs`, included in `npm run check`).
 
-Oxlint’s JS-plugin bridge for SonarJS is not reliable in this repo (plugin load failures), so ESLint runs in a
-small nested package that pins **TypeScript 6** for `@typescript-eslint/parser` while the template keeps
-**TypeScript 7** for `tsc`. The nested runner lints `src/`, `scripts/`, and `packages/*` using
-`eslint-plugin-sonarjs` **`recommended`** (every rule Sonar marks recommended is enabled at error severity).
+**Oxlint `jsPlugins` + `eslint-plugin-sonarjs` was evaluated** (including Oxlint 1.89.x). Loading the plugin
+fails while the template uses **TypeScript 7** at the repo root: rule modules pull in `ts-api-utils`, which
+requires the TypeScript 6 compiler API (`TypeFlags.Intrinsic` is unavailable under TS 7). npm `overrides` do
+not isolate that resolution for Oxlint’s plugin loader. Oxlint also documents that **JS plugin rules cannot
+use TypeScript type-aware analysis yet**; several SonarJS rules would remain uncovered even if load succeeded.
+
+ESLint therefore runs in **`packages/eslint-sonarjs/`**, which pins **TypeScript 6** for
+`@typescript-eslint/parser` while the root keeps **TypeScript 7** for `tsc`. The nested package is subject to
+the same gates as the rest of the template (Oxlint, `tsc`, Vitest coverage, Dependabot, and `npm audit`). It
+lints `src/`, `scripts/`, and `packages/*` using `eslint-plugin-sonarjs` **`recommended`** (every rule Sonar
+marks recommended is enabled at error severity).
 
 List enabled rules:
 

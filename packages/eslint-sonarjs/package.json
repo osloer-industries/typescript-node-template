@@ -16,7 +16,8 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "list-rules": "node list-enabled-rules.mjs"
+    "list-rules": "node list-enabled-rules.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
     "@typescript-eslint/parser": "8.72.0",

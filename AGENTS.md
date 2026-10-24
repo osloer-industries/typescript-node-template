@@ -27,7 +27,7 @@ Run gates in this order when iterating locally:
 2. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs`)
 3. `npm run lint:dup` (jscpd on code and markdown)
 4. `npm run lint:md` and `npm run lint:md-links`
-5. `npm run typecheck`
+5. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 checkJs)
 6. `npm run test` or `npm run test:coverage`
 7. `npm run build`
 8. `npm run check` (all of the above) before opening a pull request

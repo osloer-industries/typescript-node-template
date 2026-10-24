@@ -24,15 +24,9 @@
     "src/**/*.ts",
     "scripts/**/*.ts",
     "scripts/**/*.d.ts",
-    "packages/**/*.mjs",
-    "packages/**/*.d.ts",
+    "packages/markdown-link-check/**/*.mjs",
+    "packages/markdown-link-check/**/*.d.ts",
     "vitest.config.ts"
   ],
-  "exclude": [
-    "dist",
-    "coverage",
-    "node_modules",
-    "packages/**/*.test.mjs",
-    "packages/eslint-sonarjs/**"
-  ]
+  "exclude": ["dist", "coverage", "node_modules", "packages/**/*.test.mjs"]
 }
