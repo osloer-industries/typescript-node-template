@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   review:
-    uses: osloer-industries/.github/.github/workflows/dependency-review.yml@8461a7dd37a104de2283cac3e5974026cd18777a # .github PR #2 head
+    uses: osloer-industries/.github/.github/workflows/dependency-review.yml@3c84a702b48ef8e88b0c696e1621d4e040d3a7bb # .github main (PR #2 merged)
     with:
       fail-on-severity: high
       timeout-minutes: 5

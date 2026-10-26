@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   analyze:
-    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@8461a7dd37a104de2283cac3e5974026cd18777a # .github PR #2 head
+    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@3c84a702b48ef8e88b0c696e1621d4e040d3a7bb # .github main (PR #2 merged)
     with:
       queries: security-and-quality
       timeout-minutes: 15
