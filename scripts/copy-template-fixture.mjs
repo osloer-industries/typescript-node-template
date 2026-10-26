@@ -79,12 +79,6 @@ const pathGroups = [
   ],
   ["src/index.ts", "src/index.test.ts"],
   [
-    "packages/markdown-link-check/package.json",
-    "packages/markdown-link-check/index.mjs",
-    "packages/markdown-link-check/check-repo.mjs",
-    "packages/markdown-link-check/ambient.d.ts",
-  ],
-  [
     "packages/eslint-sonarjs/package.json",
     "packages/eslint-sonarjs/package-lock.json",
     "packages/eslint-sonarjs/eslint.config.mjs",

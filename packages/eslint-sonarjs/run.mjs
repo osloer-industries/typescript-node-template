@@ -12,7 +12,7 @@ export function resolveLintTargets(userArgs) {
   if (userArgs.length > 0) {
     return [...userArgs];
   }
-  return ["src", "scripts", "packages/markdown-link-check", "packages/eslint-sonarjs"];
+  return ["src", "scripts", "packages/eslint-sonarjs"];
 }
 
 export function resolveEslintBin() {

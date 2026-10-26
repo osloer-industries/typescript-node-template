@@ -16,8 +16,13 @@ here. Do not duplicate this content in vendor-specific instruction files (`CLAUD
 | `docs/architecture.md` | Module boundaries, scenarios, and dependency rules. |
 | `docs/sonar-quality-gate.md` | SonarCloud patterns and local SonarJS ESLint enforcement. |
 | `packages/eslint-sonarjs/` | SonarJS `recommended` rules via ESLint (TypeScript 6 parser; root uses TS 7). |
-| `packages/markdown-link-check/` | Repository markdown link checker used by `npm run lint:md-links`. |
 | `.github/workflows/` | CI and security automation. |
+
+Markdown link checking uses the org fork
+[`@osloer-industries/markdown-link-check`](https://github.com/osloer-industries/markdown-link-check)
+(pinned in root `package.json` via a `github:…#tag` devDependency). Dependabot does not bump git-tag
+dependencies; when the fork publishes a new annotated tag, update the `#v…` ref in `package.json`, run
+`npm install`, and commit the lockfile change.
 
 ## Verification
 

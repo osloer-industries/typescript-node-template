@@ -10,6 +10,12 @@
 Coverage must remain at least 80% for branches, functions, lines, and statements. Keep dependencies exact
 and commit lockfile changes. Never commit secrets or generated output.
 
+The template pins `@osloer-industries/markdown-link-check` from
+[osloer-industries/markdown-link-check](https://github.com/osloer-industries/markdown-link-check) using a
+`github:owner/repo#tag` specifier (not npm). Dependabot will not open pull requests for that pin; after a
+new annotated tag on the fork, set the tag in root `package.json`, run `npm install`, and commit
+`package-lock.json`.
+
 Use Conventional Commit prefixes such as `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, and `chore:`.
 Release Please treats `feat:` as a minor release and `fix:` as a patch release. Use a `BREAKING CHANGE:`
 footer or `!` marker for a major release.

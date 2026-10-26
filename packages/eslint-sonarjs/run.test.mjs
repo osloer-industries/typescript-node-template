@@ -9,12 +9,7 @@ const { resolveConfigPath, resolveEslintBin, resolveLintTargets, runEslintSonarj
 
 describe("resolveLintTargets", () => {
   it("returns defaults when no args are passed", () => {
-    expect(resolveLintTargets([])).toEqual([
-      "src",
-      "scripts",
-      "packages/markdown-link-check",
-      "packages/eslint-sonarjs",
-    ]);
+    expect(resolveLintTargets([])).toEqual(["src", "scripts", "packages/eslint-sonarjs"]);
   });
 
   it("forwards explicit paths", () => {

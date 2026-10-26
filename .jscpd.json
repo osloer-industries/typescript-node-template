@@ -6,8 +6,7 @@
     "**/dist/**",
     "**/coverage/**",
     "**/package-lock.json",
-    "packages/eslint-sonarjs/package-lock.json",
-    "packages/markdown-link-check/package-lock.json"
+    "packages/eslint-sonarjs/package-lock.json"
   ],
   "minLines": 8,
   "minTokens": 70,
@@ -19,7 +18,6 @@
     "AGENTS.md",
     "README.md",
     "CONTRIBUTING.md",
-    "packages/markdown-link-check",
     "packages/eslint-sonarjs"
   ],
   "reporters": ["console"],

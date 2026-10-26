@@ -47,7 +47,7 @@
     "basic-ftp": "6.2.3"
   },
   "devDependencies": {
-    "@osloer-industries/markdown-link-check": "file:packages/markdown-link-check",
+    "@osloer-industries/markdown-link-check": "github:osloer-industries/markdown-link-check#v4.0.0-osloer.1",
     "@types/node": "24.19.2",
     "@vitest/coverage-v8": "4.1.11",
     "jscpd": "5.4.2",

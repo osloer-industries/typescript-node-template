@@ -8,7 +8,7 @@ export default defineConfig({
       "src/**/*.test.ts",
       "scripts/**/*.test.ts",
       "scripts/**/*.test.mjs",
-      "packages/**/*.test.mjs",
+      "packages/eslint-sonarjs/**/*.test.mjs",
     ],
     coverage: {
       provider: "v8",
@@ -16,7 +16,6 @@ export default defineConfig({
       include: [
         "src/**/*.ts",
         "scripts/**/*.mjs",
-        "packages/markdown-link-check/**/*.mjs",
         "packages/eslint-sonarjs/run.mjs",
         "packages/eslint-sonarjs/list-enabled-rules.mjs",
       ],
