@@ -18,6 +18,14 @@ updates:
       development-dependencies:
         dependency-type: development
         update-types: [minor, patch]
+      # Keeps direct markdownlint-cli2 bumps from fanning out into separate multi-PRs for the same
+      # transitive majors (markdown-it 15, js-yaml 5) when those land together.
+      markdownlint-cli2:
+        patterns:
+          - "markdownlint-cli2"
+          - "markdown-it"
+          - "js-yaml"
+        update-types: [minor, patch, major]
   - package-ecosystem: npm
     directory: /packages/eslint-sonarjs
     schedule: { interval: weekly, day: monday, time: "05:00", timezone: Europe/Berlin }
