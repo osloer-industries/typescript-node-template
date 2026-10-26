@@ -29,7 +29,10 @@ export function writeMcpSmokeScripts(baseDir) {
   }
   writeFileSync(join(scriptsDir, "test-mcp.mjs"), generatedTestMcpScript);
   const testMcpTestSource = join(setupLibDir, "test-mcp.test.mjs");
-  cpSync(testMcpTestSource, join(scriptsDir, "test-mcp.test.mjs"));
+  const testMcpTestDest = join(scriptsDir, "test-mcp.test.mjs");
+  if (resolve(testMcpTestSource) !== resolve(testMcpTestDest)) {
+    cpSync(testMcpTestSource, testMcpTestDest);
+  }
 }
 
 export const profiles = {
