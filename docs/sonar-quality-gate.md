@@ -22,7 +22,10 @@ not isolate that resolution for Oxlint’s plugin loader. Oxlint also documents 
 use TypeScript type-aware analysis yet**; several SonarJS rules would remain uncovered even if load succeeded.
 
 ESLint therefore runs in **`packages/eslint-sonarjs/`**, which pins **TypeScript 6** for
-`@typescript-eslint/parser` while the root keeps **TypeScript 7** for `tsc`. The nested package is subject to
+`typescript-eslint` while the root keeps **TypeScript 7** for `tsc`. Dependabot ignores **major** `typescript`
+bumps in that directory until typescript-eslint supports TypeScript 7.x (blocked on TypeScript 7.1’s
+programmatic API; see [typescript-eslint#12518](https://github.com/typescript-eslint/typescript-eslint/issues/12518)).
+The nested package is subject to
 the same gates as the rest of the template (Oxlint, `tsc`, Vitest coverage, Dependabot, and `npm audit`). It
 lints `src/`, `scripts/`, and `packages/*` using `eslint-plugin-sonarjs` **`recommended`** (every rule Sonar
 marks recommended is enabled at error severity).
