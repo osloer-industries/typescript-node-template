@@ -1,6 +1,13 @@
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+/** @returns {{ scriptsDir: string, entry: string, metaUrl: string }} */
+function fakeProjectScriptsEntry() {
+  const scriptsDir = join(tmpdir(), "mcp-smoke-project", "scripts");
+  const entry = join(scriptsDir, "test-mcp.mjs");
+  return { scriptsDir, entry, metaUrl: new URL(entry, "file:").href };
+}
 import { describe, expect, it, vi } from "vitest";
 import {
   findMissingTools,
@@ -85,25 +92,24 @@ describe("toolsListMatches", () => {
 
 describe("isScriptEntry", () => {
   it("detects when a module is the node entrypoint", () => {
-    const entry = "/tmp/project/scripts/test-mcp.mjs";
-    const metaUrl = new URL(entry, "file:").href;
+    const { entry, metaUrl } = fakeProjectScriptsEntry();
     expect(isScriptEntry(metaUrl, entry)).toBe(true);
-    expect(isScriptEntry(metaUrl, "/other/script.mjs")).toBe(false);
+    expect(isScriptEntry(metaUrl, join(tmpdir(), "other", "script.mjs"))).toBe(false);
   });
 });
 
 describe("runGeneratedTestMcpCli", () => {
   it("runs the project smoke entry when executed directly", async () => {
     const runSmoke = vi.fn().mockResolvedValue(0);
-    const entry = "/tmp/project/scripts/test-mcp.mjs";
-    const metaUrl = new URL(entry, "file:").href;
-    await runGeneratedTestMcpCli(metaUrl, entry, "/tmp/project/scripts", { runSmoke });
+    const { scriptsDir, entry, metaUrl } = fakeProjectScriptsEntry();
+    await runGeneratedTestMcpCli(metaUrl, entry, scriptsDir, { runSmoke });
     expect(runSmoke).toHaveBeenCalledOnce();
   });
 
   it("does nothing when imported as a module", async () => {
     const runSmoke = vi.fn().mockResolvedValue(0);
-    await runGeneratedTestMcpCli("file:///a.mjs", "/b.mjs", "/tmp/project/scripts", { runSmoke });
+    const { scriptsDir } = fakeProjectScriptsEntry();
+    await runGeneratedTestMcpCli("file:///a.mjs", join(tmpdir(), "b.mjs"), scriptsDir, { runSmoke });
     expect(runSmoke).not.toHaveBeenCalled();
   });
 });
@@ -112,7 +118,8 @@ describe("runProjectMcpSmokeEntry", () => {
   it("logs success when the smoke test passes", async () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const runSmoke = vi.fn().mockResolvedValue(0);
-    const exitCode = await runProjectMcpSmokeEntry("/tmp/project/scripts", { runSmoke });
+    const { scriptsDir } = fakeProjectScriptsEntry();
+    const exitCode = await runProjectMcpSmokeEntry(scriptsDir, { runSmoke });
     expect(exitCode).toBe(0);
     expect(process.exitCode).toBeUndefined();
     expect(log).toHaveBeenCalledWith("MCP stdio smoke test passed.");
@@ -124,7 +131,8 @@ describe("runProjectMcpSmokeEntry", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const runSmoke = vi.fn().mockResolvedValue(1);
     const priorExitCode = process.exitCode;
-    const exitCode = await runProjectMcpSmokeEntry("/tmp/project/scripts", { runSmoke });
+    const { scriptsDir } = fakeProjectScriptsEntry();
+    const exitCode = await runProjectMcpSmokeEntry(scriptsDir, { runSmoke });
     expect(exitCode).toBe(1);
     expect(process.exitCode).toBe(1);
     expect(log).not.toHaveBeenCalled();
@@ -135,7 +143,8 @@ describe("runProjectMcpSmokeEntry", () => {
   it("maps thrown smoke errors to exit code 1", async () => {
     const runSmoke = vi.fn().mockRejectedValue(new Error("Missing MCP server entrypoint"));
     const priorExitCode = process.exitCode;
-    const exitCode = await runProjectMcpSmokeEntry("/tmp/project/scripts", { runSmoke });
+    const { scriptsDir } = fakeProjectScriptsEntry();
+    const exitCode = await runProjectMcpSmokeEntry(scriptsDir, { runSmoke });
     expect(exitCode).toBe(1);
     expect(process.exitCode).toBe(1);
     process.exitCode = priorExitCode;
@@ -144,8 +153,9 @@ describe("runProjectMcpSmokeEntry", () => {
 
 describe("runMcpStdioSmoke", () => {
   it("rejects when the server entrypoint is missing", async () => {
+    const missingServerPath = join(tmpdir(), "does-not-exist-mcp.js");
     await expect(
-      runMcpStdioSmoke({ serverPath: "/tmp/does-not-exist-mcp.js", expectedTools: ["greet"] }),
+      runMcpStdioSmoke({ serverPath: missingServerPath, expectedTools: ["greet"] }),
     ).rejects.toThrow(/Missing MCP server entrypoint/);
   });
 
