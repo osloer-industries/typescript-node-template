@@ -1,40 +1,34 @@
 name: CI
+
 on:
   pull_request:
   push:
     branches: [main]
+
 permissions:
   contents: read
+
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   quality:
-    name: Quality
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { persist-credentials: false }
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with: { node-version-file: .nvmrc, cache: npm }
-      - run: npm ci --ignore-scripts
-      - run: npm ci --ignore-scripts --prefix packages/eslint-sonarjs
-      - run: npm audit --omit=dev --audit-level=high
-      - run: npm audit --omit=dev --audit-level=high --prefix packages/eslint-sonarjs
-      - run: npm run check
+    uses: osloer-industries/.github/.github/workflows/node-npm-quality.yml@3c84a702b48ef8e88b0c696e1621d4e040d3a7bb # .github main (PR #2 merged)
+    with:
+      node-version-file: .nvmrc
+      check-npm-script: check
+      npm-ci-ignore-scripts: true
+      audit-level: high
+      npm-prefixes-json: '["packages/eslint-sonarjs"]'
+      job-name: Quality
+      timeout-minutes: 10
+
   setup-smoke:
-    name: Setup smoke (${{ matrix.scenario }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        scenario: [plugin, mcp, npm-package, cli]
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { persist-credentials: false }
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with: { node-version-file: .nvmrc, cache: npm }
-      - run: npm ci --ignore-scripts
-      - run: npm run setup -- --scenario ${{ matrix.scenario }} --name @smoke/${{ matrix.scenario }}-template --yes
+    uses: osloer-industries/.github/.github/workflows/node-setup-smoke.yml@3c84a702b48ef8e88b0c696e1621d4e040d3a7bb # .github main (PR #2 merged)
+    with:
+      scenarios-json: '["plugin","mcp","npm-package","cli"]'
+      setup-npm-script: setup
+      smoke-name-prefix: "@smoke/"
+      node-version-file: .nvmrc
+      timeout-minutes: 15
