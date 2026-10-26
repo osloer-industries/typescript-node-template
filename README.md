@@ -1,20 +1,23 @@
 # TypeScript Node Template
 
-A minimal Node.js 24 and TypeScript starter with secure defaults, exact dependencies, fast linting, coverage enforcement, and GitHub security automation.
+A minimal Node.js 24 and TypeScript starter with secure defaults, exact dependencies, fast linting,
+coverage enforcement, and GitHub security automation.
 
 ## Included
 
 - Node.js 24.22.0, npm, ECMAScript modules, and strict TypeScript 7
 - Exact versions, `.npmrc` with `save-exact=true` and `engine-strict=true`, and committed `package-lock.json`
 - Oxlint with type-aware TypeScript rules, typechecking, build, Vitest unit tests, and V8 coverage
-- 80% minimum coverage for branches, functions, lines, and statements in `src/` and testable `scripts/` helpers (CLI entry `scripts/setup.mjs` is exercised by CI smoke jobs)
+- 80% minimum coverage for branches, functions, lines, and statements in `src/` and testable `scripts/`
+  helpers (CLI entry `scripts/setup.mjs` is exercised by CI smoke jobs)
 - Pull request and `main` CI with `npm run check`, `npm audit --omit=dev`, and a four-scenario setup smoke matrix
 - CodeQL, SonarQube Cloud, Dependabot, and pull request dependency review
 - Release Please for Conventional Commit-based release pull requests, changelogs, tags, and GitHub releases
 - Conventional pull request title validation and matching Dependabot commit prefixes
 - Full commit SHA pins, minimal permissions, timeouts, and concurrency cancellation
 - Secret-safe ignores, issue forms, and pull request guidance
-- Provider-neutral `AGENTS.md`
+- Provider-neutral [AGENTS.md](AGENTS.md) and [docs/architecture.md](docs/architecture.md) for contributors and coding agents
+- Local SonarJS rules (`npm run lint:sonarjs`), jscpd duplication checks, and Lefthook pre-commit hooks
 
 ## Start a project
 
@@ -39,7 +42,8 @@ For unattended setup:
 npm run setup -- --scenario cli --name @your-scope/your-cli --description "A useful CLI" --yes
 ```
 
-With `--yes`, setup runs `npm run check` automatically and dry-runs `npm pack` for publishable scenarios. Pass `--no-verify` to skip that gate, or add `--verify` after an interactive run.
+With `--yes`, setup runs `npm run check` automatically and dry-runs `npm pack` for publishable scenarios.
+Pass `--no-verify` to skip that gate, or add `--verify` after an interactive run.
 
 Review `SETUP.md`, update repository URLs in `package.json`, then remove `SETUP.md`.
 
@@ -48,6 +52,8 @@ Review `SETUP.md`, update repository URLs in `package.json`, then remove `SETUP.
 | Command | Purpose |
 | --- | --- |
 | `npm run lint` | Lint with the explicit `.oxlintrc.json` policy, including type-aware rules |
+| `npm run lint:sonarjs` | SonarJS ESLint `recommended` rules (see `packages/eslint-sonarjs/`) |
+| `npm run lint:dup` | Detect duplicated code and markdown (jscpd, 0% threshold) |
 | `npm run typecheck` | Check types without emitting files |
 | `npm test` | Run unit tests |
 | `npm run test:coverage` | Test and enforce coverage thresholds |
@@ -57,28 +63,46 @@ Review `SETUP.md`, update repository URLs in `package.json`, then remove `SETUP.
 
 ## SonarQube Cloud setup
 
+Contributors and agents should follow [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) to avoid
+**SonarCloud Code Analysis** failures (PATH-safe npm via `scripts/run-npm.mjs`, `--ignore-scripts` on CI
+installs, and local `eslint-plugin-sonarjs` via `npm run lint:sonarjs`).
+
 The Sonar workflow skips safely until configured.
 
 1. Import the repository into SonarQube Cloud.
 2. Replace `YOUR_SONAR_ORGANIZATION` and `YOUR_SONAR_PROJECT_KEY` in `sonar-project.properties`.
 3. Create a SonarQube Cloud token and add it in GitHub under **Settings > Secrets and variables > Actions** as `SONAR_TOKEN`.
-4. In SonarQube Cloud, open **Project Settings > Analysis Method** and clear **Enabled for this project** under Automatic Analysis. Automatic Analysis and GitHub Actions analysis cannot be enabled together.
+4. In SonarQube Cloud, open **Project Settings > Analysis Method** and clear **Enabled for this project**
+   under Automatic Analysis. Automatic Analysis and GitHub Actions analysis cannot be enabled together.
 5. Push to `main` or open a pull request and confirm the Sonar check runs.
 
-Never commit the token. On eligible plans, organization administrators can also disable Automatic Analysis for new projects under **Organization Settings > Analysis**.
+Never commit the token. On eligible plans, organization administrators can also disable Automatic Analysis
+for new projects under **Organization Settings > Analysis**.
 
 ## Release Please setup
 
-Release Please opens and maintains a release pull request from Conventional Commits. Merging that pull request updates `CHANGELOG.md` and package versions, creates a `vX.Y.Z` tag, and publishes a GitHub release.
+Release Please opens and maintains a release pull request from Conventional Commits. Merging that pull
+request updates `CHANGELOG.md` and package versions, creates a `vX.Y.Z` tag, and publishes a GitHub release.
 
-1. Have an organization administrator create or rotate the organization Actions secret named `RELEASE_TOKEN`. Back it with a fine-grained maintainer token or GitHub App token that has repository Contents and Pull requests read/write access. If your organization requires it, also grant Actions read access.
-2. In the organization secret's repository access policy, select each repository created from this template that uses Release Please. Do not expose the secret to unrelated repositories.
-3. Confirm GitHub Actions may create pull requests under **Settings > Actions > General**. Organization policy may manage this setting.
-4. Use Conventional Commit prefixes such as `feat:`, `fix:`, and `chore:`. Merge the Release Please pull request when the proposed version and changelog are ready.
+1. Have an organization administrator create or rotate the organization Actions secret named
+   `RELEASE_TOKEN`. Back it with a fine-grained maintainer token or GitHub App token that has repository
+   Contents and Pull requests read/write access. If your organization requires it, also grant Actions
+   read access.
+2. In the organization secret's repository access policy, select each repository created from this template
+   that uses Release Please. Do not expose the secret to unrelated repositories.
+3. Confirm GitHub Actions may create pull requests under **Settings > Actions > General**. Organization
+   policy may manage this setting.
+4. Use Conventional Commit prefixes such as `feat:`, `fix:`, and `chore:`. Merge the Release Please pull
+   request when the proposed version and changelog are ready.
 
-The organization-level token is intentional. Pull requests created with the built-in `GITHUB_TOKEN` do not trigger other GitHub Actions workflows, which prevents required CI checks from running on a protected release pull request. Prefer a short-lived GitHub App token over a long-lived personal access token when practical.
+The organization-level token is intentional. Pull requests created with the built-in `GITHUB_TOKEN` do not
+trigger other GitHub Actions workflows, which prevents required CI checks from running on a protected
+release pull request. Prefer a short-lived GitHub App token over a long-lived personal access token when
+practical.
 
-Pull request titles are validated against the Conventional Commits format. Configure squash merges to use the pull request title as the commit title so Release Please receives a predictable Conventional Commit on `main`. Dependabot prefixes npm updates with `chore(deps):` and GitHub Actions updates with `ci(deps):`.
+Pull request titles are validated against the Conventional Commits format. Configure squash merges to use
+the pull request title as the commit title so Release Please receives a predictable Conventional Commit on
+`main`. Dependabot prefixes npm updates with `chore(deps):` and GitHub Actions updates with `ci(deps):`.
 
 ## Recommended branch protection
 
@@ -86,7 +110,9 @@ Branch protection is intentionally not automated. After the first successful run
 
 - Pull requests required with at least one approval
 - Stale approval dismissal and conversation resolution
-- Required checks: `CI / Quality`, the four `Setup smoke` jobs, `CodeQL / Analyze JavaScript and TypeScript`, `Dependency review / Review dependency changes`, `Pull request title / Semantic pull request`, and `SonarQube Cloud / Analyze` after Sonar is configured
+- Required checks: `CI / Quality`, the four `Setup smoke` jobs, `CodeQL / Analyze JavaScript and
+  TypeScript`, `Dependency review / Review dependency changes`, `Pull request title / Semantic pull
+  request`, and `SonarQube Cloud / Analyze` after Sonar is configured
 - Up-to-date branches when parallel development makes it useful
 - Force pushes and branch deletion blocked
 - Rules applied to administrators unless an emergency process exists
@@ -95,7 +121,8 @@ Branch protection is intentionally not automated. After the first successful run
 
 Do not require Sonar until its placeholders and secret are configured.
 
-Allow the maintainer identity behind `RELEASE_TOKEN` to open pull requests, but do not bypass required reviews or checks for Release Please pull requests.
+Allow the maintainer identity behind `RELEASE_TOKEN` to open pull requests, but do not bypass required
+reviews or checks for Release Please pull requests.
 
 ## Quality policy
 
@@ -111,7 +138,10 @@ are intentionally not enabled.
 
 ## Low-cost security and automation
 
-This template includes immutable Action pins with Dependabot updates, high-severity dependency review, scheduled CodeQL, production audits, grouped development updates, CI cancellation, timeouts, and standardized contribution forms. Public repositories also receive GitHub dependency graph and secret scanning. Enable repository push protection in **Settings > Code security and analysis** when available.
+This template includes immutable Action pins with Dependabot updates, high-severity dependency review,
+scheduled CodeQL, production audits, grouped development updates, CI cancellation, timeouts, and
+standardized contribution forms. Public repositories also receive GitHub dependency graph and secret
+scanning. Enable repository push protection in **Settings > Code security and analysis** when available.
 
 Consider these additions only when the generated project needs them:
 
@@ -120,10 +150,13 @@ Consider these additions only when the generated project needs them:
 - OpenSSF Scorecard, a real `CODEOWNERS` file, and organization-wide Action SHA-pinning rules
 - Generated-code drift checks, integration tests, container scanning, deployment environments, and observability
 
-Automated publishing, broad write permissions, merge bots, and placeholder code owners are intentionally omitted because they require project-specific ownership and release decisions.
+Automated publishing, broad write permissions, merge bots, and placeholder code owners are intentionally
+omitted because they require project-specific ownership and release decisions.
 
 ## Secrets
 
-Copy `.env.example` to `.env` locally. Ignore rules cover environment files, private keys, credential files, and local npm authentication. Keep committed `.npmrc` free of tokens. If a secret is committed, revoke and rotate it immediately.
+Copy `.env.example` to `.env` locally. Ignore rules cover environment files, private keys, credential
+files, and local npm authentication. Keep committed `.npmrc` free of tokens. If a secret is committed,
+revoke and rotate it immediately.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [LICENSE](LICENSE).

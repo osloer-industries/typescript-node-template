@@ -1,0 +1,12 @@
+{
+  "ignores": ["**/node_modules/**"],
+  "globs": [
+    "AGENTS.md",
+    "README.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "docs/**/*.md",
+    "packages/eslint-sonarjs/README.md",
+    ".github/**/*.md"
+  ]
+}

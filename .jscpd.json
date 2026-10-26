@@ -1,0 +1,25 @@
+{
+  "absolute": true,
+  "format": ["typescript", "javascript", "markdown"],
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/coverage/**",
+    "**/package-lock.json",
+    "packages/eslint-sonarjs/package-lock.json"
+  ],
+  "minLines": 8,
+  "minTokens": 70,
+  "mode": "strict",
+  "path": [
+    "src",
+    "scripts",
+    "docs",
+    "AGENTS.md",
+    "README.md",
+    "CONTRIBUTING.md",
+    "packages/eslint-sonarjs"
+  ],
+  "reporters": ["console"],
+  "threshold": 0
+}

@@ -1,0 +1,13 @@
+pre-commit:
+  commands:
+    oxlint:
+      glob: "*.{ts,mjs}"
+      exclude: "packages/eslint-sonarjs/node_modules/**"
+      run: oxlint -c .oxlintrc.json {staged_files}
+    sonarjs:
+      glob: "*.{ts,mjs}"
+      exclude: "packages/eslint-sonarjs/node_modules/**"
+      run: node scripts/lint-sonarjs.mjs {staged_files}
+    markdown:
+      glob: "*.md"
+      run: markdownlint-cli2 {staged_files}

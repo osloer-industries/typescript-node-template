@@ -21,13 +21,18 @@
   "packageManager": "npm@10.9.8",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "check": "npm run lint && npm run typecheck && npm run test:coverage && npm run build",
-    "lint": "oxlint -c .oxlintrc.json src scripts",
+    "check": "npm run lint && npm run lint:sonarjs && npm run lint:dup && npm run lint:md && npm run lint:md-links && npm run typecheck && npm run test:coverage && npm run build",
+    "lint": "oxlint -c .oxlintrc.json src scripts packages",
+    "lint:dup": "jscpd --config .jscpd.json",
+    "lint:md": "markdownlint-cli2",
+    "lint:md-links": "markdown-link-check-repo --config .markdown-link-check.json",
+    "lint:sonarjs": "node scripts/lint-sonarjs.mjs",
+    "prepare": "lefthook install",
     "setup": "node scripts/setup.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && npm run typecheck --prefix packages/eslint-sonarjs"
   },
   "repository": {
     "type": "git",
@@ -38,9 +43,16 @@
   },
   "homepage": "https://github.com/osloer-industries/typescript-node-template#readme",
   "license": "MIT",
+  "overrides": {
+    "basic-ftp": "6.2.3"
+  },
   "devDependencies": {
+    "@osloer-industries/markdown-link-check": "github:osloer-industries/markdown-link-check#v4.0.0-osloer.1",
     "@types/node": "24.19.2",
     "@vitest/coverage-v8": "4.1.11",
+    "jscpd": "5.4.2",
+    "lefthook": "2.2.2",
+    "markdownlint-cli2": "0.17.2",
     "oxlint": "1.79.0",
     "oxlint-tsgolint": "7.0.2001",
     "typescript": "7.0.2",
