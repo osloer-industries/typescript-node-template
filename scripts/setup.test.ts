@@ -137,6 +137,7 @@ describe("applySetup metadata", () => {
         "runGeneratedTestMcpCli"
       );
       expect(readFileSync(join(tempDir, "scripts/mcp-stdio-smoke.mjs"), "utf8")).toContain("runMcpStdioSmoke");
+      expect(readFileSync(join(tempDir, "scripts/test-mcp.test.mjs"), "utf8")).toContain("runGeneratedTestMcpCli");
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }

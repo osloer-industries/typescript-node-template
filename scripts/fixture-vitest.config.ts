@@ -3,6 +3,7 @@ import { defineConfig } from "vitest/config";
 /** Minimal Vitest coverage config for setup integration fixtures (src-only). */
 export default defineConfig({
   test: {
+    include: ["src/**/*.test.ts", "scripts/test-mcp.test.mjs"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json"],

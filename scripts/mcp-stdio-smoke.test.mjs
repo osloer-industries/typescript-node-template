@@ -1,13 +1,6 @@
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-
-/** @returns {{ scriptsDir: string, entry: string, metaUrl: string }} */
-function fakeProjectScriptsEntry() {
-  const scriptsDir = join(tmpdir(), "mcp-smoke-project", "scripts");
-  const entry = join(scriptsDir, "test-mcp.mjs");
-  return { scriptsDir, entry, metaUrl: new URL(entry, "file:").href };
-}
 import { describe, expect, it, vi } from "vitest";
 import {
   findMissingTools,
@@ -20,6 +13,13 @@ import {
   toolNamesFromListResult,
   toolsListMatches,
 } from "./mcp-stdio-smoke.mjs";
+
+/** @returns {{ scriptsDir: string, entry: string, metaUrl: string }} */
+function fakeProjectScriptsEntry() {
+  const scriptsDir = join(tmpdir(), "mcp-smoke-project", "scripts");
+  const entry = join(scriptsDir, "test-mcp.mjs");
+  return { scriptsDir, entry, metaUrl: new URL(entry, "file:").href };
+}
 
 /**
  * @param {string} serverPath

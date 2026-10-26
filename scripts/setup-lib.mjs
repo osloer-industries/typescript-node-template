@@ -11,7 +11,7 @@ import { stdin, stdout } from "node:process";
 
 const setupLibDir = dirname(fileURLToPath(import.meta.url));
 
-const generatedTestMcpScript = `import { runGeneratedTestMcpCli } from "./mcp-stdio-smoke.mjs";
+export const generatedTestMcpScript = `import { runGeneratedTestMcpCli } from "./mcp-stdio-smoke.mjs";
 
 await runGeneratedTestMcpCli(import.meta.url, process.argv[1], import.meta.dirname);
 `;
@@ -28,6 +28,8 @@ export function writeMcpSmokeScripts(baseDir) {
     cpSync(smokeSource, smokeDest);
   }
   writeFileSync(join(scriptsDir, "test-mcp.mjs"), generatedTestMcpScript);
+  const testMcpTestSource = join(setupLibDir, "test-mcp.test.mjs");
+  cpSync(testMcpTestSource, join(scriptsDir, "test-mcp.test.mjs"));
 }
 
 export const profiles = {
