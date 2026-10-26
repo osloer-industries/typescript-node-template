@@ -15,10 +15,10 @@ concurrency:
 
 jobs:
   analyze:
-    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@723d26a795c2cfc7022471bc956cc5a99a9d14cf # .github PR #2 head
+    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@8461a7dd37a104de2283cac3e5974026cd18777a # .github PR #2 head
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     with:
       node-version-file: .nvmrc
-      coverage-command: npm run test:coverage
+      coverage-npm-script: test:coverage
       timeout-minutes: 15
