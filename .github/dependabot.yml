@@ -19,6 +19,11 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
+    ignore:
+      # @typescript-eslint/parser peer range is typescript <6.1.0 until TS 7.1 ships a
+      # programmatic API and typescript-eslint adds support (see docs/sonar-quality-gate.md).
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
     groups:
       development-dependencies:
         dependency-type: development
