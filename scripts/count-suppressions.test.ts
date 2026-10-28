@@ -3,7 +3,7 @@ import { cpSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } f
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const nodeArgs = ["scripts/count-suppressions.ts"];
@@ -106,6 +106,35 @@ describe("baseline IO", () => {
       expect(() => loadBaseline(baselinePath)).toThrow(/Invalid suppression baseline shape/);
       writeFileSync(baselinePath, '"not-an-object"\n', "utf8");
       expect(() => loadBaseline(baselinePath)).toThrow(/Invalid suppression baseline JSON/);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("runCountSuppressionsCli", () => {
+  it("prints shrink-only status for a clean tree", async () => {
+    const { runCountSuppressionsCli } = await loadModule();
+    const tempDir = mkdtempSync(join(tmpdir(), "suppression-cli-run-"));
+    try {
+      mkdirSync(join(tempDir, "scripts"), { recursive: true });
+      mkdirSync(join(tempDir, "src"), { recursive: true });
+      cpSync(join(repoRoot, "scripts/count-suppressions.ts"), join(tempDir, "scripts/count-suppressions.ts"));
+      writeFileSync(
+        join(tempDir, "scripts/suppression-baseline.json"),
+        `${JSON.stringify({ version: 1, total: 0 })}\n`,
+        "utf8",
+      );
+      writeFileSync(join(tempDir, "src/clean.ts"), "export const ok = 1;\n", "utf8");
+      const moduleUrl = new URL(`file://${join(tempDir, "scripts/count-suppressions.ts")}`).href;
+      let output = "";
+      const stdout = vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
+        output += String(chunk);
+        return true;
+      });
+      runCountSuppressionsCli(moduleUrl, []);
+      stdout.mockRestore();
+      expect(output).toMatch(/shrink-only OK/);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
