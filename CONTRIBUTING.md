@@ -23,3 +23,6 @@ footer or `!` marker for a major release.
 Pull request titles are validated automatically. Squash merging uses the validated title as the commit
 subject on `main`, giving Release Please one reliable Conventional Commit per pull request. Dependabot
 uses `chore(deps):` for npm updates and `ci(deps):` for GitHub Actions updates.
+
+Dependabot version updates use explicit `cooldown` settings in `.github/dependabot.yml` so newly
+published versions stabilize before pull requests are opened (security updates are not delayed).
