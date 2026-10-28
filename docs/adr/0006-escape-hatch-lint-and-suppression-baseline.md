@@ -12,8 +12,8 @@ time.
 
 Related: [issue #42](https://github.com/osloer-industries/typescript-node-template/issues/42),
 [issue #60](https://github.com/osloer-industries/typescript-node-template/issues/60),
-PR [#62](https://github.com/osloer-industries/typescript-node-template/pull/62) (escape-hatch rules),
-PR [#71](https://github.com/osloer-industries/typescript-node-template/pull/71) (suppression counter).
+PR [#62](https://github.com/osloer-industries/typescript-node-template/pull/62) (escape-hatch rules, merged),
+PR [#71](https://github.com/osloer-industries/typescript-node-template/pull/71) (suppression counter, **merged** on `main`).
 
 ## Decision
 

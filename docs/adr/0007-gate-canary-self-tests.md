@@ -12,8 +12,9 @@ false-passed when any subprocess throw or “no files matched” was treated as 
 
 Related: [issue #44](https://github.com/osloer-industries/typescript-node-template/issues/44),
 [issue #75](https://github.com/osloer-industries/typescript-node-template/issues/75),
-PR [#74](https://github.com/osloer-industries/typescript-node-template/pull/74) (canary harness),
-PR [#76](https://github.com/osloer-industries/typescript-node-template/pull/76) (`no-empty` + gaps).
+PR [#74](https://github.com/osloer-industries/typescript-node-template/pull/74) (canary harness, **merged** on `main`),
+PR [#77](https://github.com/osloer-industries/typescript-node-template/pull/77) (`no-empty` + gap docs;
+replaces auto-closed #76).
 
 ## Decision
 
@@ -37,4 +38,4 @@ PR [#76](https://github.com/osloer-industries/typescript-node-template/pull/76) 
 ## Alternatives considered
 
 - **CI lint only** — rejected; does not detect “rule switched off but tree still clean”.
-- **Custom ESLint plugin for comment-only catch** — rejected for now; documented gap instead (see PR #76).
+- **Custom ESLint plugin for comment-only catch** — rejected for now; documented gap instead (see PR #77).
