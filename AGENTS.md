@@ -2,8 +2,9 @@
 
 These instructions apply to every human or automated contributor. Keep this file
 provider-neutral: the canonical map, verification ladder, and change recipes live
-here. Do not duplicate this content in vendor-specific instruction files (`CLAUDE.md`,
-`.cursorrules`, and similar).
+here. Vendor-specific entry points (for example `CLAUDE.md` symlinked to this file,
+or wiring-only hook config) may exist but must not duplicate this content (no
+parallel copies in `.cursorrules` or similar).
 
 ## Repository map
 

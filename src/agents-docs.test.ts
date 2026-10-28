@@ -1,7 +1,10 @@
-import { readFileSync } from "node:fs";
+import { lstatSync, readFileSync, readlinkSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-const agentsMd = readFileSync(new URL("../AGENTS.md", import.meta.url), "utf8");
+const repoRoot = fileURLToPath(new URL("..", import.meta.url));
+const agentsMd = readFileSync(join(repoRoot, "AGENTS.md"), "utf8");
 const architectureMd = readFileSync(new URL("../docs/architecture.md", import.meta.url), "utf8");
 const packageJson = readFileSync(new URL("../package.json", import.meta.url), "utf8");
 
@@ -11,6 +14,12 @@ describe("agent documentation contract", () => {
     expect(agentsMd).toMatch(/## Verification/i);
     expect(agentsMd).toMatch(/## Change recipes/i);
     expect(agentsMd).toMatch(/## Do not edit without reason/i);
+  });
+
+  it("symlinks CLAUDE.md to AGENTS.md", () => {
+    const claudePath = join(repoRoot, "CLAUDE.md");
+    expect(lstatSync(claudePath).isSymbolicLink()).toBe(true);
+    expect(readlinkSync(claudePath)).toBe("AGENTS.md");
   });
 
   it("links architecture.md from AGENTS.md", () => {

@@ -59,6 +59,7 @@ const rootFiles = [
   ".jscpd.json",
   "lefthook.yml",
   "AGENTS.md",
+  "CLAUDE.md",
   "CONTRIBUTING.md",
   "README.md",
   "SECURITY.md",
