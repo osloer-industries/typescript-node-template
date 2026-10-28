@@ -68,6 +68,18 @@ describe("countSuppressions", () => {
       rmSync(tempDir, { recursive: true, force: true });
     }
   });
+
+  it("walks packages trees", async () => {
+    const { countSuppressions } = await loadModule();
+    const tempDir = mkdtempSync(join(tmpdir(), "suppression-packages-"));
+    try {
+      mkdirSync(join(tempDir, "packages", "demo"), { recursive: true });
+      writeFileSync(join(tempDir, "packages", "demo", "lib.ts"), "// oxlint-disable-line\nexport {};\n", "utf8");
+      expect(countSuppressions(tempDir)).toBe(1);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("baseline IO", () => {
@@ -90,6 +102,10 @@ describe("baseline IO", () => {
     try {
       writeFileSync(baselinePath, '{"version":2,"total":1}\n', "utf8");
       expect(() => loadBaseline(baselinePath)).toThrow(/Invalid suppression baseline/);
+      writeFileSync(baselinePath, '{"version":1,"total":-1}\n', "utf8");
+      expect(() => loadBaseline(baselinePath)).toThrow(/Invalid suppression baseline shape/);
+      writeFileSync(baselinePath, '"not-an-object"\n', "utf8");
+      expect(() => loadBaseline(baselinePath)).toThrow(/Invalid suppression baseline JSON/);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }

@@ -65,6 +65,8 @@ describe("toolNamesFromListResult", () => {
   it("extracts tool names from tools/list results", () => {
     expect(toolNamesFromListResult({ tools: [{ name: "greet" }] })).toEqual(["greet"]);
     expect(toolNamesFromListResult({})).toEqual([]);
+    expect(toolNamesFromListResult({ tools: "bad" })).toEqual([]);
+    expect(toolNamesFromListResult({ tools: [{ name: 1 }, { label: "x" }] })).toEqual([]);
   });
 });
 
@@ -218,6 +220,17 @@ describe("runMcpStdioSmoke", () => {
       error: { message: "nope" },
     }) + "\\n");
   }`,
+      async (serverPath) => {
+        const exitCode = await runMcpStdioSmoke({ serverPath, expectedTools: ["greet"] });
+        expect(exitCode).toBe(1);
+      },
+    );
+  });
+
+  it("fails when the server writes invalid JSON", async () => {
+    await withMockStdioMcpServer(
+      "mcp-smoke-invalid-json-",
+      `  process.stdout.write("not-json\\n");`,
       async (serverPath) => {
         const exitCode = await runMcpStdioSmoke({ serverPath, expectedTools: ["greet"] });
         expect(exitCode).toBe(1);
