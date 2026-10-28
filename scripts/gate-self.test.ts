@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const oxlintConfig = join(repoRoot, ".oxlintrc.json");
 const oxlintExecutable = join(repoRoot, "node_modules", ".bin", "oxlint");
+const sonarLint = join(repoRoot, "scripts/lint-sonarjs.mjs");
 
 function runOxlintOnFile(relativeFilePath: string, cwd: string): void {
   execFileSync(oxlintExecutable, ["-c", oxlintConfig, relativeFilePath], {
@@ -15,6 +16,15 @@ function runOxlintOnFile(relativeFilePath: string, cwd: string): void {
     stdio: "pipe",
     encoding: "utf8",
   });
+}
+
+function lintFailed(run: () => void): boolean {
+  try {
+    run();
+    return false;
+  } catch {
+    return true;
+  }
 }
 
 describe("gate self-tests (oxlint escape hatches)", () => {
@@ -49,13 +59,33 @@ describe("gate self-tests (oxlint escape hatches)", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "gate-self-"));
     try {
       writeFileSync(join(tempDir, fileName), source, "utf8");
-      let failed = false;
-      try {
-        runOxlintOnFile(fileName, tempDir);
-      } catch {
-        failed = true;
-      }
-      expect(failed, `expected oxlint to fail for ${fileName}`).toBe(true);
+      expect(lintFailed(() => runOxlintOnFile(fileName, tempDir)), `oxlint should fail for ${fileName}`).toBe(
+        true,
+      );
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("gate self-tests (SonarJS shortcuts)", () => {
+  it("rejects trivial expect(true) assertions", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "gate-self-sonar-"));
+    const fileName = "trivial.test.ts";
+    try {
+      writeFileSync(
+        join(tempDir, fileName),
+        `import { expect, it } from "vitest";\nit("bad", () => { expect(true).toBe(true); });\n`,
+        "utf8",
+      );
+      const failed = lintFailed(() =>
+        execFileSync(process.execPath, [sonarLint, fileName], {
+          cwd: tempDir,
+          stdio: "pipe",
+          encoding: "utf8",
+        }),
+      );
+      expect(failed, `SonarJS should fail for ${fileName}`).toBe(true);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
