@@ -35,8 +35,16 @@ describe("agent documentation contract", () => {
     if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
     const check = Reflect.get(scripts, "check");
     expect(typeof check).toBe("string");
+    expect(check).toContain("lint:suppressions");
     expect(check).toContain("lint:sonarjs");
     expect(check).toContain("lint:dup");
+  });
+
+  it("links MCP and dependency pattern docs from AGENTS.md", () => {
+    expect(agentsMd).toMatch(/docs\/mcp-stdio-smoke-test\.md/);
+    expect(agentsMd).toMatch(/docs\/mcp-account-data-agents\.md/);
+    expect(agentsMd).toMatch(/docs\/playwright-ci-dependencies\.md/);
+    expect(agentsMd).toMatch(/docs\/npm-overrides\.md/);
   });
 
   it("describes layout and setup scenarios in architecture.md", () => {
