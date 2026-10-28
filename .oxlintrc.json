@@ -21,6 +21,10 @@
     "max-params": ["warn", 5],
     "typescript/no-floating-promises": "error",
     "typescript/no-misused-promises": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-non-null-assertion": "error",
+    "unicorn/no-abusive-eslint-disable": "error",
     "vitest/no-focused-tests": "error"
   },
   "overrides": [

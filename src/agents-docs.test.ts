@@ -11,6 +11,7 @@ describe("agent documentation contract", () => {
     expect(agentsMd).toMatch(/## Verification/i);
     expect(agentsMd).toMatch(/## Change recipes/i);
     expect(agentsMd).toMatch(/## Do not edit without reason/i);
+    expect(agentsMd).toMatch(/## Enforced escape-hatch rules/i);
   });
 
   it("links architecture.md from AGENTS.md", () => {
