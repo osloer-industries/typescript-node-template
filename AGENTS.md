@@ -14,6 +14,7 @@ here. Do not duplicate this content in vendor-specific instruction files (`CLAUD
 | `scripts/setup-lib.mjs` | Setup profiles and testable helpers. |
 | `scripts/setup.test.ts` | Setup unit and integration tests. |
 | `docs/architecture.md` | Module boundaries, scenarios, and dependency rules. |
+| `docs/adr/` | Architecture Decision Records (significant harness and layout choices). |
 | `docs/sonar-quality-gate.md` | SonarCloud patterns and local SonarJS ESLint enforcement. |
 | `packages/eslint-sonarjs/` | SonarJS `recommended` rules via ESLint (TypeScript 6 parser; root uses TS 7). |
 | `.github/workflows/` | CI and security automation. |

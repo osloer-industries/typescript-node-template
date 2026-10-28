@@ -18,6 +18,10 @@ describe("agent documentation contract", () => {
     expect(agentsMd).toMatch(/docs\/architecture\.md/);
   });
 
+  it("documents ADRs in AGENTS.md", () => {
+    expect(agentsMd).toMatch(/docs\/adr\//);
+  });
+
   it("links sonar-quality-gate.md from AGENTS.md", () => {
     expect(agentsMd).toMatch(/docs\/sonar-quality-gate\.md/);
   });
