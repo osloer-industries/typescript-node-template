@@ -137,6 +137,12 @@ describe("gate self-tests (oxlint escape hatches)", () => {
       "eslint-disable.ts",
       "unicorn/no-abusive-eslint-disable",
     ],
+    [
+      "empty catch",
+      "export function swallow(): void {\n  try {\n    throw new Error(\"fail\");\n  } catch {}\n}\n",
+      "empty-catch.ts",
+      "no-empty",
+    ],
   ] as const)("rejects %s with rule %s", (_label, source, fileName, ruleId) => {
     const { filePath, cleanup } = writeTempOxlintSource(source, fileName);
     try {
