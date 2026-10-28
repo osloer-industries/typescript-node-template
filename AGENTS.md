@@ -81,6 +81,19 @@ When touching `scripts/`, setup, or CI install steps, follow
 - Keep `npm run typecheck` as the authoritative TypeScript diagnostic step.
   Oxlint's type-aware rules supplement it but do not replace it.
 
+## Enforced escape-hatch rules (Oxlint)
+
+These rules are CI-enforced. Known agent workarounds are listed so you fix the
+root cause instead of bypassing the check.
+
+| Rule | Agent workaround to avoid |
+| --- | --- |
+| `typescript/no-explicit-any` | Typing values as `unknown` then narrowing, or a proper generic/interface. |
+| `typescript/ban-ts-comment` | Fix the type error; do not use `@ts-ignore` / `@ts-expect-error`. |
+| `typescript/no-non-null-assertion` | Guard with `if`, optional chaining, or an explicit throw on invalid state. |
+| `unicorn/no-abusive-eslint-disable` | Do not blanket-disable rules; shrink the suppression baseline instead. |
+| `reportUnusedDisableDirectives` | Do not add disable comments that hide real findings. |
+
 ## Architecture and implementation
 
 - Use strict TypeScript, ECMAScript modules, and explicit `.js` extensions for
