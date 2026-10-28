@@ -1,3 +1,4 @@
+# Tooling rationale: ADR 0009 (docs/adr/0009-tooling-and-quality-gate-stack.md)
 name: SonarQube Cloud
 on:
   pull_request:
