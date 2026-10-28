@@ -8,8 +8,8 @@ Accepted
 
 The template is being hardened for agent-driven development (escape-hatch lint, harness
 protection, MCP contract tests, fleet CI). Several choices affect the public contract of
-repos created from this template (for example `CLAUDE.md` symlinks, `src/core` layout, hook
-wiring files).
+repos created from this template (for example harness layout, hook wiring files, or CI
+placement).
 
 ## Decision
 

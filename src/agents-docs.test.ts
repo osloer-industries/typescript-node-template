@@ -1,5 +1,16 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+
+const adrDirUrl = new URL("../docs/adr/", import.meta.url);
+const adrDir = fileURLToPath(adrDirUrl);
+const adrIndexMd = readFileSync(new URL("README.md", adrDirUrl), "utf8");
+
+function listAdrMarkdownFilenames(): string[] {
+  return readdirSync(adrDir)
+    .filter((name) => /^\d{4}-.+\.md$/u.test(name))
+    .toSorted((a, b) => a.localeCompare(b));
+}
 
 const agentsMd = readFileSync(new URL("../AGENTS.md", import.meta.url), "utf8");
 const architectureMd = readFileSync(new URL("../docs/architecture.md", import.meta.url), "utf8");
@@ -20,6 +31,12 @@ describe("agent documentation contract", () => {
 
   it("documents ADRs in AGENTS.md", () => {
     expect(agentsMd).toMatch(/docs\/adr\//);
+  });
+
+  it("lists every ADR file in docs/adr/README.md", () => {
+    for (const filename of listAdrMarkdownFilenames()) {
+      expect(adrIndexMd, `missing index entry for ${filename}`).toContain(filename);
+    }
   });
 
   it("links sonar-quality-gate.md from AGENTS.md", () => {
