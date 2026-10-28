@@ -75,7 +75,9 @@ const pathGroups = [
     "scripts/setup-lib.d.mts",
     "scripts/run-npm.mjs",
     "scripts/run-npm.d.mts",
-    "scripts/lint-sonarjs.mjs"
+    "scripts/lint-sonarjs.mjs",
+    "scripts/count-suppressions.ts",
+    "scripts/suppression-baseline.json",
   ],
   ["src/index.ts", "src/index.test.ts"],
   [

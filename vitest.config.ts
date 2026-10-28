@@ -16,6 +16,7 @@ export default defineConfig({
       include: [
         "src/**/*.ts",
         "scripts/**/*.mjs",
+        "scripts/count-suppressions.ts",
         "packages/eslint-sonarjs/run.mjs",
         "packages/eslint-sonarjs/list-enabled-rules.mjs",
       ],
