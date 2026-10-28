@@ -23,7 +23,7 @@
     "build": "tsc -p tsconfig.build.json",
     "check": "npm run lint && npm run lint:suppressions && npm run lint:sonarjs && npm run lint:dup && npm run lint:md && npm run lint:md-links && npm run typecheck && npm run test:coverage && npm run build",
     "lint": "oxlint -c .oxlintrc.json src scripts packages",
-    "lint:suppressions": "node --experimental-strip-types scripts/count-suppressions.ts",
+    "lint:suppressions": "node scripts/count-suppressions.ts",
     "lint:dup": "jscpd --config .jscpd.json",
     "lint:md": "markdownlint-cli2",
     "lint:md-links": "markdown-link-check-repo --config .markdown-link-check.json",

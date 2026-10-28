@@ -96,7 +96,7 @@ root cause instead of bypassing the check.
 | `reportUnusedDisableDirectives` | Do not add disable comments that hide real findings. |
 
 The suppression baseline (`scripts/suppression-baseline.json`) may only **shrink**. Regenerate
-with `node --experimental-strip-types scripts/count-suppressions.ts --write-baseline` after
+with `node scripts/count-suppressions.ts --write-baseline` after
  intentional cleanup.
 
 ## Architecture and implementation

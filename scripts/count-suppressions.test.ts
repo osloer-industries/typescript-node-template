@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const nodeArgs = ["--experimental-strip-types", "scripts/count-suppressions.ts"];
+const nodeArgs = ["scripts/count-suppressions.ts"];
 
 async function loadModule() {
   return import("./count-suppressions.js");
@@ -44,6 +44,18 @@ describe("assertShrinkOnly", () => {
 });
 
 describe("countSuppressions", () => {
+  it("ignores missing scan roots", async () => {
+    const { countSuppressions } = await loadModule();
+    const tempDir = mkdtempSync(join(tmpdir(), "suppression-missing-root-"));
+    try {
+      mkdirSync(join(tempDir, "src"), { recursive: true });
+      writeFileSync(join(tempDir, "src/clean.ts"), "export const ok = 1;\n", "utf8");
+      expect(countSuppressions(tempDir)).toBe(0);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
   it("walks src and scripts trees", async () => {
     const { countSuppressions } = await loadModule();
     const tempDir = mkdtempSync(join(tmpdir(), "suppression-count-"));
@@ -93,13 +105,40 @@ describe("count-suppressions CLI", () => {
     expect(output).toMatch(/shrink-only OK/);
   });
 
+  it("fails when suppressions exceed the baseline", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "suppression-over-"));
+    try {
+      mkdirSync(join(tempDir, "scripts"), { recursive: true });
+      mkdirSync(join(tempDir, "src"), { recursive: true });
+      cpSync(join(repoRoot, "scripts/count-suppressions.ts"), join(tempDir, "scripts/count-suppressions.ts"));
+      writeFileSync(
+        join(tempDir, "scripts/suppression-baseline.json"),
+        `${JSON.stringify({ version: 1, total: 0 })}\n`,
+        "utf8",
+      );
+      writeFileSync(join(tempDir, "src/bad.ts"), "// @ts-ignore\nexport {};\n", "utf8");
+      let failed = false;
+      try {
+        execFileSync(process.execPath, ["scripts/count-suppressions.ts"], {
+          cwd: tempDir,
+          encoding: "utf8",
+        });
+      } catch {
+        failed = true;
+      }
+      expect(failed, "expected non-zero exit when baseline exceeded").toBe(true);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
   it("writes baseline in a fixture tree", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "suppression-cli-"));
     try {
       mkdirSync(join(tempDir, "scripts"), { recursive: true });
       mkdirSync(join(tempDir, "src"), { recursive: true });
       cpSync(join(repoRoot, "scripts/count-suppressions.ts"), join(tempDir, "scripts/count-suppressions.ts"));
-      execFileSync(process.execPath, ["--experimental-strip-types", "scripts/count-suppressions.ts", "--write-baseline"], {
+      execFileSync(process.execPath, ["scripts/count-suppressions.ts", "--write-baseline"], {
         cwd: tempDir,
         encoding: "utf8",
       });
