@@ -102,7 +102,13 @@ root cause instead of bypassing the check.
 | `typescript/ban-ts-comment` | Fix the type error; do not use `@ts-ignore` / `@ts-expect-error`. |
 | `typescript/no-non-null-assertion` | Guard with `if`, optional chaining, or an explicit throw on invalid state. |
 | `unicorn/no-abusive-eslint-disable` | Do not blanket-disable rules; shrink the suppression baseline instead. |
+| `no-empty` (`allowEmptyCatch: false`) | Handle errors explicitly; do not use empty `catch` blocks. |
 | `reportUnusedDisableDirectives` | Do not add disable comments that hide real findings. |
+
+SonarJS `recommended` (via `npm run lint:sonarjs`) also enforces `sonarjs/no-trivial-assertions`
+(for example `expect(true).toBe(true)`). **Gap:** a `catch` block that contains only a
+comment (no statements) is not flagged by Oxlint `no-empty` or SonarJS `no-ignored-exceptions`;
+fix the error path or rethrow instead of comment-only swallowing.
 
 The suppression baseline (`scripts/suppression-baseline.json`) may only **shrink**. Regenerate
 with `node scripts/count-suppressions.ts --write-baseline` after intentional cleanup.
