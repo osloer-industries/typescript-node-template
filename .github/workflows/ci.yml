@@ -22,7 +22,9 @@ jobs:
       - run: npm ci --ignore-scripts --prefix packages/eslint-sonarjs
       - name: Guardrail path change notice
         if: github.event_name == 'pull_request'
-        run: node --experimental-strip-types scripts/check-guardrail-changes.ts ${{ github.event.pull_request.base.sha }}
+        env:
+          GUARDRAIL_BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check-guardrail-changes.ts
       - run: npm audit --omit=dev --audit-level=high
       - run: npm audit --omit=dev --audit-level=high --prefix packages/eslint-sonarjs
       - run: npm run check

@@ -6,8 +6,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 export const GUARDRAIL_PATH_PREFIXES = [
   ".github/",
   "AGENTS.md",
-  "CLAUDE.md",
   "CODEOWNERS",
+  "scripts/check-guardrail-changes.ts",
   ".oxlintrc.json",
   "lefthook.yml",
   "scripts/suppression-baseline.json",
