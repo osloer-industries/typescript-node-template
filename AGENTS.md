@@ -14,9 +14,13 @@ here. Do not duplicate this content in vendor-specific instruction files (`CLAUD
 | `scripts/setup-lib.mjs` | Setup profiles and testable helpers. |
 | `scripts/setup.test.ts` | Setup unit and integration tests. |
 | `docs/architecture.md` | Module boundaries, scenarios, and dependency rules. |
-| `docs/sonar-quality-gate.md` | SonarCloud patterns and local SonarJS ESLint enforcement. |
-| `packages/eslint-sonarjs/` | SonarJS `recommended` rules via ESLint (TypeScript 6 parser; root uses TS 7). |
-| `.github/workflows/` | CI and security automation. |
+| `docs/adr/` | Architecture Decision Records (significant harness and layout choices). |
+| `docs/adr/0009-tooling-and-quality-gate-stack.md` | Why each linter, test tool, and CI integration is in the stack ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `docs/sonar-quality-gate.md` | SonarCloud patterns and local SonarJS ESLint enforcement ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `.oxlintrc.json` | Oxlint rules ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `packages/eslint-sonarjs/` | SonarJS `recommended` rules via ESLint (TypeScript 6 parser; root uses TS 7) ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `.github/workflows/` | CI and security automation ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `lefthook.yml` | Pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 
 Markdown link checking uses the org fork
 [`@osloer-industries/markdown-link-check`](https://github.com/osloer-industries/markdown-link-check)
@@ -28,18 +32,18 @@ dependencies; when the fork publishes a new annotated tag, update the `#v…` re
 
 Run gates in this order when iterating locally:
 
-1. `npm run lint` (Oxlint)
-2. `npm run lint:suppressions` (shrink-only suppression baseline)
-3. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs`)
-4. `npm run lint:dup` (jscpd on code and markdown)
-5. `npm run lint:md` and `npm run lint:md-links`
-6. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 checkJs)
-7. `npm run test` or `npm run test:coverage`
-8. `npm run build`
+1. `npm run lint` (Oxlint — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+2. `npm run lint:suppressions` (shrink-only suppression baseline — [ADR 0006](docs/adr/0006-escape-hatch-lint-and-suppression-baseline.md))
+3. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+4. `npm run lint:dup` (jscpd — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+5. `npm run lint:md` and `npm run lint:md-links` ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+6. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+7. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+8. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 9. `npm run check` (all of the above) before opening a pull request
-10. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes
+10. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 
-After `npm ci`, run `npm run prepare` once locally to install Lefthook pre-commit hooks
+After `npm ci`, run `npm run prepare` once locally to install Lefthook pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 (CI uses `npm ci --ignore-scripts`, so hooks are not installed in Actions).
 
 After editing setup profiles, rely on `scripts/setup.test.ts` integration cases for all four scenarios.

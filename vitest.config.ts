@@ -1,3 +1,4 @@
+// Tooling rationale: ADR 0009 (docs/adr/0009-tooling-and-quality-gate-stack.md)
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({

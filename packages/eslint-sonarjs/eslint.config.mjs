@@ -1,3 +1,4 @@
+// Tooling rationale: ADR 0009 (../../docs/adr/0009-tooling-and-quality-gate-stack.md)
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 

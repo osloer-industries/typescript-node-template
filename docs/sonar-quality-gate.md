@@ -1,5 +1,8 @@
 # SonarCloud quality gate
 
+Tooling rationale for Oxlint, SonarJS, Vitest, and CI integrations:
+[ADR 0009](adr/0009-tooling-and-quality-gate-stack.md).
+
 This template often has **two Sonar integrations**:
 
 | Check | Source | Typical behavior |
@@ -13,7 +16,8 @@ on the PR diff or adjust Sonar project settings deliberately—not by disabling 
 ## Local enforcement (shift left)
 
 Sonar-style JavaScript and TypeScript rules run locally via **`eslint-plugin-sonarjs`** in
-[`packages/eslint-sonarjs/`](../packages/eslint-sonarjs/) (`npm run lint:sonarjs`, included in `npm run check`).
+[`packages/eslint-sonarjs/`](../packages/eslint-sonarjs/) (`npm run lint:sonarjs`, included in `npm run check`;
+[ADR 0009](adr/0009-tooling-and-quality-gate-stack.md)).
 
 **Oxlint `jsPlugins` + `eslint-plugin-sonarjs` was evaluated** (including Oxlint 1.89.x). Loading the plugin
 fails while the template uses **TypeScript 7** at the repo root: rule modules pull in `ts-api-utils`, which
@@ -33,7 +37,8 @@ List enabled rules:
 npm run list-rules --prefix packages/eslint-sonarjs
 ```
 
-Pre-commit (after `npm run prepare`): Lefthook runs Oxlint and SonarJS ESLint on staged `*.ts` / `*.mjs` files.
+Pre-commit (after `npm run prepare`): Lefthook ([ADR 0009](adr/0009-tooling-and-quality-gate-stack.md)) runs Oxlint
+and SonarJS ESLint on staged `*.ts` / `*.mjs` files.
 
 ## Before you push
 
