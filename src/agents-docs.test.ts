@@ -35,6 +35,7 @@ describe("agent documentation contract", () => {
     if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
     const check = Reflect.get(scripts, "check");
     expect(typeof check).toBe("string");
+    expect(check).toContain("lint:suppressions");
     expect(check).toContain("lint:sonarjs");
     expect(check).toContain("lint:dup");
   });

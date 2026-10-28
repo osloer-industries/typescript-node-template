@@ -29,14 +29,15 @@ dependencies; when the fork publishes a new annotated tag, update the `#v…` re
 Run gates in this order when iterating locally:
 
 1. `npm run lint` (Oxlint)
-2. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs`)
-3. `npm run lint:dup` (jscpd on code and markdown)
-4. `npm run lint:md` and `npm run lint:md-links`
-5. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 checkJs)
-6. `npm run test` or `npm run test:coverage`
-7. `npm run build`
-8. `npm run check` (all of the above) before opening a pull request
-9. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes
+2. `npm run lint:suppressions` (shrink-only suppression baseline)
+3. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs`)
+4. `npm run lint:dup` (jscpd on code and markdown)
+5. `npm run lint:md` and `npm run lint:md-links`
+6. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 checkJs)
+7. `npm run test` or `npm run test:coverage`
+8. `npm run build`
+9. `npm run check` (all of the above) before opening a pull request
+10. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes
 
 After `npm ci`, run `npm run prepare` once locally to install Lefthook pre-commit hooks
 (CI uses `npm ci --ignore-scripts`, so hooks are not installed in Actions).
@@ -93,6 +94,9 @@ root cause instead of bypassing the check.
 | `typescript/no-non-null-assertion` | Guard with `if`, optional chaining, or an explicit throw on invalid state. |
 | `unicorn/no-abusive-eslint-disable` | Do not blanket-disable rules; shrink the suppression baseline instead. |
 | `reportUnusedDisableDirectives` | Do not add disable comments that hide real findings. |
+
+The suppression baseline (`scripts/suppression-baseline.json`) may only **shrink**. Regenerate
+with `node scripts/count-suppressions.ts --write-baseline` after intentional cleanup.
 
 ## Architecture and implementation
 
