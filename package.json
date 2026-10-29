@@ -50,7 +50,7 @@
   "devDependencies": {
     "@osloer-industries/markdown-link-check": "github:osloer-industries/markdown-link-check#v4.0.0-osloer.1",
     "@types/node": "24.19.2",
-    "@vitest/coverage-v8": "4.1.11",
+    "@vitest/coverage-v8": "5.0.2",
     "jscpd": "5.4.2",
     "lefthook": "2.2.2",
     "markdownlint-cli2": "0.24.0",
