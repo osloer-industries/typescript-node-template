@@ -20,6 +20,10 @@ Use Conventional Commit prefixes such as `feat:`, `fix:`, `docs:`, `test:`, `ref
 Release Please treats `feat:` as a minor release and `fix:` as a patch release. Use a `BREAKING CHANGE:`
 footer or `!` marker for a major release.
 
+Harness files listed in `CODEOWNERS` (lint config, workflows, `AGENTS.md`, and related scripts)
+should receive maintainer review. Replace `@osloer-industries/platform` in `CODEOWNERS` with your
+org team before enabling branch protection.
+
 Pull request titles are validated automatically. Squash merging uses the validated title as the commit
 subject on `main`, giving Release Please one reliable Conventional Commit per pull request. Dependabot
 uses `chore(deps):` for npm updates and `ci(deps):` for GitHub Actions updates.

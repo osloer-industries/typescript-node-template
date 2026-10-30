@@ -1,0 +1,12 @@
+# Guardrail / agent harness files — replace @osloer-industries/platform with your maintainer team.
+# Branch protection can require review from these owners (see CONTRIBUTING.md).
+
+/AGENTS.md @osloer-industries/platform
+/CODEOWNERS @osloer-industries/platform
+/.github/ @osloer-industries/platform
+/.oxlintrc.json @osloer-industries/platform
+/lefthook.yml @osloer-industries/platform
+/scripts/suppression-baseline.json @osloer-industries/platform
+/scripts/count-suppressions.ts @osloer-industries/platform
+/scripts/check-guardrail-changes.ts @osloer-industries/platform
+/packages/eslint-sonarjs/ @osloer-industries/platform
