@@ -65,6 +65,8 @@ describe("toolNamesFromListResult", () => {
   it("extracts tool names from tools/list results", () => {
     expect(toolNamesFromListResult({ tools: [{ name: "greet" }] })).toEqual(["greet"]);
     expect(toolNamesFromListResult({})).toEqual([]);
+    expect(toolNamesFromListResult({ tools: "bad" })).toEqual([]);
+    expect(toolNamesFromListResult({ tools: [{ name: 1 }, { label: "x" }] })).toEqual([]);
   });
 });
 
@@ -87,6 +89,7 @@ describe("toolsListMatches", () => {
     expect(toolsListMatches(["greet"], ["greet"])).toBe(true);
     expect(toolsListMatches(["greet"], ["greet", "other"])).toBe(false);
     expect(toolsListMatches(["a", "b"], ["a"])).toBe(false);
+    expect(toolsListMatches(["a", "b"], ["b", "a"])).toBe(true);
   });
 });
 
