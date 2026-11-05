@@ -3,10 +3,28 @@ import { cpSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } f
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const nodeArgs = ["scripts/count-suppressions.ts"];
+
+function createSuppressionFixtureTree(
+  prefix: string,
+  baselineTotal: number,
+  srcFile: { readonly path: string; readonly content: string },
+): string {
+  const tempDir = mkdtempSync(join(tmpdir(), prefix));
+  mkdirSync(join(tempDir, "scripts"), { recursive: true });
+  mkdirSync(join(tempDir, "src"), { recursive: true });
+  cpSync(join(repoRoot, "scripts/count-suppressions.ts"), join(tempDir, "scripts/count-suppressions.ts"));
+  writeFileSync(
+    join(tempDir, "scripts/suppression-baseline.json"),
+    `${JSON.stringify({ version: 1, total: baselineTotal })}\n`,
+    "utf8",
+  );
+  writeFileSync(join(tempDir, "src", srcFile.path), srcFile.content, "utf8");
+  return tempDir;
+}
 
 async function loadModule() {
   return import("./count-suppressions.js");
@@ -68,6 +86,18 @@ describe("countSuppressions", () => {
       rmSync(tempDir, { recursive: true, force: true });
     }
   });
+
+  it("walks packages trees", async () => {
+    const { countSuppressions } = await loadModule();
+    const tempDir = mkdtempSync(join(tmpdir(), "suppression-packages-"));
+    try {
+      mkdirSync(join(tempDir, "packages", "demo"), { recursive: true });
+      writeFileSync(join(tempDir, "packages", "demo", "lib.ts"), "// oxlint-disable-line\nexport {};\n", "utf8");
+      expect(countSuppressions(tempDir)).toBe(1);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("baseline IO", () => {
@@ -90,6 +120,33 @@ describe("baseline IO", () => {
     try {
       writeFileSync(baselinePath, '{"version":2,"total":1}\n', "utf8");
       expect(() => loadBaseline(baselinePath)).toThrow(/Invalid suppression baseline/);
+      writeFileSync(baselinePath, '{"version":1,"total":-1}\n', "utf8");
+      expect(() => loadBaseline(baselinePath)).toThrow(/Invalid suppression baseline shape/);
+      writeFileSync(baselinePath, '"not-an-object"\n', "utf8");
+      expect(() => loadBaseline(baselinePath)).toThrow(/Invalid suppression baseline JSON/);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("runCountSuppressionsCli", () => {
+  it("prints shrink-only status for a clean tree", async () => {
+    const { runCountSuppressionsCli } = await loadModule();
+    const tempDir = createSuppressionFixtureTree("suppression-cli-run-", 0, {
+      path: "clean.ts",
+      content: "export const ok = 1;\n",
+    });
+    try {
+      const moduleUrl = new URL(`file://${join(tempDir, "scripts/count-suppressions.ts")}`).href;
+      let output = "";
+      const stdout = vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
+        output += String(chunk);
+        return true;
+      });
+      runCountSuppressionsCli(moduleUrl, []);
+      stdout.mockRestore();
+      expect(output).toMatch(/shrink-only OK/);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
@@ -106,17 +163,11 @@ describe("count-suppressions CLI", () => {
   });
 
   it("fails when suppressions exceed the baseline", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "suppression-over-"));
+    const tempDir = createSuppressionFixtureTree("suppression-over-", 0, {
+      path: "bad.ts",
+      content: "// @ts-ignore\nexport {};\n",
+    });
     try {
-      mkdirSync(join(tempDir, "scripts"), { recursive: true });
-      mkdirSync(join(tempDir, "src"), { recursive: true });
-      cpSync(join(repoRoot, "scripts/count-suppressions.ts"), join(tempDir, "scripts/count-suppressions.ts"));
-      writeFileSync(
-        join(tempDir, "scripts/suppression-baseline.json"),
-        `${JSON.stringify({ version: 1, total: 0 })}\n`,
-        "utf8",
-      );
-      writeFileSync(join(tempDir, "src/bad.ts"), "// @ts-ignore\nexport {};\n", "utf8");
       let failed = false;
       try {
         execFileSync(process.execPath, ["scripts/count-suppressions.ts"], {
@@ -133,11 +184,11 @@ describe("count-suppressions CLI", () => {
   });
 
   it("writes baseline in a fixture tree", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "suppression-cli-"));
+    const tempDir = createSuppressionFixtureTree("suppression-cli-", 0, {
+      path: "clean.ts",
+      content: "export const ok = 1;\n",
+    });
     try {
-      mkdirSync(join(tempDir, "scripts"), { recursive: true });
-      mkdirSync(join(tempDir, "src"), { recursive: true });
-      cpSync(join(repoRoot, "scripts/count-suppressions.ts"), join(tempDir, "scripts/count-suppressions.ts"));
       execFileSync(process.execPath, ["scripts/count-suppressions.ts", "--write-baseline"], {
         cwd: tempDir,
         encoding: "utf8",

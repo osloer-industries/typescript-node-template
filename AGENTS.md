@@ -16,6 +16,10 @@ here. Do not duplicate this content in vendor-specific instruction files (`CLAUD
 | `docs/architecture.md` | Module boundaries, scenarios, and dependency rules. |
 | `docs/adr/` | Architecture Decision Records (significant harness and layout choices). |
 | `docs/adr/0009-tooling-and-quality-gate-stack.md` | Why each linter, test tool, and CI integration is in the stack ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `docs/mcp-stdio-smoke-test.md` | Credential-free MCP stdio smoke test after build. |
+| `docs/mcp-account-data-agents.md` | Approval-gated writes and redaction for account-backed MCP tools. |
+| `docs/playwright-ci-dependencies.md` | Playwright browsers vs `npm ci --ignore-scripts` in CI. |
+| `docs/npm-overrides.md` | When and how to use npm `overrides` for transitive audit fixes. |
 | `docs/sonar-quality-gate.md` | SonarCloud patterns and local SonarJS ESLint enforcement ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `.oxlintrc.json` | Oxlint rules ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `packages/eslint-sonarjs/` | SonarJS `recommended` rules via ESLint (TypeScript 6 parser; root uses TS 7) ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
@@ -48,6 +52,9 @@ After `npm ci`, run `npm run prepare` once locally to install Lefthook pre-commi
 
 After editing setup profiles, rely on `scripts/setup.test.ts` integration cases for all four scenarios.
 
+For the **mcp** scenario, also run `npm run test:mcp` when MCP tools or the stdio entrypoint
+change (included in unattended `--yes` setup). See [docs/mcp-stdio-smoke-test.md](docs/mcp-stdio-smoke-test.md).
+
 When touching `scripts/`, setup, or CI install steps, follow
 [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) so **SonarCloud Code Analysis** stays green
 (use `scripts/run-npm.mjs`, prefer `--ignore-scripts` on npm ci/install).
@@ -57,7 +64,7 @@ When touching `scripts/`, setup, or CI install steps, follow
 | Change | Touch | Tests |
 | --- | --- | --- |
 | New exported function or type | `src/index.ts`, README if public | `src/index.test.ts` success, failure, boundary |
-| New MCP tool | MCP profile in `scripts/setup-lib.mjs`, generated handler | Profile tests + integration scenario `mcp` |
+| New MCP tool | MCP profile in `scripts/setup-lib.mjs`, generated handler | Profile tests + integration scenario `mcp` + `npm run test:mcp` |
 | New CLI flag or argv rule | CLI profile in `scripts/setup-lib.mjs` | Profile tests + integration scenario `cli` |
 | New setup scenario | `scripts/setup-lib.mjs`, README, SETUP docs | `scripts/setup.test.ts` unit + integration |
 | npm via child_process | `scripts/run-npm.mjs` only | Do not add new `execFileSync("npm", …)` call sites |
@@ -82,7 +89,9 @@ When touching `scripts/`, setup, or CI install steps, follow
   dependency intentionally changes, then commit `package-lock.json`.
 - Run `npm run check` before submitting a change. This runs Oxlint, SonarJS ESLint,
   duplication detection, Markdown checks, the TypeScript compiler, coverage, and the production build.
-- Run `npm audit --omit=dev` whenever dependencies or the lockfile change.
+- Run `npm audit --omit=dev` whenever dependencies or the lockfile change. For transitive
+  production findings, follow [docs/npm-overrides.md](docs/npm-overrides.md) before adding
+  npm `overrides`.
 - Keep `npm run typecheck` as the authoritative TypeScript diagnostic step.
   Oxlint's type-aware rules supplement it but do not replace it.
 
@@ -97,7 +106,13 @@ root cause instead of bypassing the check.
 | `typescript/ban-ts-comment` | Fix the type error; do not use `@ts-ignore` / `@ts-expect-error`. |
 | `typescript/no-non-null-assertion` | Guard with `if`, optional chaining, or an explicit throw on invalid state. |
 | `unicorn/no-abusive-eslint-disable` | Do not blanket-disable rules; shrink the suppression baseline instead. |
+| `no-empty` (`allowEmptyCatch: false`) | Handle errors explicitly; do not use empty `catch` blocks. |
 | `reportUnusedDisableDirectives` | Do not add disable comments that hide real findings. |
+
+SonarJS `recommended` (via `npm run lint:sonarjs`) also enforces `sonarjs/no-trivial-assertions`
+(for example `expect(true).toBe(true)`). **Gap:** a `catch` block that contains only a
+comment (no statements) is not flagged by Oxlint `no-empty` or SonarJS `no-ignored-exceptions`;
+fix the error path or rethrow instead of comment-only swallowing.
 
 The suppression baseline (`scripts/suppression-baseline.json`) may only **shrink**. Regenerate
 with `node scripts/count-suppressions.ts --write-baseline` after intentional cleanup.
@@ -126,6 +141,17 @@ with `node scripts/count-suppressions.ts --write-baseline` after intentional cle
   as untrusted. Validate before use and avoid logging sensitive values.
 - Keep GitHub Actions permissions minimal and pin third-party actions to full
   commit SHAs.
+
+## MCP servers with account data
+
+When a project exposes MCP tools backed by user accounts or sessions, agents must follow
+[docs/mcp-account-data-agents.md](docs/mcp-account-data-agents.md): per-call approval before
+write tools, minimum-necessary read summaries, no secret material in logs, and credential-free
+`npm run test:mcp` in CI unless a dedicated secret-backed job is documented.
+
+Browser automation dependencies (for example Playwright) must follow
+[docs/playwright-ci-dependencies.md](docs/playwright-ci-dependencies.md): CI keeps
+`npm ci --ignore-scripts`; install browsers locally or in an explicit CI step.
 
 ## Contributions and releases
 

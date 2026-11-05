@@ -25,6 +25,7 @@
     "typescript/ban-ts-comment": "error",
     "typescript/no-non-null-assertion": "error",
     "unicorn/no-abusive-eslint-disable": "error",
+    "no-empty": ["error", { "allowEmptyCatch": false }],
     "vitest/no-focused-tests": "error"
   },
   "overrides": [
