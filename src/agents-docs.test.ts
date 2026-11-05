@@ -1,9 +1,44 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+
+const adrDirUrl = new URL("../docs/adr/", import.meta.url);
+const adrDir = fileURLToPath(adrDirUrl);
+const adrIndexMd = readFileSync(new URL("README.md", adrDirUrl), "utf8");
+
+function listAdrMarkdownFilenames(): string[] {
+  return readdirSync(adrDir)
+    .filter((name) => /^\d{4}-.+\.md$/u.test(name))
+    .toSorted((a, b) => a.localeCompare(b));
+}
 
 const agentsMd = readFileSync(new URL("../AGENTS.md", import.meta.url), "utf8");
 const architectureMd = readFileSync(new URL("../docs/architecture.md", import.meta.url), "utf8");
 const packageJson = readFileSync(new URL("../package.json", import.meta.url), "utf8");
+const sonarPackageJson = readFileSync(
+  new URL("../packages/eslint-sonarjs/package.json", import.meta.url),
+  "utf8",
+);
+const toolingAdrMd = readFileSync(
+  new URL("../docs/adr/0009-tooling-and-quality-gate-stack.md", import.meta.url),
+  "utf8",
+);
+
+function readDevDependencyNames(packageJsonText: string): string[] {
+  const parsed: unknown = JSON.parse(packageJsonText);
+  if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
+  const devDependencies = Reflect.get(parsed, "devDependencies");
+  if (typeof devDependencies !== "object" || devDependencies === null) {
+    throw new Error("Missing devDependencies");
+  }
+  return Object.keys(devDependencies).toSorted((a, b) => a.localeCompare(b));
+}
+
+function expectToolingAdrSection(toolingAdr: string, marker: string): void {
+  expect(toolingAdr, `missing tooling ADR section marker ${marker}`).toContain(
+    `<!-- devDependency: ${marker} -->`,
+  );
+}
 
 describe("agent documentation contract", () => {
   it("documents operational sections in AGENTS.md", () => {
@@ -16,6 +51,36 @@ describe("agent documentation contract", () => {
 
   it("links architecture.md from AGENTS.md", () => {
     expect(agentsMd).toMatch(/docs\/architecture\.md/);
+  });
+
+  it("documents ADRs in AGENTS.md", () => {
+    expect(agentsMd).toMatch(/docs\/adr\//);
+  });
+
+  it("lists every ADR file in docs/adr/README.md", () => {
+    for (const filename of listAdrMarkdownFilenames()) {
+      expect(adrIndexMd, `missing index entry for ${filename}`).toContain(filename);
+    }
+  });
+
+  it("documents every root devDependency in ADR 0009", () => {
+    const names = readDevDependencyNames(packageJson);
+    expect.assertions(names.length);
+    for (const name of names) {
+      expectToolingAdrSection(toolingAdrMd, name);
+    }
+  });
+
+  it("documents every eslint-sonarjs devDependency in ADR 0009", () => {
+    const names = readDevDependencyNames(sonarPackageJson);
+    expect.assertions(names.length);
+    for (const name of names) {
+      expectToolingAdrSection(toolingAdrMd, `packages/eslint-sonarjs/${name}`);
+    }
+  });
+
+  it("points AGENTS.md verification tools at ADR 0009", () => {
+    expect(agentsMd).toMatch(/0009-tooling-and-quality-gate-stack\.md/);
   });
 
   it("links sonar-quality-gate.md from AGENTS.md", () => {
