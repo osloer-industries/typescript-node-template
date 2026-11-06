@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Tooling rationale: ADR 0009 (docs/adr/0009-tooling-and-quality-gate-stack.md)
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
