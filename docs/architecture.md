@@ -1,5 +1,8 @@
 # Architecture
 
+Significant decisions that affect module layout, CI harness files, or the setup contract
+are recorded as [Architecture Decision Records](adr/README.md).
+
 This template stays small: one library entrypoint, one setup CLI, and shared quality gates.
 
 ## Layout
