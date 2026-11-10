@@ -16,7 +16,21 @@ on that repository.
    reusable workflow SHAs together.
 5. After the first green runs, add required checks using the job names from the org
    [workflow table](https://github.com/osloer-industries/.github/blob/main/docs/consuming-workflows.md#available-reusables).
-   When the caller lives in the `CI` workflow, the check name is `CI / Workflow security` (workflow name + job name).
+   When the caller is a job on `CI`, the check name is `workflow-security / Workflow security` (reusable workflow name + job name).
+
+## Cross-repo `workflow-security` (org fix required at `43cd5bb`)
+
+At commit `43cd5bb5596d8f80c73537bd3dab29b4d8a95ade`, the org `workflow-security.yml` reusable resolves
+`github.workflow_ref` to the **caller** workflow when invoked via `workflow_call`, so its support checkout
+fetches `validate-zizmor-thresholds.ts` from the consumer repo instead of `osloer-industries/.github`.
+The job fails with `MODULE_NOT_FOUND` before actionlint or zizmor run.
+
+**Fix (org `.github`, not a template workaround):** check out `osloer-industries/.github` at
+`${{ github.workflow_sha }}` instead of parsing `github.workflow_ref`. Re-pin every consumer `uses:` ref after
+that merge.
+
+Until that org fix lands, workflow-security callers will fail even when `actions: read` is granted on the caller
+workflow and job.
 
 ## Callers in this template
 

@@ -118,7 +118,7 @@ Branch protection is intentionally not automated. After the first successful run
 
 - Pull requests required with at least one approval
 - Stale approval dismissal and conversation resolution
-- Required checks: `CI / Workflow security`, `CI / Quality`, the four `Setup smoke` jobs,
+- Required checks: `workflow-security / Workflow security`, `CI / Quality`, the four `Setup smoke` jobs,
   `CodeQL / Analyze JavaScript and TypeScript`, `Dependency review / Review dependency changes`, `Pull
   request title / Semantic pull request`, and `SonarQube Cloud / Analyze` after Sonar is configured
 - Up-to-date branches when parallel development makes it useful
