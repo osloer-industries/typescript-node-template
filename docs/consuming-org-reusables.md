@@ -16,12 +16,13 @@ on that repository.
    reusable workflow SHAs together.
 5. After the first green runs, add required checks using the job names from the org
    [workflow table](https://github.com/osloer-industries/.github/blob/main/docs/consuming-workflows.md#available-reusables).
+   When the caller lives in the `CI` workflow, the check name is `CI / Workflow security` (workflow name + job name).
 
 ## Callers in this template
 
 | Caller file | Org reusable | Notes |
 | --- | --- | --- |
-| [`.github/workflows/workflow-security.yml`](../.github/workflows/workflow-security.yml) | `workflow-security.yml` | actionlint + zizmor; job needs `contents: read` and `actions: read`; default empty `min-severity` / `min-confidence` (strictest). |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`workflow-security` job) | `workflow-security.yml` | actionlint + zizmor; caller workflow and job need `actions: read` (zizmor online audits); default empty `min-severity` / `min-confidence` (strictest). |
 | [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) | `codeql-javascript-typescript.yml` | Public repo: default Code Scanning upload. Private repos without GHAS: set `code-scanning-upload: false` and keep `fail-on-sarif-level: error` (see org doc). |
 
 Other workflows (CI quality, setup smoke, dependency review, Sonar, release, PR title) may still be inlined
