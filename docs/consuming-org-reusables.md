@@ -16,7 +16,8 @@ on that repository.
    reusable workflow SHAs together.
 5. After the first green runs, add required checks using the job names from the org
    [workflow table](https://github.com/osloer-industries/.github/blob/main/docs/consuming-workflows.md#available-reusables).
-   When the caller is a job on `CI`, the check name is `workflow-security / Workflow security` (reusable workflow name + job name).
+   When the caller is a job on `CI`, the check name is `workflow-security / Workflow security` (reusable workflow
+   name + job name).
 
 ## Cross-repo `workflow-security` (org fix required at `43cd5bb`)
 
