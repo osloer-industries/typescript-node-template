@@ -209,7 +209,8 @@ root would violate template TS 7 goal.
 <!-- ci-tool: dependabot -->
 
 **Why chosen:** Weekly npm and GitHub Actions updates with **cooldown** and grouped dev-deps
-(`.github/dependabot.yml`, [#61](https://github.com/osloer-industries/typescript-node-template/pull/61)).
+(`.github/dependabot.yml`, [#61](https://github.com/osloer-industries/typescript-node-template/pull/61));
+`github-actions` on `/` also bumps pinned `osloer-industries/.github` reusable workflow SHAs.
 
 **Alternatives considered:** Renovate; manual-only bumps.
 
@@ -232,8 +233,9 @@ changes.
 
 <!-- ci-tool: codeql -->
 
-**Why chosen:** Scheduled and PR JavaScript/TypeScript analysis with `security-and-quality` queries
-(`.github/workflows/codeql.yml`, [#13](https://github.com/osloer-industries/typescript-node-template/pull/13)).
+**Why chosen:** Scheduled and PR JavaScript/TypeScript analysis via org reusable
+`codeql-javascript-typescript.yml` (caller `.github/workflows/codeql.yml`; public repos use Code Scanning
+upload; private repos use SARIF artifact mode per org doc).
 
 **Alternatives considered:** Disable CodeQL on private repos pending license/GHAS
 ([ADR 0008](0008-codeql-on-private-repos.md)).
@@ -257,9 +259,9 @@ coverage LCOV when configured.
 
 <!-- ci-tool: zizmor -->
 
-**Why chosen:** Static analysis for workflow supply-chain mistakes via org reusable
-([ADR 0004](0004-workflow-security-zizmor-and-actionlint.md),
-`zizmorcore/zizmor-action@v0.8.0`, `advanced-security: false`, fail closed).
+**Why chosen:** Static analysis for workflow supply-chain mistakes via org reusable `workflow-security.yml`
+(caller `.github/workflows/workflow-security.yml`, [ADR 0004](0004-workflow-security-zizmor-and-actionlint.md);
+zizmor `advanced-security: false`, fail closed, strictest default thresholds).
 
 **Alternatives considered:** poutine; octoscan.
 
@@ -269,8 +271,8 @@ coverage LCOV when configured.
 
 <!-- ci-tool: actionlint -->
 
-**Why chosen:** Workflow syntax/semantics lint with **checksum-verified** install in org reusable
-([ADR 0004](0004-workflow-security-zizmor-and-actionlint.md)).
+**Why chosen:** Workflow syntax/semantics lint with **checksum-verified** actionlint in the same org reusable
+as zizmor ([ADR 0004](0004-workflow-security-zizmor-and-actionlint.md), [consuming-org-reusables.md](../consuming-org-reusables.md)).
 
 **Alternatives considered:** Unpinned curl install; rely on GitHub’s workflow editor only.
 
