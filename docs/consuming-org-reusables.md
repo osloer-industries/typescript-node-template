@@ -19,19 +19,12 @@ on that repository.
    When the caller is a job on `CI`, the check name is `workflow-security / Workflow security` (reusable workflow
    name + job name).
 
-## Cross-repo `workflow-security` (org fix required at `43cd5bb`)
+Pin both reusables to the same org `.github` `main` merge SHA (for example `d4865a4b2c70c8433188f5200beac104b1c7fe86`
+after [osloer-industries/.github#9](https://github.com/osloer-industries/.github/pull/9)); bump via Dependabot or
+template-sync when org `main` moves.
 
-At commit `43cd5bb5596d8f80c73537bd3dab29b4d8a95ade`, the org `workflow-security.yml` reusable resolves
-`github.workflow_ref` to the **caller** workflow when invoked via `workflow_call`, so its support checkout
-fetches `validate-zizmor-thresholds.ts` from the consumer repo instead of `osloer-industries/.github`.
-The job fails with `MODULE_NOT_FOUND` before actionlint or zizmor run.
-
-**Fix (org `.github`, not a template workaround):** check out `osloer-industries/.github` at
-`${{ github.workflow_sha }}` instead of parsing `github.workflow_ref`. Re-pin every consumer `uses:` ref after
-that merge.
-
-Until that org fix lands, workflow-security callers will fail unless the **calling job** grants `actions: read`
-(do not set `actions: read` at workflow level; Sonar rule `githubactions:S8264`).
+Grant **job-level** `actions: read` on the workflow-security calling job (not at workflow level; Sonar rule
+`githubactions:S8264`).
 
 ## Callers in this template
 

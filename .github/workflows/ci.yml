@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   workflow-security:
-    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@d6ff0e3372bb34b79f144571b5038f3d57216bb9 # TEMP: .github PR #9; re-pin to main merge commit after merge
+    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@d4865a4b2c70c8433188f5200beac104b1c7fe86 # main
     permissions:
       contents: read
       actions: read
