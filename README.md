@@ -11,7 +11,8 @@ coverage enforcement, and GitHub security automation.
 - 80% minimum coverage for branches, functions, lines, and statements in `src/` and testable `scripts/`
   helpers (CLI entry `scripts/setup.mjs` is exercised by CI smoke jobs)
 - Pull request and `main` CI with `npm run check`, `npm audit --omit=dev`, and a four-scenario setup smoke matrix
-- CodeQL, SonarQube Cloud, Dependabot, and pull request dependency review
+- Org-pinned workflow security (actionlint + zizmor) and CodeQL reusables; SonarQube Cloud, Dependabot, and
+  pull request dependency review
 - Release Please for Conventional Commit-based release pull requests, changelogs, tags, and GitHub releases
 - Conventional pull request title validation and matching Dependabot commit prefixes
 - Full commit SHA pins, minimal permissions, timeouts, and concurrency cancellation
@@ -117,9 +118,9 @@ Branch protection is intentionally not automated. After the first successful run
 
 - Pull requests required with at least one approval
 - Stale approval dismissal and conversation resolution
-- Required checks: `CI / Quality`, the four `Setup smoke` jobs, `CodeQL / Analyze JavaScript and
-  TypeScript`, `Dependency review / Review dependency changes`, `Pull request title / Semantic pull
-  request`, and `SonarQube Cloud / Analyze` after Sonar is configured
+- Required checks: `CI / Quality`, the four `Setup smoke` jobs, `Workflow security / Workflow security`,
+  `CodeQL / Analyze JavaScript and TypeScript`, `Dependency review / Review dependency changes`, `Pull
+  request title / Semantic pull request`, and `SonarQube Cloud / Analyze` after Sonar is configured
 - Up-to-date branches when parallel development makes it useful
 - Force pushes and branch deletion blocked
 - Rules applied to administrators unless an emergency process exists
@@ -145,10 +146,12 @@ are intentionally not enabled.
 
 ## Low-cost security and automation
 
-This template includes immutable Action pins with Dependabot updates, high-severity dependency review,
-scheduled CodeQL, production audits, grouped development updates, CI cancellation, timeouts, and
-standardized contribution forms. Public repositories also receive GitHub dependency graph and secret
-scanning. Enable repository push protection in **Settings > Code security and analysis** when available.
+This template includes immutable Action and org reusable workflow pins (see
+[docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)) with Dependabot `ci(deps)` updates,
+high-severity dependency review, scheduled CodeQL, production audits, grouped development updates, CI
+cancellation, timeouts, and standardized contribution forms. Public repositories also receive GitHub
+dependency graph and secret scanning. Enable repository push protection in **Settings > Code security and
+analysis** when available.
 
 Consider these additions only when the generated project needs them:
 
