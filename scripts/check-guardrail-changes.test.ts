@@ -59,6 +59,9 @@ describe("isGuardrailPath", () => {
     expect(isGuardrailPath("packages/eslint-sonarjs/eslint.config.mjs")).toBe(true);
     expect(isGuardrailPath("scripts/check-guardrail-changes.ts")).toBe(true);
     expect(isGuardrailPath("scripts/agent-hooks/block-guardrail-edits.ts")).toBe(true);
+    expect(isGuardrailPath(".claude/settings.json")).toBe(true);
+    expect(isGuardrailPath(".cursor/hooks.json")).toBe(true);
+    expect(isGuardrailPath(".codex/hooks.json")).toBe(true);
     expect(isGuardrailPath("scripts/count-suppressions.ts")).toBe(true);
     expect(isGuardrailPath("src/index.ts")).toBe(false);
   });

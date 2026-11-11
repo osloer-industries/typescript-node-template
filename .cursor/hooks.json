@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": "node scripts/agent-hooks/block-guardrail-edits.ts",
+        "matcher": "Write"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node scripts/agent-hooks/pre-stop-fast-check.ts"
+      }
+    ]
+  }
+}

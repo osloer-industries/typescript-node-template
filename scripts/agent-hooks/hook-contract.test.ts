@@ -16,6 +16,15 @@ describe("parseHookInputJson", () => {
     ).toEqual({ paths: ["src/a.ts", "AGENTS.md"], fastCheckStrike: 1 });
   });
 
+  it("normalizes Claude PreToolUse stdin", () => {
+    const payload = JSON.stringify({
+      hook_event_name: "PreToolUse",
+      tool_input: { file_path: "/repo/AGENTS.md" },
+      cwd: "/repo",
+    });
+    expect(parseHookInputJson(payload).paths).toEqual(["AGENTS.md"]);
+  });
+
   it("rejects invalid paths", () => {
     expect(() => parseHookInputJson(`{"paths":"AGENTS.md"}`)).toThrow(/paths/);
   });

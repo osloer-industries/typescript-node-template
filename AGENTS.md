@@ -27,6 +27,9 @@ here. Do not duplicate this content in vendor-specific instruction files (`CLAUD
 | `docs/consuming-org-reusables.md` | How callers pin `osloer-industries/.github` workflows; links the org contract doc. |
 | `lefthook.yml` | Pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `scripts/agent-hooks/` | Provider-neutral agent guard hook scripts ([docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)). |
+| `.claude/settings.json` | Claude Code hook wiring (commands only; no `CLAUDE.md` — [ADR 0002](docs/adr/0002-agents-md-single-instruction-file.md)). |
+| `.cursor/hooks.json` | Cursor Agent hook wiring (commands only). |
+| `.codex/hooks.json` | Codex CLI hook wiring (commands only; requires trusted project `.codex/`). |
 
 Markdown link checking uses the org fork
 [`@osloer-industries/markdown-link-check`](https://github.com/osloer-industries/markdown-link-check)

@@ -26,7 +26,7 @@ export function evaluateBlockGuardrailEdits(paths: readonly string[]): {
 }
 
 export async function runBlockGuardrailEditsCli(argv: readonly string[]): Promise<HookExitCode> {
-  const input = await readHookInput(argv);
+  const input = await readHookInput(argv, { defaultForStop: false });
   const paths = input.paths ?? [];
   if (paths.length === 0) {
     process.stderr.write("block-guardrail-edits: no paths provided (stdin.paths or --paths).\n");

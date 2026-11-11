@@ -13,6 +13,9 @@ export const GUARDRAIL_PATH_PREFIXES = [
   "scripts/suppression-baseline.json",
   "scripts/count-suppressions.ts",
   "scripts/agent-hooks/",
+  ".claude/settings.json",
+  ".cursor/hooks.json",
+  ".codex/hooks.json",
   "packages/eslint-sonarjs/",
 ] as const;
 

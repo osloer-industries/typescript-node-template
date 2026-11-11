@@ -63,7 +63,7 @@ export async function runPreStopFastCheckCli(
   runCheckFast: RunCheckFast = defaultRunCheckFast,
   cwd?: string,
 ): Promise<HookExitCode> {
-  const input = await readHookInput(argv);
+  const input = await readHookInput(argv, { defaultForStop: true });
   const strike = input.fastCheckStrike ?? 0;
   const workdir = cwd ?? process.cwd();
   const result = evaluatePreStopFastCheck(strike, runCheckFast, workdir);

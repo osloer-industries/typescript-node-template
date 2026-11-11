@@ -1,3 +1,8 @@
+import {
+  adaptProviderHookPayload,
+  resolveWorkspaceRoot,
+} from "./provider-hook-adapter.js";
+
 /** Hook exit semantics (Claude Code–compatible): 0 = ok, 1 = warn, 2 = block. */
 export const HOOK_EXIT_OK = 0;
 export const HOOK_EXIT_WARN = 1;
@@ -9,6 +14,11 @@ export type HookExitCode = typeof HOOK_EXIT_OK | typeof HOOK_EXIT_WARN | typeof 
 export interface HookInput {
   paths?: string[];
   fastCheckStrike?: number;
+}
+
+export interface ReadHookInputOptions {
+  /** When stdin has no hook event name, treat as a Stop hook (pre-stop-fast-check). */
+  defaultForStop?: boolean;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -38,7 +48,16 @@ function parseStrike(value: unknown): number | undefined {
   return value;
 }
 
-export function parseHookInputJson(text: string): HookInput {
+function isStopHookEvent(payload: Record<string, unknown>): boolean {
+  const name = payload.hook_event_name ?? payload.hookEventName;
+  if (typeof name !== "string") {
+    return false;
+  }
+  const lower = name.toLowerCase();
+  return lower === "stop" || lower === "subagentstop";
+}
+
+export function parseHookInputJson(text: string, options?: ReadHookInputOptions): HookInput {
   const trimmed = text.trim();
   if (trimmed.length === 0) {
     return {};
@@ -52,16 +71,15 @@ export function parseHookInputJson(text: string): HookInput {
   if (!isRecord(parsed)) {
     throw new Error("Hook stdin JSON must be an object.");
   }
-  const input: HookInput = {};
-  const paths = parsePathList(parsed.paths);
-  if (paths !== undefined) {
-    input.paths = paths;
+  if (parsed.paths !== undefined) {
+    parsePathList(parsed.paths);
   }
-  const strike = parseStrike(parsed.fastCheckStrike);
-  if (strike !== undefined) {
-    input.fastCheckStrike = strike;
+  if (parsed.fastCheckStrike !== undefined) {
+    parseStrike(parsed.fastCheckStrike);
   }
-  return input;
+  const forStop = isStopHookEvent(parsed) || options?.defaultForStop === true;
+  const workspaceRoot = resolveWorkspaceRoot(parsed, process.cwd());
+  return adaptProviderHookPayload(parsed, { workspaceRoot, forStop });
 }
 
 function splitCommaList(raw: string): string[] {
@@ -107,7 +125,10 @@ function argvSuppliesHookInput(argv: readonly string[]): boolean {
   );
 }
 
-export async function readHookInput(argv: readonly string[]): Promise<HookInput> {
+export async function readHookInput(
+  argv: readonly string[],
+  options?: ReadHookInputOptions,
+): Promise<HookInput> {
   if (argvSuppliesHookInput(argv) || process.stdin.isTTY) {
     return parseHookArgv(argv);
   }
@@ -117,7 +138,7 @@ export async function readHookInput(argv: readonly string[]): Promise<HookInput>
   }
   const text = Buffer.concat(chunks).toString("utf8");
   if (text.trim().length > 0) {
-    return parseHookInputJson(text);
+    return parseHookInputJson(text, options);
   }
   return parseHookArgv(argv);
 }

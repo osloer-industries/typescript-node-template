@@ -89,8 +89,12 @@ describe("agent documentation contract", () => {
 
   it("does not reference Cursor-only bootstrap paths", () => {
     expect(agentsMd).not.toMatch(/cursor-agent-setup/);
-    expect(agentsMd).not.toMatch(/\.cursor\//);
     expect(agentsMd).not.toMatch(/\.agents\/skills/);
+    const cursorMentions = agentsMd.match(/\.cursor\/[^\s`)|]+/g) ?? [];
+    const allowedCursorPaths = new Set([".cursor/hooks.json"]);
+    for (const mention of cursorMentions) {
+      expect(allowedCursorPaths.has(mention), `unexpected Cursor path ${mention}`).toBe(true);
+    }
   });
 
   it("includes SonarJS and duplication gates in npm run check", () => {

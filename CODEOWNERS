@@ -10,4 +10,7 @@
 /scripts/count-suppressions.ts @osloer-industries/platform
 /scripts/check-guardrail-changes.ts @osloer-industries/platform
 /scripts/agent-hooks/ @osloer-industries/platform
+/.claude/settings.json @osloer-industries/platform
+/.cursor/hooks.json @osloer-industries/platform
+/.codex/hooks.json @osloer-industries/platform
 /packages/eslint-sonarjs/ @osloer-industries/platform
