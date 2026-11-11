@@ -9,4 +9,5 @@
 /scripts/suppression-baseline.json @osloer-industries/platform
 /scripts/count-suppressions.ts @osloer-industries/platform
 /scripts/check-guardrail-changes.ts @osloer-industries/platform
+/scripts/agent-hooks/ @osloer-industries/platform
 /packages/eslint-sonarjs/ @osloer-industries/platform
