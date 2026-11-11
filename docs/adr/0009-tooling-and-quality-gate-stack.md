@@ -63,6 +63,43 @@ Split compiler version for SonarJS is documented in
 [docs/sonar-quality-gate.md](../sonar-quality-gate.md) and
 the nested `typescript` devDependency in `packages/eslint-sonarjs`.
 
+### `@fast-check/vitest`
+
+<!-- devDependency: @fast-check/vitest -->
+
+**Why chosen:** Vitest-native property-test integration for the MCP scaffold handler (`scripts/mcp-contract.test.ts`,
+generated `src/index.test.ts` for the **mcp** profile) per [issue #88](https://github.com/osloer-industries/typescript-node-template/issues/88).
+
+**Alternatives considered:** Manual example tables only; raw `fast-check` without the Vitest bridge.
+
+**Why they lost:** Tables do not shrink or broaden inputs; the Vitest bridge keeps property tests in the same
+runner and coverage gate as unit tests.
+
+### `@modelcontextprotocol/sdk`
+
+<!-- devDependency: @modelcontextprotocol/sdk -->
+
+**Why chosen:** Dev-only pin of the same MCP SDK version as the **mcp** setup profile so template-level
+`InMemoryTransport` contract tests do not re-scaffold a runner script ([#66](https://github.com/osloer-industries/typescript-node-template/pull/66),
+[#88](https://github.com/osloer-industries/typescript-node-template/issues/88)).
+
+**Alternatives considered:** Only test via generated-project child-process runners.
+
+**Why they lost:** In-process contract tests give clearer failures for `listTools`, annotations, and validation
+errors while generated repos still own the runtime `dependencies` pin.
+
+### `fast-check`
+
+<!-- devDependency: fast-check -->
+
+**Why chosen:** Property-based assertions for greet handler validation in MCP contract and generated tests
+([issue #88](https://github.com/osloer-industries/typescript-node-template/issues/88)).
+
+**Alternatives considered:** No property tests until Phase 3 ([#52](https://github.com/osloer-industries/typescript-node-template/issues/52)).
+
+**Why they lost:** The MCP contract issue requires one property test before downstream MCP servers copy the
+pattern.
+
 ### `vitest`
 
 <!-- devDependency: vitest -->
