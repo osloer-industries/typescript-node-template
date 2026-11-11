@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MCP setup profile contract > snapshots greet inputSchema from listTools 1`] = `
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "name": {
+      "default": "world",
+      "minLength": 1,
+      "type": "string",
+    },
+  },
+  "type": "object",
+}
+`;
