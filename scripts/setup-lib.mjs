@@ -61,7 +61,15 @@ export function createGreetingResult(name: string) { return { content: [{ type: 
 export function handleGreetTool(input: { name: string }) { return createGreetingResult(input.name); }
 export function createServer(): McpServer {
   const server = new McpServer({ name: "example-mcp-server", version: "0.1.0" });
-  server.registerTool("greet", { description: "Return a greeting", inputSchema: { name: greetNameSchema } }, handleGreetTool);
+  server.registerTool(
+    "greet",
+    {
+      description: "Return a greeting",
+      inputSchema: { name: greetNameSchema },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true },
+    },
+    handleGreetTool,
+  );
   return server;
 }
 export type StdioConnectable = { connect(transport: unknown): Promise<void> };
@@ -80,6 +88,7 @@ export async function runEntry(
 await runEntry(import.meta.url, process.argv[1] ?? "");
 `,
     test: `import { describe, expect, it, vi } from "vitest";
+import * as fc from "fast-check";
 import { createGreetingResult, createServer, connectStdio, handleGreetTool, parseGreetName, runEntry, shouldRunMain } from "./index.js";
 describe("MCP server", () => {
   it("creates a server", () => expect(createServer()).toBeDefined());
@@ -107,6 +116,15 @@ describe("MCP server", () => {
   it("defaults greet name", () => expect(parseGreetName(undefined)).toBe("world"));
   it("trims greet name", () => expect(parseGreetName("  Oslo  ")).toBe("Oslo"));
   it("rejects empty greet name", () => expect(() => parseGreetName("   ")).toThrow(/Too small: expected string to have >=1 characters/));
+  it("property-tests greet handler for non-empty trimmed names", () => {
+    fc.assert(
+      fc.property(fc.string().filter((value) => value.trim().length >= 1), (value) => {
+        const trimmed = value.trim();
+        expect(parseGreetName(value)).toBe(trimmed);
+        expect(handleGreetTool({ name: trimmed })).toEqual(createGreetingResult(trimmed));
+      }),
+    );
+  });
 });
 `
   },
