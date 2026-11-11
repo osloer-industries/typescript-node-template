@@ -39,6 +39,7 @@ describe("isGuardrailPath", () => {
   it("matches harness files and workflow directories", () => {
     expect(isGuardrailPath(".github/workflows/ci.yml")).toBe(true);
     expect(isGuardrailPath("AGENTS.md")).toBe(true);
+    expect(isGuardrailPath(".gitignore")).toBe(true);
     expect(isGuardrailPath("scripts/check-guardrail-changes.ts")).toBe(true);
     expect(isGuardrailPath("src/index.ts")).toBe(false);
   });

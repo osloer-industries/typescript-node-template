@@ -23,3 +23,34 @@ service-account*.json
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+
+# Agent and local working files: never committed (ADR 0010; enforced in CI by the org
+# agent-files-guard reusable). To commit one deliberately, add a `!path` negation here AND list
+# the path in .github/agent-files.allow with a `# reason:` comment.
+.omo/
+.codegraph
+.claude/
+.cursor/
+.codex/
+.gemini/
+.agents/
+.windsurf/
+.continue/
+.serena/
+.roo/
+.cline/
+.kiro/
+.junie/
+.opencode/
+.goose/
+.aider*
+CLAUDE.md
+CLAUDE.local.md
+GEMINI.md
+AGENTS.override.md
+.cursorrules
+.windsurfrules
+.clinerules
+.mcp.json
+*.local.md
+.agent-stop-rounds-*
