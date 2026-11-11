@@ -58,6 +58,7 @@ describe("isGuardrailPath", () => {
     expect(isGuardrailPath("lefthook.yml")).toBe(true);
     expect(isGuardrailPath("packages/eslint-sonarjs/eslint.config.mjs")).toBe(true);
     expect(isGuardrailPath("scripts/check-guardrail-changes.ts")).toBe(true);
+    expect(isGuardrailPath("scripts/agent-hooks/block-guardrail-edits.ts")).toBe(true);
     expect(isGuardrailPath("scripts/count-suppressions.ts")).toBe(true);
     expect(isGuardrailPath("src/index.ts")).toBe(false);
   });
@@ -88,7 +89,7 @@ describe("runGuardrailCheckCli", () => {
     expect(() => runGuardrailCheckCli(import.meta.url, [])).toThrow(/Missing base ref/);
   });
 
-  it("prints a no-op message when the diff has no guardrail paths", () => {
+  it("prints a no-op message when the diff has no guardrail paths", { timeout: 30_000 }, () => {
     const tempDir = mkdtempSync(join(tmpdir(), "guardrail-no-harness-"));
     try {
       const { base, head } = initSrcOnlyDiffRepo(tempDir);

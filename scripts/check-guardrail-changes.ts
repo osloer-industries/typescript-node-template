@@ -12,6 +12,7 @@ export const GUARDRAIL_PATH_PREFIXES = [
   "lefthook.yml",
   "scripts/suppression-baseline.json",
   "scripts/count-suppressions.ts",
+  "scripts/agent-hooks/",
   "packages/eslint-sonarjs/",
 ] as const;
 
