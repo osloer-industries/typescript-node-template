@@ -101,6 +101,7 @@ describe("agent documentation contract", () => {
     const check = Reflect.get(scripts, "check");
     expect(typeof check).toBe("string");
     expect(check).toContain("lint:suppressions");
+    expect(check).toContain("check:no-claude-md");
     expect(check).toContain("lint:sonarjs");
     expect(check).toContain("lint:dup");
   });
