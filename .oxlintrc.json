@@ -35,6 +35,22 @@
         "max-lines-per-function": "off",
         "max-params": "off"
       }
+    },
+    {
+      "files": ["src/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/scripts/**"],
+                "message": "src/ must not import from scripts/ (see docs/architecture.md)."
+              }
+            ]
+          }
+        ]
+      }
     }
   ],
   "ignorePatterns": ["dist/**", "coverage/**", "node_modules/**", "packages/eslint-sonarjs/node_modules/**"]

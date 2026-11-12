@@ -132,6 +132,8 @@ with `node scripts/count-suppressions.ts --write-baseline` after intentional cle
   relative imports compiled with NodeNext.
 - Keep public APIs small and document intentional changes to exports, CLI
   behavior, plugin interfaces, or MCP tools.
+- `src/` must not import from `scripts/`; Oxlint enforces this via `no-restricted-imports` on
+  `src/**` (see [architecture.md](docs/architecture.md)).
 - Avoid import cycles, floating promises, excessive nesting, and functions with
   cyclomatic complexity above 15.
 - Prefer focused modules and pure functions. Do not hide lint findings with
