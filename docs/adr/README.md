@@ -25,3 +25,4 @@ Each ADR is a markdown file named `NNNN-short-title.md` with:
 | [0007](0007-gate-canary-self-tests.md) | Gate canary self-tests alongside CI lint |
 | [0008](0008-codeql-on-private-repos.md) | CodeQL on private repositories |
 | [0009](0009-tooling-and-quality-gate-stack.md) | Tooling and quality-gate stack |
+| [0010](0010-blocking-guardrail-change-check.md) | Blocking guardrail change check in CI |

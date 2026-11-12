@@ -21,8 +21,13 @@ Release Please treats `feat:` as a minor release and `fix:` as a patch release. 
 footer or `!` marker for a major release.
 
 Harness files listed in `CODEOWNERS` (lint config, workflows, `AGENTS.md`, and related scripts)
-should receive maintainer review. Replace `@osloer-industries/platform` in `CODEOWNERS` with your
-org team before enabling branch protection.
+require maintainer review before merge. On pull requests, CI runs `scripts/check-guardrail-changes.ts`,
+which **fails** when those paths change unless the PR has the **`harness-change`** label or an
+**approving review** from the CODEOWNERS maintainer (`@tn819`). See
+[ADR 0010](docs/adr/0010-blocking-guardrail-change-check.md).
+
+**Dependabot** pull requests that update GitHub Actions under `.github/` follow the same rule: approve
+the PR as the maintainer (routine SHA bumps) rather than using a bypass label.
 
 Pull request titles are validated automatically. Squash merging uses the validated title as the commit
 subject on `main`, giving Release Please one reliable Conventional Commit per pull request. Dependabot
