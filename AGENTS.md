@@ -23,8 +23,10 @@ here. Do not duplicate this content in vendor-specific instruction files (`CLAUD
 | `docs/sonar-quality-gate.md` | SonarCloud patterns and local SonarJS ESLint enforcement ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `.oxlintrc.json` | Oxlint rules ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `packages/eslint-sonarjs/` | SonarJS `recommended` rules via ESLint (TypeScript 6 parser; root uses TS 7) ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
-| `.github/workflows/` | CI and security automation ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `.github/workflows/` | CI and security automation ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)); shared jobs call [org reusables](docs/consuming-org-reusables.md) with pinned SHAs. |
+| `docs/consuming-org-reusables.md` | How callers pin `osloer-industries/.github` workflows; links the org contract doc. |
 | `lefthook.yml` | Pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `scripts/agent-hooks/` | Provider-neutral agent guard hook scripts ([docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)). |
 
 Markdown link checking uses the org fork
 [`@osloer-industries/markdown-link-check`](https://github.com/osloer-industries/markdown-link-check)
@@ -34,7 +36,12 @@ dependencies; when the fork publishes a new annotated tag, update the `#v…` re
 
 ## Verification
 
-Run gates in this order when iterating locally:
+While iterating (including in-loop agent stop hooks — [docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)),
+prefer **`npm run check:fast`**: Oxlint, suppression baseline, typecheck, SonarJS, and unit tests
+(`test:fast` excludes `*.integration.test.ts` setup installs). CI and pre-merge verification still
+use the full ladder below.
+
+Run gates in this order when preparing a pull request:
 
 1. `npm run lint` (Oxlint — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 2. `npm run lint:suppressions` (shrink-only suppression baseline — [ADR 0006](docs/adr/0006-escape-hatch-lint-and-suppression-baseline.md))
@@ -74,6 +81,8 @@ When touching `scripts/`, setup, or CI install steps, follow
 - `package-lock.json` — only with intentional dependency changes via `npm ci` / exact install policy.
 - Release Please manifest, changelogs, and version bumps outside the release pull request.
 - Pin SHAs in GitHub Actions workflows except when bumping dependencies via Dependabot or a focused CI change.
+- Org reusable workflows (`uses: osloer-industries/.github/…`) share one SHA per bump; see
+  [docs/consuming-org-reusables.md](docs/consuming-org-reusables.md).
 
 ## Priorities
 
