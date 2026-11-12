@@ -1,3 +1,4 @@
+# Tooling rationale: ADR 0009 (docs/adr/0009-tooling-and-quality-gate-stack.md)
 name: Dependency review
 on:
   pull_request:

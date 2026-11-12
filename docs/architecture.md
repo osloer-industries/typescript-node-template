@@ -1,5 +1,8 @@
 # Architecture
 
+Significant decisions that affect module layout, CI harness files, or the setup contract
+are recorded as [Architecture Decision Records](adr/README.md).
+
 This template stays small: one library entrypoint, one setup CLI, and shared quality gates.
 
 ## Layout
@@ -11,7 +14,7 @@ This template stays small: one library entrypoint, one setup CLI, and shared qua
 | `scripts/setup.mjs` | Thin CLI wrapper for project scaffolding. |
 | `scripts/setup-lib.mjs` | Setup profiles, argument parsing, and file writes (testable core). |
 | `scripts/setup.test.ts` | Unit and integration tests for setup. |
-| `.github/workflows/` | CI, security, release, and title validation. |
+| `.github/workflows/` | CI, security, release, and title validation; org-shared jobs call [consuming-org-reusables.md](consuming-org-reusables.md). |
 
 ## Setup scenarios
 
