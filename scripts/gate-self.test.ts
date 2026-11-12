@@ -80,6 +80,19 @@ function writeTempOxlintSource(source: string, fileName: string): { filePath: st
   };
 }
 
+/** Oxlint `src/**` boundary overrides apply only to files under `src/`. */
+function writeTempSrcOxlintSource(source: string, fileName: string): { filePath: string; cleanup: () => void } {
+  const tempDir = mkdtempSync(join(repoRoot, "src", "gate-self-"));
+  const filePath = join(tempDir, fileName);
+  writeFileSync(filePath, source, "utf8");
+  return {
+    filePath,
+    cleanup: () => {
+      rmSync(tempDir, { recursive: true, force: true });
+    },
+  };
+}
+
 function writeTempSonarjsSource(source: string, fileName: string): { filePath: string; cleanup: () => void } {
   const tempDir = mkdtempSync(join(repoRoot, "scripts", "gate-self-"));
   const filePath = join(tempDir, fileName);
@@ -148,6 +161,21 @@ describe("gate self-tests (oxlint escape hatches)", () => {
     try {
       expect.assertions(2);
       assertLintReportsRule(runOxlintOnFile(filePath), ruleId);
+    } finally {
+      cleanup();
+    }
+  });
+});
+
+describe("gate self-tests (architecture boundaries)", () => {
+  it("rejects src imports from scripts/", () => {
+    const { filePath, cleanup } = writeTempSrcOxlintSource(
+      'import "../scripts/run-npm.mjs";\n',
+      "uses-scripts.ts",
+    );
+    try {
+      expect.assertions(2);
+      assertLintReportsRule(runOxlintOnFile(filePath), "no-restricted-imports");
     } finally {
       cleanup();
     }
