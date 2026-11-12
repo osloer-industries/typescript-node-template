@@ -174,7 +174,7 @@ export async function fetchApprovedReviewLogins(
   }
   const payload: unknown = await response.json();
   if (!Array.isArray(payload)) {
-    throw new Error("Expected an array of pull request reviews from the GitHub API.");
+    throw new TypeError("Expected an array of pull request reviews from the GitHub API.");
   }
   const reviews: GitHubReview[] = payload.filter(isGitHubReview);
   return approvedLoginsFromReviews(reviews);
