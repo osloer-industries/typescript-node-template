@@ -49,15 +49,14 @@
   "homepage": "https://github.com/osloer-industries/typescript-node-template#readme",
   "license": "MIT",
   "overrides": {
-    "basic-ftp": "6.2.6",
-    "katex": "0.19.1"
+    "basic-ftp": "6.2.3"
   },
   "devDependencies": {
     "@fast-check/vitest": "0.5.0",
-    "@modelcontextprotocol/sdk": "1.32.2",
+    "@modelcontextprotocol/sdk": "1.32.0",
     "@osloer-industries/markdown-link-check": "github:osloer-industries/markdown-link-check#v4.0.0-osloer.1",
     "@types/node": "24.19.2",
-    "@vitest/coverage-v8": "5.1.0",
+    "@vitest/coverage-v8": "5.0.2",
     "fast-check": "4.10.2",
     "jscpd": "5.4.2",
     "knip": "6.45.1",
@@ -66,6 +65,6 @@
     "oxlint": "1.90.0",
     "oxlint-tsgolint": "7.0.2006",
     "typescript": "7.0.2",
-    "vitest": "5.1.0"
+    "vitest": "5.0.2"
   }
 }

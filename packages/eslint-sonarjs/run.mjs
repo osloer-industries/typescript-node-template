@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 
 const pkgDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(pkgDir, "../..");
+const requireFromPkg = createRequire(import.meta.url);
+const eslintPackageJsonPath = requireFromPkg.resolve("eslint/package.json");
 
 /** @param {readonly string[]} userArgs */
 export function resolveLintTargets(userArgs) {
@@ -16,8 +18,7 @@ export function resolveLintTargets(userArgs) {
 }
 
 export function resolveEslintBin() {
-  const requireFromPkg = createRequire(import.meta.url);
-  const eslintPackageRoot = path.dirname(requireFromPkg.resolve("eslint/package.json"));
+  const eslintPackageRoot = path.dirname(eslintPackageJsonPath);
   return path.join(eslintPackageRoot, "bin/eslint.js");
 }
 
