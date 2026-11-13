@@ -79,6 +79,17 @@ When touching `scripts/`, setup, or CI install steps, follow
 | New setup scenario | `scripts/setup-lib.mjs`, README, SETUP docs | `scripts/setup.test.ts` unit + integration |
 | npm via child_process | `scripts/run-npm.mjs` only | Do not add new `execFileSync("npm", …)` call sites |
 
+## Avoid repetition
+
+- Reuse [osloer-industries/.github](https://github.com/osloer-industries/.github) reusable workflows and shared
+  `scripts/` helpers instead of copying or inlining the same CI or setup logic.
+- Extract a helper the first time the same logic appears twice; do not wait for a third copy.
+- Prefer table-driven Vitest cases or [fast-check](https://github.com/dubzzz/fast-check) property tests over
+  copy-pasted example blocks.
+- Run `npm run lint:dup` locally (jscpd enforces **0%** duplicated lines — stricter than Sonar Way’s **3%** new-code
+  limit) and confirm SonarCloud duplication on the PR before declaring done
+  (see [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)).
+
 ## Do not edit without reason
 
 - `package-lock.json` — only with intentional dependency changes via `npm ci` / exact install policy.
