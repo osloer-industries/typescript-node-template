@@ -7,12 +7,13 @@ import { copyTemplateFixture } from "./copy-template-fixture.mjs";
 import {
   applySetup,
   assertKnownScenario,
+  configureHarnessDevDependencies,
   harnessDevDependencyKeys,
   parseArgs,
   packageName,
   pickHarnessDevDependencies,
   profiles,
-  resolveSetupOptions
+  resolveSetupOptions,
 } from "./setup-lib.mjs";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -91,6 +92,34 @@ describe("resolveSetupOptions", () => {
   });
 });
 
+describe("configureHarnessDevDependencies", () => {
+  it("prunes MCP-only deps for in-repo non-mcp setup", () => {
+    const pkg = {
+      devDependencies: {
+        "@fast-check/vitest": "0.5.0",
+        "fast-check": "4.10.2",
+        vitest: "5.0.2",
+      },
+    };
+    configureHarnessDevDependencies(pkg, "npm-package", repoRoot);
+    expect(pkg.devDependencies).not.toHaveProperty("@fast-check/vitest");
+    expect(pkg.devDependencies).not.toHaveProperty("fast-check");
+    expect(pkg.devDependencies?.vitest).toBe("5.0.2");
+  });
+
+  it("retains MCP-only deps for in-repo mcp setup", () => {
+    const pkg = {
+      devDependencies: {
+        "@fast-check/vitest": "0.5.0",
+        "fast-check": "4.10.2",
+      },
+    };
+    configureHarnessDevDependencies(pkg, "mcp", repoRoot);
+    expect(pkg.devDependencies?.["fast-check"]).toBe("4.10.2");
+    expect(pkg.devDependencies?.["@fast-check/vitest"]).toBe("0.5.0");
+  });
+});
+
 describe("pickHarnessDevDependencies", () => {
   it("omits MCP-only tooling for non-mcp scenarios", () => {
     const template = { knip: "6.45.1", "fast-check": "4.10.2", vitest: "5.0.2" };
@@ -133,6 +162,7 @@ describe("applySetup metadata", () => {
       }
       expect(Reflect.get(devDependencies, "knip")).toBeDefined();
       expect(Reflect.get(devDependencies, "fast-check")).toBeUndefined();
+      expect(Reflect.get(devDependencies, "@fast-check/vitest")).toBeUndefined();
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }

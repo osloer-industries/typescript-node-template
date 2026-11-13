@@ -29,6 +29,24 @@ export const harnessDevDependencyKeys = [
 
 const mcpHarnessDevDependencyKeys = ["fast-check"];
 
+/** Property-test deps kept on the template harness root; not copied to generated non-mcp repos. */
+const templateMcpOnlyDevDependencyKeys = ["@fast-check/vitest", ...mcpHarnessDevDependencyKeys];
+
+/**
+ * MCP-only dev dependencies kept on the template harness but omitted after in-repo
+ * setup for non-mcp scenarios (setup-smoke runs applySetup in the template root).
+ *
+ * @param {Record<string, unknown>} pkg
+ */
+export function pruneMcpOnlyHarnessDevDependencies(pkg) {
+  if (typeof pkg.devDependencies !== "object" || pkg.devDependencies === null) {
+    return;
+  }
+  for (const key of templateMcpOnlyDevDependencyKeys) {
+    delete pkg.devDependencies[key];
+  }
+}
+
 /**
  * @param {SetupScenario} scenario
  * @param {Record<string, string>} templateDevDependencies
@@ -376,15 +394,43 @@ export async function resolveSetupOptions(parsed, reader) {
 }
 
 /**
+ * @param {Record<string, unknown>} pkg
+ * @param {SetupScenario} scenario
+ * @param {string} baseDir
+ */
+export function configureHarnessDevDependencies(pkg, scenario, baseDir) {
+  if (resolve(baseDir) !== templateRootDir) {
+    applyHarnessDevDependencies(pkg, scenario);
+    return;
+  }
+  if (scenario !== "mcp") {
+    pruneMcpOnlyHarnessDevDependencies(pkg);
+  }
+}
+
+/** @param {Record<string, unknown>} pkg */
+function dropDevDependenciesDuplicatingProduction(pkg) {
+  if (
+    typeof pkg.dependencies !== "object" ||
+    pkg.dependencies === null ||
+    typeof pkg.devDependencies !== "object" ||
+    pkg.devDependencies === null
+  ) {
+    return;
+  }
+  for (const name of Object.keys(pkg.dependencies)) {
+    delete pkg.devDependencies[name];
+  }
+}
+
+/**
  * @param {{ scenario: SetupScenario, name: string, description: string, profile: (typeof profiles)[SetupScenario] }} selected
  * @param {{ runInstall?: boolean, baseDir?: string }} [options]
  */
 export function applySetup(selected, options = {}) {
   const baseDir = options.baseDir ?? ".";
   const pkg = JSON.parse(readFileSync(join(baseDir, "package.json"), "utf8"));
-  if (resolve(baseDir) !== templateRootDir) {
-    applyHarnessDevDependencies(pkg, selected.scenario);
-  }
+  configureHarnessDevDependencies(pkg, selected.scenario, baseDir);
   pkg.name = selected.name;
   pkg.description = selected.description;
   pkg.private = !selected.profile.publishable;
@@ -395,16 +441,7 @@ export function applySetup(selected, options = {}) {
   else delete pkg.bin;
   if (selected.profile.dependencies) pkg.dependencies = selected.profile.dependencies;
   else delete pkg.dependencies;
-  if (
-    typeof pkg.dependencies === "object" &&
-    pkg.dependencies !== null &&
-    typeof pkg.devDependencies === "object" &&
-    pkg.devDependencies !== null
-  ) {
-    for (const name of Object.keys(pkg.dependencies)) {
-      delete pkg.devDependencies[name];
-    }
-  }
+  dropDevDependenciesDuplicatingProduction(pkg);
   if (selected.scenario === "mcp") {
     pkg.scripts["test:mcp"] = "npm run build && node scripts/test-mcp.mjs";
   } else {
