@@ -35,6 +35,26 @@ jobs:
       - run: npm audit --omit=dev --audit-level=high
       - run: npm audit --omit=dev --audit-level=high --prefix packages/eslint-sonarjs
       - run: npm run check
+
+  mutation:
+    name: Mutation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false, fetch-depth: 0 }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version-file: .nvmrc, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Mutation (changed src on pull request)
+        if: github.event_name == 'pull_request'
+        env:
+          MUTATION_BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/run-mutation-changed.ts
+      - name: Mutation (full src on main)
+        if: github.event_name == 'push'
+        run: npm run test:mutation
+
   setup-smoke:
     name: Setup smoke (${{ matrix.scenario }})
     runs-on: ubuntu-latest

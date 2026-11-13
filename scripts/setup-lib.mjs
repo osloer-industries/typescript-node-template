@@ -384,6 +384,7 @@ export function applySetup(selected, options = {}) {
   const pkg = JSON.parse(readFileSync(join(baseDir, "package.json"), "utf8"));
   if (resolve(baseDir) !== templateRootDir) {
     applyHarnessDevDependencies(pkg, selected.scenario);
+    delete pkg.scripts["test:mutation"];
   }
   pkg.name = selected.name;
   pkg.description = selected.description;
