@@ -10,7 +10,7 @@ import {
 
 export type RunCheckFast = (cwd: string) => void;
 
-export function defaultRunCheckFast(cwd: string): void {
+function defaultRunCheckFast(cwd: string): void {
   runNpm(["run", "check:fast"], { cwd, stdio: "pipe" });
 }
 

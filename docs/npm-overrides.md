@@ -10,17 +10,14 @@ This template already uses minimal examples for transitive dev-tooling gaps:
 ```json
 "overrides": {
   "basic-ftp": "6.2.6",
-  "katex": "0.19.1",
-  "zod": "4.6.7"
+  "katex": "0.19.1"
 }
 ```
 
 `basic-ftp` is pulled in by `@osloer-industries/markdown-link-check` (see
 [GHSA-5pm8-86m8-9m6r](https://github.com/advisories/GHSA-5pm8-86m8-9m6r)). `katex` is pulled in
 by `markdownlint` → `micromark-extension-math` (see
-[GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7)). `zod` is pulled in by
-`@modelcontextprotocol/sdk` (see
-[GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)).
+[GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7)).
 Remove each override when upstream ranges include a fixed release.
 
 The nested `packages/eslint-sonarjs` package uses a `minimatch` override for the same reason (eslint and
