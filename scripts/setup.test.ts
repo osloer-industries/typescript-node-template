@@ -107,7 +107,7 @@ describe("configureHarnessDevDependencies", () => {
     expect(pkg.devDependencies?.vitest).toBe("5.0.2");
   });
 
-  it("retains MCP-only deps for in-repo mcp setup", () => {
+  it("drops @fast-check/vitest for in-repo mcp setup", () => {
     const pkg = {
       devDependencies: {
         "@fast-check/vitest": "0.5.0",
@@ -115,8 +115,8 @@ describe("configureHarnessDevDependencies", () => {
       },
     };
     configureHarnessDevDependencies(pkg, "mcp", repoRoot);
+    expect(pkg.devDependencies).not.toHaveProperty("@fast-check/vitest");
     expect(pkg.devDependencies?.["fast-check"]).toBe("4.10.2");
-    expect(pkg.devDependencies?.["@fast-check/vitest"]).toBe("0.5.0");
   });
 });
 

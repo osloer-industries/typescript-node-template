@@ -403,9 +403,7 @@ export function configureHarnessDevDependencies(pkg, scenario, baseDir) {
     applyHarnessDevDependencies(pkg, scenario);
     return;
   }
-  if (scenario !== "mcp") {
-    pruneMcpOnlyHarnessDevDependencies(pkg);
-  }
+  pruneMcpOnlyHarnessDevDependencies(pkg);
 }
 
 /** @param {Record<string, unknown>} pkg */
