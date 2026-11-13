@@ -137,6 +137,27 @@ duplication in `.jscpd.json` ([#27](https://github.com/osloer-industries/typescr
 **Why they lost:** Sonar duplication is PR/cloud scoped; jscpd runs locally in `npm run check` and blocks
 copy-pasted agent instructions across markdown.
 
+### `knip`
+
+<!-- devDependency: knip -->
+
+**Why chosen:** Detect unused files, exports, and dependencies in the root template and
+`packages/eslint-sonarjs`, wired as `npm run lint:knip` inside `npm run check`
+([issue #53](https://github.com/osloer-industries/typescript-node-template/issues/53)). Configuration
+lives in `knip.config.ts` (workspace entries for setup scripts, Vitest, `.d.mts` companions, and the
+SonarJS helper package).
+
+**Alternatives considered:** ESLint `import/no-unused-modules` only; manual review; TypeScript
+`noUnusedLocals` alone (file-scoped only).
+
+**Why they lost:** ESLint import rules do not cover unused npm dependencies or orphan files; TypeScript
+unused locals do not trace the full dependency graph. Knip matches the pattern already used in
+[vakt](https://github.com/osloer-industries/vakt).
+
+**False positives:** Prefer deleting dead code or dropping unused dependencies. `knip.config.ts` may
+list genuine entry points (CLI scripts, fixture templates, module declaration files). Justify any
+`ignore*` config in this ADR before adding it.
+
 ### `markdownlint-cli2`
 
 <!-- devDependency: markdownlint-cli2 -->

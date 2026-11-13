@@ -3,7 +3,8 @@
 1. Install Node.js 24.22.0.
 2. Run `npm ci` (or `npm ci --ignore-scripts` to match CI; then run `npm prepare` locally to install Git hooks).
 3. Create a focused branch and add tests with the change.
-4. Run `npm run check` (Oxlint, SonarJS ESLint, jscpd, markdownlint, markdown link checks, TypeScript, tests, and build)
+4. Run `npm run check` (Oxlint, SonarJS ESLint, jscpd, knip, markdownlint, markdown link checks, TypeScript,
+   tests, and build)
    and `npm audit --omit=dev`.
 5. Open a pull request using the provided template and a Conventional Commit title.
 

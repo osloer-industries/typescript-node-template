@@ -7,8 +7,10 @@ import { copyTemplateFixture } from "./copy-template-fixture.mjs";
 import {
   applySetup,
   assertKnownScenario,
+  harnessDevDependencyKeys,
   parseArgs,
   packageName,
+  pickHarnessDevDependencies,
   profiles,
   resolveSetupOptions
 } from "./setup-lib.mjs";
@@ -89,6 +91,26 @@ describe("resolveSetupOptions", () => {
   });
 });
 
+describe("pickHarnessDevDependencies", () => {
+  it("omits MCP-only tooling for non-mcp scenarios", () => {
+    const template = { knip: "6.45.1", "fast-check": "4.10.2", vitest: "5.0.2" };
+    const picked = pickHarnessDevDependencies("plugin", template);
+    expect(picked).toMatchObject({ knip: "6.45.1", vitest: "5.0.2" });
+    expect(picked).not.toHaveProperty("fast-check");
+  });
+
+  it("retains MCP harness deps for the mcp scenario", () => {
+    const template = { knip: "6.45.1", "fast-check": "4.10.2", vitest: "5.0.2" };
+    const picked = pickHarnessDevDependencies("mcp", template);
+    expect(picked["fast-check"]).toBe("4.10.2");
+  });
+
+  it("lists the shared harness keys", () => {
+    expect(harnessDevDependencyKeys).toContain("knip");
+    expect(harnessDevDependencyKeys).not.toContain("fast-check");
+  });
+});
+
 describe("applySetup metadata", () => {
   it("removes dependencies for the plugin scenario", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "setup-plugin-meta-"));
@@ -105,6 +127,40 @@ describe("applySetup metadata", () => {
       );
       expect(readPackageField(join(tempDir, "package.json"), "private")).toBe(true);
       expect(readPackageField(join(tempDir, "package.json"), "dependencies")).toBeUndefined();
+      const devDependencies = readPackageField(join(tempDir, "package.json"), "devDependencies");
+      if (typeof devDependencies !== "object" || devDependencies === null) {
+        throw new Error("Invalid devDependencies");
+      }
+      expect(Reflect.get(devDependencies, "knip")).toBeDefined();
+      expect(Reflect.get(devDependencies, "fast-check")).toBeUndefined();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("drops devDependencies that duplicate production dependencies", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "setup-dedupe-deps-"));
+    try {
+      copyTemplateFixture(repoRoot, tempDir);
+      applySetup(
+        {
+          scenario: "mcp",
+          name: "demo-mcp",
+          description: "Demo MCP",
+          profile: profiles.mcp,
+        },
+        { runInstall: false, baseDir: tempDir },
+      );
+      const devDependencies = readPackageField(join(tempDir, "package.json"), "devDependencies");
+      const dependencies = readPackageField(join(tempDir, "package.json"), "dependencies");
+      if (typeof devDependencies !== "object" || devDependencies === null) {
+        throw new Error("Invalid devDependencies");
+      }
+      if (typeof dependencies !== "object" || dependencies === null) {
+        throw new Error("Invalid dependencies");
+      }
+      expect(Reflect.get(dependencies, "@modelcontextprotocol/sdk")).toBeDefined();
+      expect(Reflect.get(devDependencies, "@modelcontextprotocol/sdk")).toBeUndefined();
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
