@@ -26,10 +26,16 @@ jobs:
       - if: env.SONAR_TOKEN != ''
         run: npm ci --ignore-scripts
       - if: env.SONAR_TOKEN != ''
-        run: npm run test:coverage
+        run: npm ci --ignore-scripts --prefix packages/eslint-sonarjs
       - if: env.SONAR_TOKEN != ''
+        run: npm run test:coverage
+      - if: env.SONAR_TOKEN != '' && github.event_name == 'push'
         uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8.4.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - if: env.SONAR_TOKEN != '' && github.event_name == 'pull_request'
+        run: >-
+          echo "SonarCloud GitHub App analyzes pull requests; the Actions scanner runs on pushes to main
+          after Automatic Analysis is disabled (see README SonarQube Cloud setup)."
       - if: env.SONAR_TOKEN == ''
         run: echo "SonarQube Cloud analysis skipped because SONAR_TOKEN is not configured."
