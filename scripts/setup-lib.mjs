@@ -51,7 +51,7 @@ describe("createPlugin", () => { it("activates", () => { const log = vi.fn<(mess
   },
   mcp: {
     description: "Model Context Protocol stdio server",
-    dependencies: { "@modelcontextprotocol/sdk": "1.30.0", "zod": "4.4.3" },
+    dependencies: { "@modelcontextprotocol/sdk": "1.32.2", "zod": "4.6.7" },
     source: `import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
@@ -131,7 +131,7 @@ describe("MCP server", () => {
   "npm-package": {
     description: "Publishable npm library",
     publishable: true,
-    dependencies: { "zod": "4.4.3" },
+    dependencies: { "zod": "4.6.7" },
     source: `import { z } from "zod";
 const slugInputSchema = z.string();
 export function slugify(value: string): string {
@@ -152,7 +152,7 @@ describe("slugify", () => {
     description: "Command-line application",
     publishable: true,
     bin: true,
-    dependencies: { "zod": "4.4.3" },
+    dependencies: { "zod": "4.6.7" },
     source: `#!/usr/bin/env node
 import { z } from "zod";
 const firstArgSchema = z.string().trim().min(1).optional();
