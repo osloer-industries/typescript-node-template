@@ -8,7 +8,7 @@ This template often has **two Sonar integrations**:
 | Check | Source | Typical behavior |
 | --- | --- | --- |
 | **SonarCloud Code Analysis** | SonarCloud GitHub App (automatic analysis) | Enforces the **quality gate** on new/changed code; this check can fail the PR. |
-| **SonarQube Cloud / Analyze** | `.github/workflows/sonar.yml` | Runs only when `SONAR_TOKEN` is set; otherwise skips and reports success. Installs `packages/eslint-sonarjs` before `npm run test:coverage` (same as the Quality job) so Vitest gate and SonarJS helper tests resolve nested ESLint dependencies. |
+| **SonarQube Cloud / Analyze** | `.github/workflows/sonar.yml` | Runs only when `SONAR_TOKEN` is set; otherwise skips and reports success. On pull requests, runs coverage (after installing `packages/eslint-sonarjs`) but not the Actions scanner—the GitHub App owns PR analysis. On `main` pushes, runs the scanner when Automatic Analysis is disabled in SonarCloud. |
 
 A green Actions Sonar job does **not** guarantee a green **SonarCloud Code Analysis** check. Fix findings
 on the PR diff or adjust Sonar project settings deliberately—not by disabling gates without team approval.
