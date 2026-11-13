@@ -10,6 +10,7 @@ import { stdin, stdout } from "node:process";
 /** @typedef {"plugin" | "mcp" | "npm-package" | "cli"} SetupScenario */
 
 const setupLibDir = dirname(fileURLToPath(import.meta.url));
+const templateRootDir = resolve(setupLibDir, "..");
 
 /** Dev dependencies every generated project keeps (see `pickHarnessDevDependencies`). */
 export const harnessDevDependencyKeys = [
@@ -381,7 +382,9 @@ export async function resolveSetupOptions(parsed, reader) {
 export function applySetup(selected, options = {}) {
   const baseDir = options.baseDir ?? ".";
   const pkg = JSON.parse(readFileSync(join(baseDir, "package.json"), "utf8"));
-  applyHarnessDevDependencies(pkg, selected.scenario);
+  if (resolve(baseDir) !== templateRootDir) {
+    applyHarnessDevDependencies(pkg, selected.scenario);
+  }
   pkg.name = selected.name;
   pkg.description = selected.description;
   pkg.private = !selected.profile.publishable;
