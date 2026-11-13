@@ -103,7 +103,7 @@ describe("configureHarnessDevDependencies", () => {
     };
     configureHarnessDevDependencies(pkg, "npm-package", repoRoot);
     expect(pkg.devDependencies).not.toHaveProperty("@fast-check/vitest");
-    expect(pkg.devDependencies).not.toHaveProperty("fast-check");
+    expect(pkg.devDependencies?.["fast-check"]).toBe("4.10.2");
     expect(pkg.devDependencies?.vitest).toBe("5.0.2");
   });
 

@@ -29,8 +29,8 @@ export const harnessDevDependencyKeys = [
 
 const mcpHarnessDevDependencyKeys = ["fast-check"];
 
-/** Property-test deps kept on the template harness root; not copied to generated non-mcp repos. */
-const templateMcpOnlyDevDependencyKeys = ["@fast-check/vitest", ...mcpHarnessDevDependencyKeys];
+/** Vitest bridge used only by template `src/`; harness scripts keep `fast-check` for MCP contract tests. */
+const templateMcpOnlyDevDependencyKeys = ["@fast-check/vitest"];
 
 /**
  * MCP-only dev dependencies kept on the template harness but omitted after in-repo
