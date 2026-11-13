@@ -138,6 +138,34 @@ describe("applySetup metadata", () => {
     }
   });
 
+  it("drops devDependencies that duplicate production dependencies", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "setup-dedupe-deps-"));
+    try {
+      copyTemplateFixture(repoRoot, tempDir);
+      applySetup(
+        {
+          scenario: "mcp",
+          name: "demo-mcp",
+          description: "Demo MCP",
+          profile: profiles.mcp,
+        },
+        { runInstall: false, baseDir: tempDir },
+      );
+      const devDependencies = readPackageField(join(tempDir, "package.json"), "devDependencies");
+      const dependencies = readPackageField(join(tempDir, "package.json"), "dependencies");
+      if (typeof devDependencies !== "object" || devDependencies === null) {
+        throw new Error("Invalid devDependencies");
+      }
+      if (typeof dependencies !== "object" || dependencies === null) {
+        throw new Error("Invalid dependencies");
+      }
+      expect(Reflect.get(dependencies, "@modelcontextprotocol/sdk")).toBeDefined();
+      expect(Reflect.get(devDependencies, "@modelcontextprotocol/sdk")).toBeUndefined();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
   it("adds MCP smoke scripts for the mcp scenario", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "setup-mcp-scripts-"));
     try {

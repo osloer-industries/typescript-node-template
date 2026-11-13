@@ -395,6 +395,16 @@ export function applySetup(selected, options = {}) {
   else delete pkg.bin;
   if (selected.profile.dependencies) pkg.dependencies = selected.profile.dependencies;
   else delete pkg.dependencies;
+  if (
+    typeof pkg.dependencies === "object" &&
+    pkg.dependencies !== null &&
+    typeof pkg.devDependencies === "object" &&
+    pkg.devDependencies !== null
+  ) {
+    for (const name of Object.keys(pkg.dependencies)) {
+      delete pkg.devDependencies[name];
+    }
+  }
   if (selected.scenario === "mcp") {
     pkg.scripts["test:mcp"] = "npm run build && node scripts/test-mcp.mjs";
   } else {
