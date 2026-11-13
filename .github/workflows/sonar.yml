@@ -20,18 +20,22 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { fetch-depth: 0, persist-credentials: false }
-      - if: env.SONAR_TOKEN != ''
+      - id: sonar_config
+        run: node scripts/is-sonar-project-configured.ts
+      - if: env.SONAR_TOKEN != '' && steps.sonar_config.outputs.configured == 'true'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: npm }
-      - if: env.SONAR_TOKEN != ''
+      - if: env.SONAR_TOKEN != '' && steps.sonar_config.outputs.configured == 'true'
         run: npm ci --ignore-scripts
-      - if: env.SONAR_TOKEN != ''
+      - if: env.SONAR_TOKEN != '' && steps.sonar_config.outputs.configured == 'true'
         run: npm ci --ignore-scripts --prefix packages/eslint-sonarjs
-      - if: env.SONAR_TOKEN != ''
+      - if: env.SONAR_TOKEN != '' && steps.sonar_config.outputs.configured == 'true'
         run: npm run test:coverage
-      - if: env.SONAR_TOKEN != ''
+      - if: env.SONAR_TOKEN != '' && steps.sonar_config.outputs.configured == 'true'
         uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8.4.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - if: env.SONAR_TOKEN == ''
         run: echo "SonarQube Cloud analysis skipped because SONAR_TOKEN is not configured."
+      - if: env.SONAR_TOKEN != '' && steps.sonar_config.outputs.configured != 'true'
+        run: echo "SonarQube Cloud analysis skipped because sonar-project.properties still has template placeholders."
