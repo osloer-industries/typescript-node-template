@@ -86,8 +86,8 @@ When touching `scripts/`, setup, or CI install steps, follow
 - Extract a helper the first time the same logic appears twice; do not wait for a third copy.
 - Prefer table-driven Vitest cases or [fast-check](https://github.com/dubzzz/fast-check) property tests over
   copy-pasted example blocks.
-- Run `npm run lint:dup` locally and confirm SonarCloud duplication on the PR before declaring done; Sonar Way
-  fails when **new code** has more than **3%** duplicated lines
+- Run `npm run lint:dup` locally (jscpd enforces **0%** duplicated lines — stricter than Sonar Way’s **3%** new-code
+  limit) and confirm SonarCloud duplication on the PR before declaring done
   (see [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)).
 
 ## Do not edit without reason

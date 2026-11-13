@@ -86,8 +86,8 @@ do not enable scripts globally “just in case”.
 - Vitest **`toThrow()`** must include a message or regex (Oxlint `vitest/require-to-throw-message`).
 - Keep cyclomatic complexity, promise safety, and import-cycle rules in
   [`.oxlintrc.json`](../.oxlintrc.json)—they reduce correctness issues Sonar may also report.
-- Do not duplicate long guidance across markdown files; `npm run lint:dup` (jscpd) enforces a **3%**
-  duplication threshold on code and docs, matching Sonar Way new-code duplication.
+- Do not duplicate long guidance across markdown files; `npm run lint:dup` (jscpd) enforces a **0%**
+  duplication threshold on code and docs.
 
 ## Change checklist (agents and humans)
 

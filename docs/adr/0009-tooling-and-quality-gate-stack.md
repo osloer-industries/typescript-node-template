@@ -129,9 +129,8 @@ coverage contracts in `AGENTS.md`.
 
 <!-- devDependency: jscpd -->
 
-**Why chosen:** Duplication detection on TypeScript, JavaScript, and Markdown with a **3%** threshold
-in `.jscpd.json`, aligned with Sonar Way new-code duplication
-([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
+**Why chosen:** Duplication detection on TypeScript, JavaScript, and Markdown with **0%** tolerated
+duplication in `.jscpd.json` ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
 
 **Alternatives considered:** Sonar duplication only; manual review.
 
