@@ -11,6 +11,72 @@ import { stdin, stdout } from "node:process";
 
 const setupLibDir = dirname(fileURLToPath(import.meta.url));
 
+/** Dev dependencies every generated project keeps (see `pickHarnessDevDependencies`). */
+export const harnessDevDependencyKeys = [
+  "@types/node",
+  "@vitest/coverage-v8",
+  "@osloer-industries/markdown-link-check",
+  "jscpd",
+  "knip",
+  "lefthook",
+  "markdownlint-cli2",
+  "oxlint",
+  "oxlint-tsgolint",
+  "typescript",
+  "vitest",
+];
+
+const mcpHarnessDevDependencyKeys = ["fast-check"];
+
+/**
+ * @param {SetupScenario} scenario
+ * @param {Record<string, string>} templateDevDependencies
+ */
+export function pickHarnessDevDependencies(scenario, templateDevDependencies) {
+  const keys = [...harnessDevDependencyKeys];
+  if (scenario === "mcp") {
+    keys.push(...mcpHarnessDevDependencyKeys);
+  }
+  /** @type {Record<string, string>} */
+  const picked = {};
+  for (const key of keys) {
+    const version = templateDevDependencies[key];
+    if (typeof version === "string") {
+      picked[key] = version;
+    }
+  }
+  return picked;
+}
+
+function readTemplateDevDependencyCatalog() {
+  const templatePkg = JSON.parse(readFileSync(join(setupLibDir, "..", "package.json"), "utf8"));
+  const devDependencies = {
+    ...(typeof templatePkg.devDependencies === "object" && templatePkg.devDependencies !== null
+      ? templatePkg.devDependencies
+      : {}),
+    ...(typeof templatePkg.dependencies === "object" && templatePkg.dependencies !== null
+      ? templatePkg.dependencies
+      : {}),
+  };
+  const overrides =
+    typeof templatePkg.overrides === "object" && templatePkg.overrides !== null
+      ? templatePkg.overrides
+      : undefined;
+  return { devDependencies, overrides };
+}
+
+/**
+ * @param {Record<string, unknown>} pkg
+ * @param {SetupScenario} scenario
+ */
+export function applyHarnessDevDependencies(pkg, scenario) {
+  const catalog = readTemplateDevDependencyCatalog();
+  pkg.devDependencies = pickHarnessDevDependencies(scenario, catalog.devDependencies);
+  if (catalog.overrides) {
+    pkg.overrides = catalog.overrides;
+  }
+}
+
 export const generatedTestMcpScript = `import { runGeneratedTestMcpCli } from "./mcp-stdio-smoke.mjs";
 
 await runGeneratedTestMcpCli(import.meta.url, process.argv[1], import.meta.dirname);
@@ -315,6 +381,7 @@ export async function resolveSetupOptions(parsed, reader) {
 export function applySetup(selected, options = {}) {
   const baseDir = options.baseDir ?? ".";
   const pkg = JSON.parse(readFileSync(join(baseDir, "package.json"), "utf8"));
+  applyHarnessDevDependencies(pkg, selected.scenario);
   pkg.name = selected.name;
   pkg.description = selected.description;
   pkg.private = !selected.profile.publishable;
