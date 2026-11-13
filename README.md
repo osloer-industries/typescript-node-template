@@ -62,7 +62,7 @@ Further patterns (provider-neutral):
 | --- | --- |
 | `npm run lint` | Lint with the explicit `.oxlintrc.json` policy, including type-aware rules |
 | `npm run lint:sonarjs` | SonarJS ESLint `recommended` rules (see `packages/eslint-sonarjs/`) |
-| `npm run lint:dup` | Detect duplicated code and markdown (jscpd, 0% threshold) |
+| `npm run lint:dup` | Detect duplicated code and markdown (jscpd, 3% threshold, aligned with Sonar) |
 | `npm run lint:knip` | Detect unused files, exports, and dependencies (knip) |
 | `npm run typecheck` | Check types without emitting files |
 | `npm test` | Run unit tests |
