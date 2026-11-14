@@ -149,6 +149,8 @@ with `node scripts/count-suppressions.ts --write-baseline` after intentional cle
 ## Tests and security
 
 - Add tests for success, failure, and boundary behavior affected by a change.
+- For pure exported functions, prefer a `@fast-check/vitest` `test.prop` when a single
+  invariant covers more ground than fixed examples (`src/index.test.ts`; [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)).
 - Keep branch, function, line, and statement coverage at or above 80% for `src/`
   and testable `scripts/` modules. Cover CLI wiring with focused unit tests or
   CI smoke jobs when direct unit coverage is impractical.

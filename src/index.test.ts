@@ -1,8 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { describe } from "vitest";
+import { fc, it } from "@fast-check/vitest";
 import { createGreeting } from "./index.js";
 
 describe("createGreeting", () => {
-  it("uses a default name", () => expect(createGreeting()).toBe("Hello, world!"));
-  it("uses a supplied name", () => expect(createGreeting({ name: "Oslo" })).toBe("Hello, Oslo!"));
-  it("falls back for a blank name", () => expect(createGreeting({ name: "  " })).toBe("Hello, world!"));
+  it.prop([fc.option(fc.string(), { nil: undefined })])(
+    "trims names and defaults when the name is missing or blank",
+    (name) => {
+      const trimmed = name?.trim() ?? "";
+      const expected = trimmed.length > 0 ? `Hello, ${trimmed}!` : "Hello, world!";
+      const withOptions = createGreeting(name === undefined ? {} : { name }) === expected;
+      if (name === undefined) {
+        return withOptions && createGreeting() === expected;
+      }
+      return withOptions;
+    },
+  );
 });
