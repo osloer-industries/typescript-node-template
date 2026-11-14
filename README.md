@@ -80,7 +80,8 @@ installs, and local `eslint-plugin-sonarjs` via `npm run lint:sonarjs`).
 The Sonar workflow skips safely until configured.
 
 1. Import the repository into SonarQube Cloud.
-2. Replace `YOUR_SONAR_ORGANIZATION` and `YOUR_SONAR_PROJECT_KEY` in `sonar-project.properties`.
+2. Set `sonar.organization` and `sonar.projectKey` in `sonar-project.properties` for your SonarCloud project
+   (this repository already uses the org template keys).
 3. Create a SonarQube Cloud token and add it in GitHub under **Settings > Secrets and variables > Actions** as `SONAR_TOKEN`.
 4. In SonarQube Cloud, open **Project Settings > Analysis Method** and clear **Enabled for this project**
    under Automatic Analysis. Automatic Analysis and GitHub Actions analysis cannot be enabled together.
