@@ -2,8 +2,44 @@
 
 These instructions apply to every human or automated contributor. Keep this file
 provider-neutral: the canonical map, verification ladder, and change recipes live
-here. Do not duplicate this content in vendor-specific instruction files (`CLAUDE.md`,
-`.cursorrules`, and similar).
+here.
+
+## Agent workflow (org-wide, keep identical across osloer-industries repos)
+
+These rules apply to every agent (Cursor, Grok Bot, any other) working in this repo.
+
+### Quality
+
+- Never cut corners on quality or architecture. Fix root causes. No `continue-on-error`, `|| true`, skipped or
+  deleted tests, lowered thresholds, ignore or suppress comments, `NOSONAR`, exclusions, new lint/Sonar rule
+  exceptions or overrides, audit ignores, `--legacy-peer-deps`, or `--force`.
+- SonarCloud issues are resolved only by fixing code, never by marking them false positive or won't-fix.
+- Scripts are TypeScript on Node 24, never Python.
+- `AGENTS.md` is the only agent instruction file; never add `CLAUDE.md` or tool-specific rule files.
+
+### CI and workflows
+
+- Pin GitHub Actions by full commit SHA with an accurate version comment. Org reusables from
+  `osloer-industries/.github` are pinned `@<full sha> # v0.x.y` (a release tag, never `# main`).
+- Every CI job feeds the single `ci-passed` aggregate job, including Workflow security, CodeQL and the SonarCloud
+  zero-issues job. `ci-passed` is the only required status check.
+- Only Dependabot patch/minor bumps and patch/minor release PRs auto-merge. Majors (or pre-1.0 breaking changes)
+  never auto-merge; they wait for a human.
+- Run the repo's linters, tests and pre-commit checks locally before pushing. The pre-commit hook is never skipped
+  (`--no-verify` is not allowed).
+- Push, then stop: do not wait on, watch or poll CI. Failures are handed back to you.
+
+### Pull requests
+
+- Keep PRs focused and reviewable, link the issues they close, and prefer simplification (less code, fewer
+  dependencies, removed duplication).
+- Resolve conflicts by merging the base branch in. Never rebase a pushed branch, never force-push, never bypass
+  branch protection.
+- A PR is ready for review only when all of these hold: it has no conflicts and is up to date with `main`; every
+  check on the current head is green (pending is not ready); and it has no unresolved review threads, requested
+  changes or open SonarCloud issues. Fix anything short of that yourself. Ask a human only when a real decision or
+  ambiguity needs one.
+- Never touch secrets, permissions, repo settings or rulesets without explicit human approval.
 
 ## Repository map
 
@@ -99,9 +135,6 @@ When touching `scripts/`, setup, or CI install steps, follow
 - Use the Node.js 24 version declared by `.nvmrc` and `.node-version`.
 - Install reproducibly with `npm ci`. Use `npm install --save-exact` when a
   dependency intentionally changes, then commit `package-lock.json`.
-- Run `npm run check` before submitting a change. This runs Oxlint, SonarJS ESLint,
-  duplication detection, Markdown checks, the TypeScript compiler, coverage, production build, and knip
-  (after build so `package.json` dist entries resolve).
 - Run `npm audit --omit=dev` whenever dependencies or the lockfile change. For transitive
   production findings, follow [docs/npm-overrides.md](docs/npm-overrides.md) before adding
   npm `overrides`.
@@ -144,7 +177,7 @@ with `node scripts/count-suppressions.ts --write-baseline` after intentional cle
   disable comments unless the exception is narrowly scoped and explained.
 - Preserve all four setup scenarios: `plugin`, `mcp`, `npm-package`, and `cli`. Unattended
   setup (`--yes`) should keep running `npm run check` (and `npm pack --dry-run` when
-  publishable) unless `--no-verify` is passed.
+  publishable) unless `--no-verify` is passed on the setup CLI (not a git pre-commit bypass).
 
 ## Tests and security
 
@@ -156,8 +189,6 @@ with `node scripts/count-suppressions.ts --write-baseline` after intentional cle
   CI smoke jobs when direct unit coverage is impractical.
 - Treat external input, environment variables, file paths, and network results
   as untrusted. Validate before use and avoid logging sensitive values.
-- Keep GitHub Actions permissions minimal and pin third-party actions to full
-  commit SHAs.
 
 ## MCP servers with account data
 
@@ -172,12 +203,10 @@ Browser automation dependencies (for example Playwright) must follow
 
 ## Contributions and releases
 
-- Make focused changes and do not rewrite unrelated files.
 - Use a Conventional Commit pull request title such as `feat:`, `fix:`,
   `refactor:`, `test:`, `docs:`, `chore:`, or `ci:`. The squash commit title on
   `main` is Release Please's release input.
 - Do not edit generated Release Please versions or changelogs outside its
   release pull request unless correcting release metadata deliberately.
-- Never bypass required reviews, checks, or organization rules.
 
 For system design and scenario behavior, read [docs/architecture.md](docs/architecture.md).

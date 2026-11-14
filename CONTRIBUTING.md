@@ -46,5 +46,5 @@ consistent:
 6. Individual Dependabot pull requests for other major version updates (GitHub Actions or npm dev dependencies).
 7. Single transitive lockfile bumps that Dependabot opens on their own.
 
-After each merge, refresh or rebase any later pull requests in the queue so they pick up the latest `main`
-before you merge them.
+After each merge, merge the latest `main` into any later pull requests in the queue so they stay current
+before you merge them (do not rebase or force-push).
