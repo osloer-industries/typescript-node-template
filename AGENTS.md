@@ -84,8 +84,8 @@ When touching `scripts/`, setup, or CI install steps, follow
 - `package-lock.json` — only with intentional dependency changes via `npm ci` / exact install policy.
 - Release Please manifest, changelogs, and version bumps outside the release pull request.
 - Pin SHAs in GitHub Actions workflows except when bumping dependencies via Dependabot or a focused CI change.
-- Org reusable workflows (`uses: osloer-industries/.github/…`) share one SHA per bump; see
-  [docs/consuming-org-reusables.md](docs/consuming-org-reusables.md).
+- Org reusable workflows (`uses: osloer-industries/.github/…`) share one tag-backed SHA per bump (`# v0.x.y`
+  comment, not `# main`); see [docs/consuming-org-reusables.md](docs/consuming-org-reusables.md).
 
 ## Priorities
 
