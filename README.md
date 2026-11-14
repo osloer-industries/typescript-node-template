@@ -68,6 +68,7 @@ Further patterns (provider-neutral):
 | `npm run typecheck` | Check types without emitting files |
 | `npm test` | Run unit tests |
 | `npm run test:coverage` | Test and enforce coverage thresholds |
+| `npm run test:mutation` | Stryker mutation testing on `src/` (80% break threshold; separate from `check`) |
 | `npm run build` | Compile to `dist/` |
 | `npm run check` | Run all local quality gates |
 | `npm audit --omit=dev` | Audit production dependencies |

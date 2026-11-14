@@ -1,6 +1,6 @@
-import { execFileSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { listChangedPaths as listGitChangedPaths } from "./git-list-changed-paths.mjs";
 
 /** Paths (file or directory prefix) treated as agent harness / guardrails. */
 export const GUARDRAIL_PATH_PREFIXES = [
@@ -26,14 +26,7 @@ export function isGuardrailPath(changedPath: string): boolean {
 const GIT_EXECUTABLE = process.env.GUARDRAIL_GIT_PATH ?? "/usr/bin/git";
 
 export function listChangedPaths(baseRef: string, headRef: string, cwd: string): string[] {
-  const output = execFileSync(GIT_EXECUTABLE, ["diff", "--name-only", `${baseRef}...${headRef}`], {
-    cwd,
-    encoding: "utf8",
-  });
-  return output
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+  return listGitChangedPaths(baseRef, headRef, cwd, GIT_EXECUTABLE);
 }
 
 export function findGuardrailChanges(changedPaths: readonly string[]): string[] {

@@ -125,6 +125,29 @@ with ESM `NodeNext` defaults in this template.
 **Why they lost:** Vitest documents V8 as the primary provider; skipping coverage would not enforce template
 coverage contracts in `AGENTS.md`.
 
+### `@stryker-mutator/core`
+
+<!-- devDependency: @stryker-mutator/core -->
+
+**Why chosen:** Mutation testing on `src/` with an **80%** break threshold (`stryker.config.mjs`), separate
+from Vitest coverage ([#51](https://github.com/osloer-industries/typescript-node-template/issues/51)).
+
+**Alternatives considered:** No mutation gate; PIT-style manual review only.
+
+**Why they lost:** Coverage alone does not prove tests catch real faults; Stryker is the standard JS mutation
+runner and pairs with the existing Vitest suite.
+
+### `@stryker-mutator/vitest-runner`
+
+<!-- devDependency: @stryker-mutator/vitest-runner -->
+
+**Why chosen:** Runs mutants through the same Vitest config as unit tests (`vitest.config.ts`) without a
+custom Jest/Mocha adapter.
+
+**Alternatives considered:** `@stryker-mutator/jest-runner`; command-runner invoking `npm test` per mutant.
+
+**Why they lost:** Template standardizes on Vitest; command-runner is slower and harder to scope per mutant.
+
 ### `jscpd`
 
 <!-- devDependency: jscpd -->

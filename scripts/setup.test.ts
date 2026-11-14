@@ -133,6 +133,9 @@ describe("applySetup metadata", () => {
       }
       expect(Reflect.get(devDependencies, "knip")).toBeDefined();
       expect(Reflect.get(devDependencies, "fast-check")).toBeUndefined();
+      const scripts = readPackageField(join(tempDir, "package.json"), "scripts");
+      if (typeof scripts !== "object" || scripts === null) throw new Error("Invalid scripts");
+      expect(Reflect.get(scripts, "test:mutation")).toBeUndefined();
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
