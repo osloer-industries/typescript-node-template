@@ -1,6 +1,6 @@
 {
   "absolute": true,
-  "format": ["typescript", "javascript", "markdown"],
+  "format": ["markdown", "yaml", "bash"],
   "ignore": [
     "**/node_modules/**",
     "**/dist/**",
@@ -12,13 +12,15 @@
   "minTokens": 70,
   "mode": "strict",
   "path": [
-    "src",
-    "scripts",
     "docs",
     "AGENTS.md",
     "README.md",
     "CONTRIBUTING.md",
-    "packages/eslint-sonarjs"
+    "SECURITY.md",
+    "packages/eslint-sonarjs/README.md",
+    ".github/pull_request_template.md",
+    ".github/workflows",
+    "scripts"
   ],
   "reporters": ["console"],
   "threshold": 0

@@ -19,8 +19,8 @@ on that repository.
    When the caller is a job on `CI`, the check name is `workflow-security / Workflow security` (reusable workflow
    name + job name).
 
-Pin both reusables to the same org `.github` `main` merge SHA (for example `d4865a4b2c70c8433188f5200beac104b1c7fe86`
-after [osloer-industries/.github#9](https://github.com/osloer-industries/.github/pull/9)); bump via Dependabot or
+Pin both reusables to the same org `.github` `main` merge SHA (for example `b62b0798a56e1fe7d5fd5535d59567f3d2974644`
+after [osloer-industries/.github#11](https://github.com/osloer-industries/.github/pull/11)); bump via Dependabot or
 template-sync when org `main` moves.
 
 Grant **job-level** `actions: read` on the workflow-security calling job (not at workflow level; Sonar rule
