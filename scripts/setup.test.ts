@@ -16,6 +16,11 @@ import {
 } from "./setup-lib.mjs";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
+const packageJsonFileName = "package.json";
+
+function packageJsonPathIn(dir: string): string {
+  return join(dir, packageJsonFileName);
+}
 
 function readPackageField(packageJsonPath: string, field: string): unknown {
   const parsed: unknown = JSON.parse(readFileSync(packageJsonPath, "utf8"));
@@ -57,20 +62,22 @@ describe("assertKnownScenario", () => {
   });
 });
 
+const demoPluginName = "demo-plugin";
+
 describe("resolveSetupOptions", () => {
   it("resolves unattended options", async () => {
     const selected = await resolveSetupOptions(
-      { yes: true, scenario: "plugin", name: "demo-plugin", description: "Demo" },
+      { yes: true, scenario: "plugin", name: demoPluginName, description: "Demo" },
       undefined
     );
     expect(selected.scenario).toBe("plugin");
-    expect(selected.name).toBe("demo-plugin");
+    expect(selected.name).toBe(demoPluginName);
     expect(selected.description).toBe("Demo");
   });
 
   it("uses the profile description when omitted", async () => {
     const selected = await resolveSetupOptions(
-      { yes: true, scenario: "plugin", name: "demo-plugin" },
+      { yes: true, scenario: "plugin", name: demoPluginName },
       undefined
     );
     expect(selected.description).toBe(profiles.plugin.description);
@@ -81,33 +88,35 @@ describe("resolveSetupOptions", () => {
       question: vi
         .fn<(prompt: string) => Promise<string>>()
         .mockResolvedValueOnce("plugin")
-        .mockResolvedValueOnce("demo-plugin")
+        .mockResolvedValueOnce(demoPluginName)
         .mockResolvedValueOnce("")
     };
     const selected = await resolveSetupOptions({}, reader);
     expect(selected.scenario).toBe("plugin");
-    expect(selected.name).toBe("demo-plugin");
+    expect(selected.name).toBe(demoPluginName);
     expect(selected.description).toBe(profiles.plugin.description);
   });
 });
 
+const fastCheckPackageName = "fast-check";
+
 describe("pickHarnessDevDependencies", () => {
   it("omits MCP-only tooling for non-mcp scenarios", () => {
-    const template = { knip: "6.45.1", "fast-check": "4.10.2", vitest: "5.0.2" };
+    const template = { knip: "6.45.1", [fastCheckPackageName]: "4.10.2", vitest: "5.0.2" };
     const picked = pickHarnessDevDependencies("plugin", template);
     expect(picked).toMatchObject({ knip: "6.45.1", vitest: "5.0.2" });
-    expect(picked).not.toHaveProperty("fast-check");
+    expect(picked).not.toHaveProperty(fastCheckPackageName);
   });
 
   it("retains MCP harness deps for the mcp scenario", () => {
-    const template = { knip: "6.45.1", "fast-check": "4.10.2", vitest: "5.0.2" };
+    const template = { knip: "6.45.1", [fastCheckPackageName]: "4.10.2", vitest: "5.0.2" };
     const picked = pickHarnessDevDependencies("mcp", template);
-    expect(picked["fast-check"]).toBe("4.10.2");
+    expect(picked[fastCheckPackageName]).toBe("4.10.2");
   });
 
   it("lists the shared harness keys", () => {
     expect(harnessDevDependencyKeys).toContain("knip");
-    expect(harnessDevDependencyKeys).not.toContain("fast-check");
+    expect(harnessDevDependencyKeys).not.toContain(fastCheckPackageName);
   });
 });
 
@@ -119,20 +128,20 @@ describe("applySetup metadata", () => {
       applySetup(
         {
           scenario: "plugin",
-          name: "demo-plugin",
+          name: demoPluginName,
           description: "Demo",
           profile: profiles.plugin
         },
         { runInstall: false, baseDir: tempDir }
       );
-      expect(readPackageField(join(tempDir, "package.json"), "private")).toBe(true);
-      expect(readPackageField(join(tempDir, "package.json"), "dependencies")).toBeUndefined();
-      const devDependencies = readPackageField(join(tempDir, "package.json"), "devDependencies");
+      expect(readPackageField(packageJsonPathIn(tempDir), "private")).toBe(true);
+      expect(readPackageField(packageJsonPathIn(tempDir), "dependencies")).toBeUndefined();
+      const devDependencies = readPackageField(packageJsonPathIn(tempDir), "devDependencies");
       if (typeof devDependencies !== "object" || devDependencies === null) {
         throw new Error("Invalid devDependencies");
       }
       expect(Reflect.get(devDependencies, "knip")).toBeDefined();
-      expect(Reflect.get(devDependencies, "fast-check")).toBeUndefined();
+      expect(Reflect.get(devDependencies, fastCheckPackageName)).toBeUndefined();
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
@@ -151,8 +160,8 @@ describe("applySetup metadata", () => {
         },
         { runInstall: false, baseDir: tempDir },
       );
-      const devDependencies = readPackageField(join(tempDir, "package.json"), "devDependencies");
-      const dependencies = readPackageField(join(tempDir, "package.json"), "dependencies");
+      const devDependencies = readPackageField(packageJsonPathIn(tempDir), "devDependencies");
+      const dependencies = readPackageField(packageJsonPathIn(tempDir), "dependencies");
       if (typeof devDependencies !== "object" || devDependencies === null) {
         throw new Error("Invalid devDependencies");
       }
@@ -179,7 +188,7 @@ describe("applySetup metadata", () => {
         },
         { runInstall: false, baseDir: tempDir }
       );
-      const scripts = readPackageField(join(tempDir, "package.json"), "scripts");
+      const scripts = readPackageField(packageJsonPathIn(tempDir), "scripts");
       if (typeof scripts !== "object" || scripts === null) throw new Error("Invalid scripts");
       expect(Reflect.get(scripts, "test:mcp")).toMatch(/scripts\/test-mcp\.mjs/);
       expect(readFileSync(join(tempDir, "scripts/test-mcp.mjs"), "utf8")).toContain(
@@ -205,7 +214,7 @@ describe("applySetup metadata", () => {
         },
         { runInstall: false, baseDir: tempDir }
       );
-      const packageJsonPath = join(tempDir, "package.json");
+      const packageJsonPath = packageJsonPathIn(tempDir);
       expect(readPackageField(packageJsonPath, "private")).toBe(false);
       const bin = readPackageField(packageJsonPath, "bin");
       if (typeof bin !== "object" || bin === null) throw new Error("Invalid bin field");

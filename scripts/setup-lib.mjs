@@ -11,6 +11,7 @@ import { stdin, stdout } from "node:process";
 
 const setupLibDir = dirname(fileURLToPath(import.meta.url));
 const templateRootDir = resolve(setupLibDir, "..");
+const packageJsonFileName = "package.json";
 
 /** Dev dependencies every generated project keeps (see `pickHarnessDevDependencies`). */
 export const harnessDevDependencyKeys = [
@@ -50,7 +51,7 @@ export function pickHarnessDevDependencies(scenario, templateDevDependencies) {
 }
 
 function readTemplateDevDependencyCatalog() {
-  const templatePkg = JSON.parse(readFileSync(join(setupLibDir, "..", "package.json"), "utf8"));
+  const templatePkg = JSON.parse(readFileSync(join(setupLibDir, "..", packageJsonFileName), "utf8"));
   const devDependencies = {
     ...(typeof templatePkg.devDependencies === "object" && templatePkg.devDependencies !== null
       ? templatePkg.devDependencies
@@ -157,18 +158,21 @@ await runEntry(import.meta.url, process.argv[1] ?? "");
     test: `import { describe, expect, it, vi } from "vitest";
 import * as fc from "fast-check";
 import { createGreetingResult, createServer, connectStdio, handleGreetTool, parseGreetName, runEntry, shouldRunMain } from "./index.js";
+const sampleGreetName = "Oslo";
+const helloSampleGreeting = "Hello, Oslo!";
 describe("MCP server", () => {
   it("creates a server", () => expect(createServer()).toBeDefined());
-  it("formats responses", () => expect(createGreetingResult("Oslo")).toEqual({ content: [{ type: "text", text: "Hello, Oslo!" }] }));
-  it("handles greet tool input", () => expect(handleGreetTool({ name: "Oslo" })).toEqual(createGreetingResult("Oslo")));
+  it("formats responses", () => expect(createGreetingResult(sampleGreetName)).toEqual({ content: [{ type: "text", text: helloSampleGreeting }] }));
+  it("handles greet tool input", () => expect(handleGreetTool({ name: sampleGreetName })).toEqual(createGreetingResult(sampleGreetName)));
   it("connectStdio calls connect", async () => {
     const connect = vi.fn<(argument?: unknown) => Promise<void>>().mockResolvedValue(undefined);
     await connectStdio({ connect });
     expect(connect).toHaveBeenCalledOnce();
   });
+  const distIndexUrl = "file:///srv/app/dist/index.js";
   it("detects direct execution", () => {
-    expect(shouldRunMain("file:///srv/app/dist/index.js", "/srv/app/dist/index.js")).toBe(true);
-    expect(shouldRunMain("file:///srv/app/dist/index.js", "/other/index.js")).toBe(false);
+    expect(shouldRunMain(distIndexUrl, distIndexUrl)).toBe(true);
+    expect(shouldRunMain(distIndexUrl, "/other/index.js")).toBe(false);
   });
   it("runEntry skips main when not direct", async () => {
     const startMain = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
@@ -177,7 +181,7 @@ describe("MCP server", () => {
   });
   it("runEntry invokes main for a matching argv entry", async () => {
     const startMain = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
-    await runEntry("file:///srv/app/dist/index.js", "/srv/app/dist/index.js", startMain);
+    await runEntry(distIndexUrl, distIndexUrl, startMain);
     expect(startMain).toHaveBeenCalledOnce();
   });
   it("defaults greet name", () => expect(parseGreetName(undefined)).toBe("world"));
@@ -247,26 +251,30 @@ runEntry(process.argv.slice(2), import.meta.url, process.argv[1] ?? "");
 `,
     test: `import { describe, expect, it, vi } from "vitest";
 import { formatGreeting, parseGreetingArgs, runCli, runEntry, shouldRunCli } from "./index.js";
+const sampleName = "Oslo";
+const helloSample = "Hello, Oslo!";
+const helloWorld = "Hello, world!";
 describe("formatGreeting", () => {
-  it("uses an argument", () => expect(formatGreeting(["Oslo"])).toBe("Hello, Oslo!"));
-  it("has a default", () => expect(formatGreeting([])).toBe("Hello, world!"));
-  it("falls back for whitespace", () => expect(formatGreeting(["   "])).toBe("Hello, world!"));
+  it("uses an argument", () => expect(formatGreeting([sampleName])).toBe(helloSample));
+  it("has a default", () => expect(formatGreeting([])).toBe(helloWorld));
+  it("falls back for whitespace", () => expect(formatGreeting(["   "])).toBe(helloWorld));
 });
 describe("parseGreetingArgs", () => {
-  it("trims a valid argument", () => expect(parseGreetingArgs(["  Oslo  "])).toBe("Oslo"));
+  it("trims a valid argument", () => expect(parseGreetingArgs(["  Oslo  "])).toBe(sampleName));
 });
 describe("runCli", () => {
   it("prints a greeting", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
-    runCli(["Oslo"]);
-    expect(log).toHaveBeenCalledWith("Hello, Oslo!");
+    runCli([sampleName]);
+    expect(log).toHaveBeenCalledWith(helloSample);
     log.mockRestore();
   });
 });
 describe("runEntry", () => {
   it("detects direct execution", () => {
-    expect(shouldRunCli("file:///srv/app/dist/index.js", "/srv/app/dist/index.js")).toBe(true);
-    expect(shouldRunCli("file:///srv/app/dist/index.js", "/other/index.js")).toBe(false);
+    const distIndexUrl = "file:///srv/app/dist/index.js";
+    expect(shouldRunCli(distIndexUrl, distIndexUrl)).toBe(true);
+    expect(shouldRunCli(distIndexUrl, "/other/index.js")).toBe(false);
   });
   it("skips cli when not direct", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -381,7 +389,7 @@ export async function resolveSetupOptions(parsed, reader) {
  */
 export function applySetup(selected, options = {}) {
   const baseDir = options.baseDir ?? ".";
-  const pkg = JSON.parse(readFileSync(join(baseDir, "package.json"), "utf8"));
+  const pkg = JSON.parse(readFileSync(join(baseDir, packageJsonFileName), "utf8"));
   if (resolve(baseDir) !== templateRootDir) {
     applyHarnessDevDependencies(pkg, selected.scenario);
   }
@@ -410,7 +418,7 @@ export function applySetup(selected, options = {}) {
   } else {
     delete pkg.scripts["test:mcp"];
   }
-  writeFileSync(join(baseDir, "package.json"), `${JSON.stringify(pkg, null, 2)}\n`);
+  writeFileSync(join(baseDir, packageJsonFileName), `${JSON.stringify(pkg, null, 2)}\n`);
   writeFileSync(join(baseDir, "src/index.ts"), selected.profile.source);
   writeFileSync(join(baseDir, "src/index.test.ts"), selected.profile.test);
   writeFileSync(
@@ -430,7 +438,7 @@ export function applySetup(selected, options = {}) {
  */
 export async function runSetupCli(argv) {
   const parsed = parseArgs(argv);
-  const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+  const pkg = JSON.parse(readFileSync(packageJsonFileName, "utf8"));
   assertNodeEngine(process.versions.node, pkg.engines?.node);
   const reader = parsed.yes ? undefined : createInterface({ input: stdin, output: stdout });
   try {

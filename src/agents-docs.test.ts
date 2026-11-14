@@ -99,11 +99,14 @@ describe("agent documentation contract", () => {
     const scripts = Reflect.get(parsed, "scripts");
     if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
     const check = Reflect.get(scripts, "check");
+    const precommit = Reflect.get(scripts, "precommit");
     expect(typeof check).toBe("string");
-    expect(check).toContain("lint:suppressions");
+    expect(typeof precommit).toBe("string");
+    expect(precommit).toContain("lint:suppressions");
+    expect(precommit).toContain("lint:sonarjs");
+    expect(precommit).toContain("lint:dup");
     expect(check).toContain("check:no-claude-md");
-    expect(check).toContain("lint:sonarjs");
-    expect(check).toContain("lint:dup");
+    expect(check).toContain("npm run precommit");
     expect(check).toContain("lint:knip");
     expect(check).toMatch(/build && npm run lint:knip/);
   });

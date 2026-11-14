@@ -9,6 +9,7 @@
   },
   "files": [
     "eslint.config.mjs",
+    "sonarjs-rules.mjs",
     "run.mjs",
     "list-enabled-rules.mjs"
   ],
@@ -20,6 +21,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "8.72.1",
     "@typescript-eslint/parser": "8.72.1",
     "eslint": "10.11.0",
     "eslint-plugin-sonarjs": "4.2.2",
