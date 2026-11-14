@@ -20,7 +20,7 @@ on that repository.
    name + job name).
 
 Pin every org reusable to the same `.github` `main` commit SHA (for example
-`65dc7ba5e001dc552cada5a8d2aa88be7f425638` on current `main`); bump via Dependabot or template-sync when org
+`d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3` on current `main`); bump via Dependabot or template-sync when org
 `main` moves. Callers do not pass `reusables-ref`; reusable workflows resolve their scripts from
 `job.workflow_sha` (the pinned `uses:` ref).
 
