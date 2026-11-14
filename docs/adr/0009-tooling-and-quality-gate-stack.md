@@ -63,6 +63,43 @@ Split compiler version for SonarJS is documented in
 [docs/sonar-quality-gate.md](../sonar-quality-gate.md) and
 the nested `typescript` devDependency in `packages/eslint-sonarjs`.
 
+### `@fast-check/vitest`
+
+<!-- devDependency: @fast-check/vitest -->
+
+**Why chosen:** Vitest-native property-test integration for the MCP scaffold handler (`scripts/mcp-contract.test.ts`,
+generated `src/index.test.ts` for the **mcp** profile) per [issue #88](https://github.com/osloer-industries/typescript-node-template/issues/88).
+
+**Alternatives considered:** Manual example tables only; raw `fast-check` without the Vitest bridge.
+
+**Why they lost:** Tables do not shrink or broaden inputs; the Vitest bridge keeps property tests in the same
+runner and coverage gate as unit tests.
+
+### `@modelcontextprotocol/sdk`
+
+<!-- devDependency: @modelcontextprotocol/sdk -->
+
+**Why chosen:** Dev-only pin of the same MCP SDK version as the **mcp** setup profile so template-level
+`InMemoryTransport` contract tests do not re-scaffold a runner script ([#66](https://github.com/osloer-industries/typescript-node-template/pull/66),
+[#88](https://github.com/osloer-industries/typescript-node-template/issues/88)).
+
+**Alternatives considered:** Only test via generated-project child-process runners.
+
+**Why they lost:** In-process contract tests give clearer failures for `listTools`, annotations, and validation
+errors while generated repos still own the runtime `dependencies` pin.
+
+### `fast-check`
+
+<!-- devDependency: fast-check -->
+
+**Why chosen:** Property-based assertions for greet handler validation in MCP contract and generated tests
+([issue #88](https://github.com/osloer-industries/typescript-node-template/issues/88)).
+
+**Alternatives considered:** No property tests until Phase 3 ([#52](https://github.com/osloer-industries/typescript-node-template/issues/52)).
+
+**Why they lost:** The MCP contract issue requires one property test before downstream MCP servers copy the
+pattern.
+
 ### `vitest`
 
 <!-- devDependency: vitest -->
@@ -80,8 +117,8 @@ with ESM `NodeNext` defaults in this template.
 
 <!-- devDependency: @vitest/coverage-v8 -->
 
-**Why chosen:** V8 coverage provider for **80%** thresholds in `vitest.config.ts` and LCOV for Sonar
-when `SONAR_TOKEN` is set ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
+**Why chosen:** V8 coverage provider for **80%** thresholds in `vitest.config.ts` and LCOV output in
+`npm run check` / `CI / Quality` ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
 
 **Alternatives considered:** Istanbul/nyc; no coverage gate.
 
@@ -99,6 +136,27 @@ duplication in `.jscpd.json` ([#27](https://github.com/osloer-industries/typescr
 
 **Why they lost:** Sonar duplication is PR/cloud scoped; jscpd runs locally in `npm run check` and blocks
 copy-pasted agent instructions across markdown.
+
+### `knip`
+
+<!-- devDependency: knip -->
+
+**Why chosen:** Detect unused files, exports, and dependencies in the root template and
+`packages/eslint-sonarjs`, wired as `npm run lint:knip` inside `npm run check`
+([issue #53](https://github.com/osloer-industries/typescript-node-template/issues/53)). Configuration
+lives in `knip.config.ts` (workspace entries for setup scripts, Vitest, `.d.mts` companions, and the
+SonarJS helper package).
+
+**Alternatives considered:** ESLint `import/no-unused-modules` only; manual review; TypeScript
+`noUnusedLocals` alone (file-scoped only).
+
+**Why they lost:** ESLint import rules do not cover unused npm dependencies or orphan files; TypeScript
+unused locals do not trace the full dependency graph. Knip matches the pattern already used in
+[vakt](https://github.com/osloer-industries/vakt).
+
+**False positives:** Prefer deleting dead code or dropping unused dependencies. `knip.config.ts` may
+list genuine entry points (CLI scripts, fixture templates, module declaration files). Justify any
+`ignore*` config in this ADR before adding it.
 
 ### `markdownlint-cli2`
 
@@ -243,17 +301,18 @@ upload; private repos use SARIF artifact mode per org doc).
 **Why they lost:** ADR 0008 is **proposed**; workflow remains until Thomas decides replacement (Semgrep CE,
 GHAS, Sonar-only).
 
-### CI: SonarQube Cloud scan action
+### CI: SonarCloud zero open issues (org reusable)
 
-<!-- ci-tool: sonarqube-scan-action -->
+<!-- ci-tool: sonarcloud-zero-issues -->
 
-**Why chosen:** Optional Actions scanner when `SONAR_TOKEN` is set; complements SonarCloud GitHub App
-(`.github/workflows/sonar.yml`, [docs/sonar-quality-gate.md](../sonar-quality-gate.md)).
+**Why chosen:** Org `sonarcloud-zero-issues.yml` caller in `.github/workflows/sonar.yml` enforces zero open
+SonarCloud issues on the PR head while **automatic analysis** performs scans (no `sonarqube-scan-action`;
+[docs/sonar-quality-gate.md](../sonar-quality-gate.md)).
 
-**Alternatives considered:** SonarCloud automatic analysis only; drop Actions job.
+**Alternatives considered:** `SonarSource/sonarqube-scan-action` in CI with automatic analysis disabled.
 
-**Why they lost:** Automatic analysis alone does not always match local `lint:sonarjs`; Actions job uploads
-coverage LCOV when configured.
+**Why they lost:** CI scanning conflicts with SonarCloud automatic analysis on the same project; local
+`lint:sonarjs` and `CI / Quality` coverage already shift-left before SonarCloud reports on the PR.
 
 ### CI: zizmor
 

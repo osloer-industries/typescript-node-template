@@ -21,11 +21,13 @@ here. Do not duplicate this content in vendor-specific instruction files (`CLAUD
 | `docs/playwright-ci-dependencies.md` | Playwright browsers vs `npm ci --ignore-scripts` in CI. |
 | `docs/npm-overrides.md` | When and how to use npm `overrides` for transitive audit fixes. |
 | `docs/sonar-quality-gate.md` | SonarCloud patterns and local SonarJS ESLint enforcement ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `knip.config.ts` | Unused files, exports, and dependencies ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `.oxlintrc.json` | Oxlint rules ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `packages/eslint-sonarjs/` | SonarJS `recommended` rules via ESLint (TypeScript 6 parser; root uses TS 7) ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `.github/workflows/` | CI and security automation ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)); shared jobs call [org reusables](docs/consuming-org-reusables.md) with pinned SHAs. |
 | `docs/consuming-org-reusables.md` | How callers pin `osloer-industries/.github` workflows; links the org contract doc. |
 | `lefthook.yml` | Pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `scripts/agent-hooks/` | Provider-neutral agent guard hook scripts ([docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)). |
 
 Markdown link checking uses the org fork
 [`@osloer-industries/markdown-link-check`](https://github.com/osloer-industries/markdown-link-check)
@@ -35,7 +37,12 @@ dependencies; when the fork publishes a new annotated tag, update the `#v…` re
 
 ## Verification
 
-Run gates in this order when iterating locally:
+While iterating (including in-loop agent stop hooks — [docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)),
+prefer **`npm run check:fast`**: Oxlint, suppression baseline, typecheck, SonarJS, and unit tests
+(`test:fast` excludes `*.integration.test.ts` setup installs). CI and pre-merge verification still
+use the full ladder below.
+
+Run gates in this order when preparing a pull request:
 
 1. `npm run lint` (Oxlint — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 2. `npm run lint:suppressions` (shrink-only suppression baseline — [ADR 0006](docs/adr/0006-escape-hatch-lint-and-suppression-baseline.md))
@@ -45,8 +52,10 @@ Run gates in this order when iterating locally:
 6. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 7. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 8. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-9. `npm run check` (all of the above) before opening a pull request
-10. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+9. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
+   runs after `build` so `package.json` dist entries resolve)
+10. `npm run check` (all of the above) before opening a pull request
+11. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 
 After `npm ci`, run `npm run prepare` once locally to install Lefthook pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 (CI uses `npm ci --ignore-scripts`, so hooks are not installed in Actions).
@@ -99,7 +108,8 @@ When touching `scripts/`, setup, or CI install steps, follow
 - Install reproducibly with `npm ci`. Use `npm install --save-exact` when a
   dependency intentionally changes, then commit `package-lock.json`.
 - Run `npm run check` before submitting a change. This runs Oxlint, SonarJS ESLint,
-  duplication detection, Markdown checks, the TypeScript compiler, coverage, and the production build.
+  duplication detection, Markdown checks, the TypeScript compiler, coverage, production build, and knip
+  (after build so `package.json` dist entries resolve).
 - Run `npm audit --omit=dev` whenever dependencies or the lockfile change. For transitive
   production findings, follow [docs/npm-overrides.md](docs/npm-overrides.md) before adding
   npm `overrides`.
@@ -134,6 +144,8 @@ with `node scripts/count-suppressions.ts --write-baseline` after intentional cle
   relative imports compiled with NodeNext.
 - Keep public APIs small and document intentional changes to exports, CLI
   behavior, plugin interfaces, or MCP tools.
+- `src/` must not import from `scripts/`; Oxlint enforces this via `no-restricted-imports` on
+  `src/**` (see [architecture.md](docs/architecture.md)).
 - Avoid import cycles, floating promises, excessive nesting, and functions with
   cyclomatic complexity above 15.
 - Prefer focused modules and pure functions. Do not hide lint findings with

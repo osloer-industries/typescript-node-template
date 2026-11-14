@@ -93,7 +93,7 @@ describe("agent documentation contract", () => {
     expect(agentsMd).not.toMatch(/\.agents\/skills/);
   });
 
-  it("includes SonarJS and duplication gates in npm run check", () => {
+  it("includes SonarJS, duplication, and knip gates in npm run check", () => {
     const parsed: unknown = JSON.parse(packageJson);
     if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
     const scripts = Reflect.get(parsed, "scripts");
@@ -101,8 +101,11 @@ describe("agent documentation contract", () => {
     const check = Reflect.get(scripts, "check");
     expect(typeof check).toBe("string");
     expect(check).toContain("lint:suppressions");
+    expect(check).toContain("check:no-claude-md");
     expect(check).toContain("lint:sonarjs");
     expect(check).toContain("lint:dup");
+    expect(check).toContain("lint:knip");
+    expect(check).toMatch(/build && npm run lint:knip/);
   });
 
   it("links MCP and dependency pattern docs from AGENTS.md", () => {
