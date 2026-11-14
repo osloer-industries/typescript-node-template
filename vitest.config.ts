@@ -20,6 +20,7 @@ export default defineConfig({
         "scripts/**/*.ts",
         "packages/eslint-sonarjs/run.mjs",
         "packages/eslint-sonarjs/list-enabled-rules.mjs",
+        "packages/eslint-sonarjs/sonarjs-rules.mjs",
       ],
       exclude: [
         "src/**/*.test.ts",

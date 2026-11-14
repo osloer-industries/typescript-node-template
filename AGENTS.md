@@ -42,6 +42,13 @@ prefer **`npm run check:fast`**: Oxlint, suppression baseline, typecheck, SonarJ
 (`test:fast` excludes `*.integration.test.ts` setup installs). CI and pre-merge verification still
 use the full ladder below.
 
+**`npm run precommit`** (Lefthook after `npm run prepare`, and CI **Quality**) runs Oxlint, the
+suppression baseline, SonarJS ESLint (including `no-await-in-loop` / S9382 and
+`@typescript-eslint/require-await` / S7503), jscpd, typecheck, and the full Vitest suite.
+Run **`npm run precommit` before every push**. Never commit with `git commit --no-verify`, and
+never set `HUSKY=0`, `LEFTHOOK=0`, or `SKIP` to bypass hooks. Never suppress Sonar-style rules
+(no new `eslint-disable`, `NOSONAR`, baseline increases, or Sonar exclusions).
+
 Run gates in this order when preparing a pull request:
 
 1. `npm run lint` (Oxlint — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
@@ -54,8 +61,10 @@ Run gates in this order when preparing a pull request:
 8. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 9. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
    runs after `build` so `package.json` dist entries resolve)
-10. `npm run check` (all of the above) before opening a pull request
-11. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+10. `npm run precommit` (same command as the Lefthook hook and CI **Quality**; steps 1–4, 6,
+   and `npm run test`)
+11. `npm run check` (precommit plus markdown, coverage, build, and knip) before opening a pull request
+12. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 
 After `npm ci`, run `npm run prepare` once locally to install Lefthook pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 (CI uses `npm ci --ignore-scripts`, so hooks are not installed in Actions).
@@ -99,9 +108,9 @@ When touching `scripts/`, setup, or CI install steps, follow
 - Use the Node.js 24 version declared by `.nvmrc` and `.node-version`.
 - Install reproducibly with `npm ci`. Use `npm install --save-exact` when a
   dependency intentionally changes, then commit `package-lock.json`.
-- Run `npm run check` before submitting a change. This runs Oxlint, SonarJS ESLint,
-  duplication detection, Markdown checks, the TypeScript compiler, coverage, production build, and knip
-  (after build so `package.json` dist entries resolve).
+- Run `npm run precommit` before every push and `npm run check` before submitting a change.
+  `precommit` is what Lefthook and CI **Quality** enforce; `check` adds markdown, coverage, production
+  build, and knip (after build so `package.json` dist entries resolve).
 - Run `npm audit --omit=dev` whenever dependencies or the lockfile change. For transitive
   production findings, follow [docs/npm-overrides.md](docs/npm-overrides.md) before adding
   npm `overrides`.

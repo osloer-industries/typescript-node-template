@@ -32,8 +32,9 @@ bumps in that directory until typescript-eslint supports TypeScript 7.x (blocked
 programmatic API; see [typescript-eslint#12518](https://github.com/typescript-eslint/typescript-eslint/issues/12518)).
 The nested package is subject to
 the same gates as the rest of the template (Oxlint, `tsc`, Vitest coverage, Dependabot, and `npm audit`). It
-lints `src/`, `scripts/`, and `packages/*` using `eslint-plugin-sonarjs` **`recommended`** (every rule Sonar
-marks recommended is enabled at error severity).
+lints `src/`, `scripts/`, and `packages/*` using `eslint-plugin-sonarjs` **`recommended`** with every
+enabled rule at **error** severity, plus explicit SonarCloud parity rules (`no-await-in-loop` / S9382,
+`@typescript-eslint/require-await` / S7503, `sonarjs/no-duplicate-string`, and related shift-left rules).
 
 List enabled rules:
 
@@ -41,12 +42,13 @@ List enabled rules:
 npm run list-rules --prefix packages/eslint-sonarjs
 ```
 
-Pre-commit (after `npm run prepare`): Lefthook ([ADR 0009](adr/0009-tooling-and-quality-gate-stack.md)) runs Oxlint
-and SonarJS ESLint on staged `*.ts` / `*.mjs` files.
+Pre-commit (after `npm run prepare`): Lefthook ([ADR 0009](adr/0009-tooling-and-quality-gate-stack.md)) runs
+**`npm run precommit`** (Oxlint, suppression baseline, SonarJS ESLint, jscpd, typecheck, and Vitest).
+CI **Quality** runs the same command so `--no-verify` commits still fail in Actions.
 
 ## Before you push
 
-1. Run `npm run check` locally.
+1. Run `npm run precommit` before every push; run `npm run check` before opening a pull request.
 2. Avoid new **security** hotspots called out below (they often fail **Security Rating on New Code**).
 3. After pushing, open the SonarCloud PR link from the failed/successful check if you need line-level rules.
 
