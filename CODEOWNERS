@@ -1,13 +1,17 @@
-# Guardrail / agent harness files — replace @osloer-industries/platform with your maintainer team.
-# Branch protection can require review from these owners (see CONTRIBUTING.md).
+# Guardrail / agent harness files — maintainer @tn819 (Thomas).
+# CI blocks harness edits without the `harness-change` label or maintainer approval (ADR 0010).
 
-/AGENTS.md @osloer-industries/platform
-/CODEOWNERS @osloer-industries/platform
-/.github/ @osloer-industries/platform
-/.oxlintrc.json @osloer-industries/platform
-/lefthook.yml @osloer-industries/platform
-/scripts/suppression-baseline.json @osloer-industries/platform
-/scripts/count-suppressions.ts @osloer-industries/platform
-/scripts/check-guardrail-changes.ts @osloer-industries/platform
-/scripts/agent-hooks/ @osloer-industries/platform
-/packages/eslint-sonarjs/ @osloer-industries/platform
+/AGENTS.md @tn819
+/CODEOWNERS @tn819
+/.github/ @tn819
+/.oxlintrc.json @tn819
+/lefthook.yml @tn819
+/vitest.config.ts @tn819
+/tsconfig.json @tn819
+/tsconfig.*.json @tn819
+/scripts/suppression-baseline.json @tn819
+/scripts/count-suppressions.ts @tn819
+/scripts/gate-self.test.ts @tn819
+/scripts/check-guardrail-changes.ts @tn819
+/scripts/agent-hooks/ @tn819
+/packages/eslint-sonarjs/ @tn819
