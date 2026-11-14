@@ -11,7 +11,8 @@ coverage enforcement, and GitHub security automation.
 - 80% minimum coverage for branches, functions, lines, and statements in `src/` and testable `scripts/`
   helpers (CLI entry `scripts/setup.mjs` is exercised by CI smoke jobs)
 - Pull request and `main` CI with `npm run check`, `npm audit --omit=dev`, and a four-scenario setup smoke matrix
-- Org-pinned workflow security (actionlint + zizmor) and CodeQL reusables; SonarQube Cloud, Dependabot, and
+- Org-pinned workflow security (actionlint + zizmor) and CodeQL reusables; SonarCloud automatic analysis plus
+  org zero-issues gate, Dependabot, and
   pull request dependency review
 - Release Please for Conventional Commit-based release pull requests, changelogs, tags, and GitHub releases
 - Conventional pull request title validation and matching Dependabot commit prefixes
@@ -78,17 +79,16 @@ Contributors and agents should follow [docs/sonar-quality-gate.md](docs/sonar-qu
 **SonarCloud Code Analysis** failures (PATH-safe npm via `scripts/run-npm.mjs`, `--ignore-scripts` on CI
 installs, and local `eslint-plugin-sonarjs` via `npm run lint:sonarjs`).
 
-The Sonar workflow skips safely until configured.
+1. Import the repository into SonarQube Cloud and keep **Automatic Analysis** enabled for the project
+   (GitHub Actions must not run `SonarSource/sonarqube-scan-action`; it conflicts with automatic analysis).
+2. Set `sonar.organization` and `sonar.projectKey` in `sonar-project.properties` (this template uses
+   `osloer-industries` / `osloer-industries_typescript-node-template`).
+3. Ensure organization Actions secret **`SONAR_TOKEN`** is available to the repository (or add a repository
+   secret with the same name).
+4. Open a pull request and confirm **SonarCloud Code Analysis** and **SonarCloud / SonarCloud zero open issues**
+   run on the PR head commit.
 
-1. Import the repository into SonarQube Cloud.
-2. Replace `YOUR_SONAR_ORGANIZATION` and `YOUR_SONAR_PROJECT_KEY` in `sonar-project.properties`.
-3. Create a SonarQube Cloud token and add it in GitHub under **Settings > Secrets and variables > Actions** as `SONAR_TOKEN`.
-4. In SonarQube Cloud, open **Project Settings > Analysis Method** and clear **Enabled for this project**
-   under Automatic Analysis. Automatic Analysis and GitHub Actions analysis cannot be enabled together.
-5. Push to `main` or open a pull request and confirm the Sonar check runs.
-
-Never commit the token. On eligible plans, organization administrators can also disable Automatic Analysis
-for new projects under **Organization Settings > Analysis**.
+Never commit the token.
 
 ## Release Please setup
 
@@ -123,14 +123,15 @@ Branch protection is intentionally not automated. After the first successful run
 - Stale approval dismissal and conversation resolution
 - Required checks: `workflow-security / Workflow security`, `CI / Quality`, the four `Setup smoke` jobs,
   `CodeQL / Analyze JavaScript and TypeScript`, `Dependency review / Review dependency changes`, `Pull
-  request title / Semantic pull request`, and `SonarQube Cloud / Analyze` after Sonar is configured
+  request title / Semantic pull request`, and `SonarCloud / SonarCloud zero open issues` once SonarCloud is
+  configured
 - Up-to-date branches when parallel development makes it useful
 - Force pushes and branch deletion blocked
 - Rules applied to administrators unless an emergency process exists
 - Signed commits and linear history when the contributor workflow supports them
 - Squash merging only, with the pull request title used as the squash commit title
 
-Do not require Sonar until its placeholders and secret are configured.
+Do not require Sonar until SonarCloud and `SONAR_TOKEN` are configured.
 
 Allow the maintainer identity behind `RELEASE_TOKEN` to open pull requests, but do not bypass required
 reviews or checks for Release Please pull requests.

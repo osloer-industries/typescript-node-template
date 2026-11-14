@@ -3,15 +3,16 @@
 Tooling rationale for Oxlint, SonarJS, Vitest, and CI integrations:
 [ADR 0009](adr/0009-tooling-and-quality-gate-stack.md).
 
-This template often has **two Sonar integrations**:
+This template uses **two Sonar integrations** that complement each other:
 
 | Check | Source | Typical behavior |
 | --- | --- | --- |
-| **SonarCloud Code Analysis** | SonarCloud GitHub App (automatic analysis) | Enforces the **quality gate** on new/changed code; this check can fail the PR. |
-| **SonarQube Cloud / Analyze** | `.github/workflows/sonar.yml` | Runs only when `SONAR_TOKEN` is set **and** `sonar-project.properties` has no `YOUR_SONAR_*` placeholders; otherwise skips and reports success. |
+| **SonarCloud Code Analysis** | SonarCloud GitHub App (automatic analysis) | Scans the default branch and pull requests; enforces the **quality gate** on new/changed code. |
+| **SonarCloud / SonarCloud zero open issues** | `.github/workflows/sonar.yml` → org `sonarcloud-zero-issues.yml` | Polls SonarCloud on each pull request and fails when open issues remain on the PR head commit. Requires `SONAR_TOKEN`. |
 
-A green Actions Sonar job does **not** guarantee a green **SonarCloud Code Analysis** check. Fix findings
-on the PR diff or adjust Sonar project settings deliberately—not by disabling gates without team approval.
+Do not enable `SonarSource/sonarqube-scan-action` in CI while automatic analysis is on—the same project cannot
+use both. Fix findings on the PR diff or adjust Sonar project settings deliberately—not by disabling gates
+without team approval.
 
 ## Local enforcement (shift left)
 
@@ -102,7 +103,9 @@ When adding or changing:
 
 ## Sonar configuration
 
-See [README.md](../README.md#sonarqube-cloud-setup) for organization/project keys, `SONAR_TOKEN`, and
-disabling **Automatic Analysis** when using the Actions scanner exclusively.
+See [README.md](../README.md#sonarqube-cloud-setup) for organization/project keys, organization **`SONAR_TOKEN`**,
+and keeping **Automatic Analysis** enabled.
 
-Analysis scope is defined in [`sonar-project.properties`](../sonar-project.properties) (`src`, `scripts`, test inclusions/exclusions).
+Analysis scope is defined in [`sonar-project.properties`](../sonar-project.properties) (`src`, `scripts`, test
+inclusions/exclusions). Coverage upload is not part of CI Sonar; `npm run test:coverage` still runs in
+`CI / Quality` and locally via `npm run check`.
