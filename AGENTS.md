@@ -87,6 +87,14 @@ When touching `scripts/`, setup, or CI install steps, follow
 - Org reusable workflows (`uses: osloer-industries/.github/…`) share one SHA per bump; see
   [docs/consuming-org-reusables.md](docs/consuming-org-reusables.md).
 
+## Agent and local working files
+
+- Never commit agent session state, tool caches or per-tool instruction and config files. The
+  "Agent and local working files" block in `.gitignore` lists them
+  and the org `agent-files-guard` CI check rejects them ([ADR 0010](docs/adr/0010-agent-and-local-files-not-committed.md)).
+- Do not work around it with `git add -f` or by removing `.gitignore` entries. To commit one on
+  purpose, a maintainer adds the path to `.github/agent-files.allow` with a `# reason:` comment.
+
 ## Priorities
 
 1. Keep the template small, reusable, secure, and provider-neutral.
