@@ -19,9 +19,8 @@ on that repository.
    When the caller is a job on `CI`, the check name is `workflow-security / Workflow security` (reusable workflow
    name + job name).
 
-Pin both reusables to the same org `.github` `main` merge SHA (for example `d4865a4b2c70c8433188f5200beac104b1c7fe86`
-after [osloer-industries/.github#9](https://github.com/osloer-industries/.github/pull/9)); bump via Dependabot or
-template-sync when org `main` moves.
+Pin both reusables to the same org `.github` `main` merge SHA (for example `b62b0798a56e1fe7d5fd5535d59567f3d2974644`
+on current `main`); bump via Dependabot or template-sync when org `main` moves.
 
 Grant **job-level** `actions: read` on the workflow-security calling job (not at workflow level; Sonar rule
 `githubactions:S8264`).
@@ -32,8 +31,9 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | --- | --- | --- |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`workflow-security` job) | `workflow-security.yml` | actionlint + zizmor; **job**-level `actions: read` on the calling job (zizmor online audits); default empty `min-severity` / `min-confidence` (strictest). |
 | [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) | `codeql-javascript-typescript.yml` | Public repo: default Code Scanning upload. Private repos without GHAS: set `code-scanning-upload: false` and keep `fail-on-sarif-level: error` (see org doc). |
+| [`.github/workflows/sonar.yml`](../.github/workflows/sonar.yml) | `sonarcloud-zero-issues.yml` | SonarCloud **automatic analysis** supplies scans; CI enforces zero open issues on pull requests via `SONAR_TOKEN`. |
 
-Other workflows (CI quality, setup smoke, dependency review, Sonar, release, PR title) may still be inlined
+Other workflows (CI quality, setup smoke, dependency review, release, PR title) may still be inlined
 in this template until they are migrated; fleet-wide copies belong in org `.github` per
 [ADR 0005](adr/0005-placement-template-vs-org-github.md).
 
