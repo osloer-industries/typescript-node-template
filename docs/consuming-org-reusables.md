@@ -41,11 +41,32 @@ in this template until they are migrated; fleet-wide copies belong in org `.gith
 
 ## Private repository CodeQL
 
-Do not enable paid GitHub Advanced Security for CodeQL alone. Use artifact mode from the org doc:
+Do not enable paid GitHub Advanced Security for CodeQL alone. Use artifact mode from the org doc. Under
+`workflow_call` in a private repository, set workflow-level `permissions: contents: read`, and grant the
+**calling job** `contents: read` plus `actions: read`. Without job-level `actions: read`, `github/codeql-action`
+fails with **Resource not accessible by integration** (keep `actions: read` on the job, not at workflow
+level; Sonar rule `githubactions:S8264`).
 
 ```yaml
+name: CodeQL
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
+    permissions:
+      contents: read
+      actions: read
     uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@REUSABLES_SHA
     with:
       code-scanning-upload: false
