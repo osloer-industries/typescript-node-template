@@ -24,6 +24,17 @@ const rootFiles = [
 
 const docFiles = ["docs/architecture.md", "docs/sonar-quality-gate.md"];
 
+const jscpdFixturePaths = [
+  "packages/eslint-sonarjs/README.md",
+  ".github/pull_request_template.md",
+  ".github/workflows/ci.yml",
+  ".github/workflows/codeql.yml",
+  ".github/workflows/dependency-review.yml",
+  ".github/workflows/pr-title.yml",
+  ".github/workflows/release.yml",
+  ".github/workflows/sonar.yml",
+];
+
 const pathGroups = [
   rootFiles,
   docFiles,
@@ -50,6 +61,7 @@ const pathGroups = [
     "packages/eslint-sonarjs/run.test.mjs",
     "packages/eslint-sonarjs/tsconfig.json",
   ],
+  jscpdFixturePaths,
 ];
 
 /**

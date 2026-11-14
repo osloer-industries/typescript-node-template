@@ -129,13 +129,16 @@ coverage contracts in `AGENTS.md`.
 
 <!-- devDependency: jscpd -->
 
-**Why chosen:** Duplication detection on TypeScript, JavaScript, and Markdown with **0%** tolerated
-duplication in `.jscpd.json` ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
+**Why chosen:** Local duplication detection with **0%** tolerated duplication in `.jscpd.json` on
+Markdown, workflow YAML, and shell (Bash) — artifacts SonarCloud does not fully cover in the same
+way ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
 
-**Alternatives considered:** Sonar duplication only; manual review.
+**Alternatives considered:** Sonar duplication only; scanning TypeScript/JavaScript locally with jscpd.
 
-**Why they lost:** Sonar duplication is PR/cloud scoped; jscpd runs locally in `npm run check` and blocks
-copy-pasted agent instructions across markdown.
+**Why they lost:** SonarCloud already gates TypeScript/JavaScript duplication on pull requests (Sonar way
+fails above **3%** duplicated new lines) and the org zero-open-issues check. jscpd runs in `npm run check`
+so copy-pasted agent instructions, workflows, and shell glue fail before push without duplicating Sonar’s TS/JS
+signal.
 
 ### `knip`
 
