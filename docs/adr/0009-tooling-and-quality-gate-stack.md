@@ -120,8 +120,8 @@ with ESM `NodeNext` defaults in this template.
 
 <!-- devDependency: @vitest/coverage-v8 -->
 
-**Why chosen:** V8 coverage provider for **80%** thresholds in `vitest.config.ts` and LCOV for Sonar
-when `SONAR_TOKEN` is set ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
+**Why chosen:** V8 coverage provider for **80%** thresholds in `vitest.config.ts` and LCOV output in
+`npm run check` / `CI / Quality` ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
 
 **Alternatives considered:** Istanbul/nyc; no coverage gate.
 
@@ -304,17 +304,18 @@ upload; private repos use SARIF artifact mode per org doc).
 **Why they lost:** ADR 0008 is **proposed**; workflow remains until Thomas decides replacement (Semgrep CE,
 GHAS, Sonar-only).
 
-### CI: SonarQube Cloud scan action
+### CI: SonarCloud zero open issues (org reusable)
 
-<!-- ci-tool: sonarqube-scan-action -->
+<!-- ci-tool: sonarcloud-zero-issues -->
 
-**Why chosen:** Optional Actions scanner when `SONAR_TOKEN` is set; complements SonarCloud GitHub App
-(`.github/workflows/sonar.yml`, [docs/sonar-quality-gate.md](../sonar-quality-gate.md)).
+**Why chosen:** Org `sonarcloud-zero-issues.yml` caller in `.github/workflows/sonar.yml` enforces zero open
+SonarCloud issues on the PR head while **automatic analysis** performs scans (no `sonarqube-scan-action`;
+[docs/sonar-quality-gate.md](../sonar-quality-gate.md)).
 
-**Alternatives considered:** SonarCloud automatic analysis only; drop Actions job.
+**Alternatives considered:** `SonarSource/sonarqube-scan-action` in CI with automatic analysis disabled.
 
-**Why they lost:** Automatic analysis alone does not always match local `lint:sonarjs`; Actions job uploads
-coverage LCOV when configured.
+**Why they lost:** CI scanning conflicts with SonarCloud automatic analysis on the same project; local
+`lint:sonarjs` and `CI / Quality` coverage already shift-left before SonarCloud reports on the PR.
 
 ### CI: zizmor
 
