@@ -19,10 +19,10 @@ on that repository.
    When the caller is a job on `CI`, the check name is `workflow-security / Workflow security` (reusable workflow
    name + job name).
 
-Pin every org reusable to the same `.github` `main` commit SHA (for example
-`65dc7ba5e001dc552cada5a8d2aa88be7f425638` on current `main`); bump via Dependabot or template-sync when org
-`main` moves. Callers do not pass `reusables-ref`; reusable workflows resolve their scripts from
-`job.workflow_sha` (the pinned `uses:` ref).
+Pin every org reusable to the same `.github` release commit SHA (for example
+`d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3` with `# v0.1.2` per zizmor ref-version-mismatch); bump via Dependabot
+or template-sync when org `main` moves. Callers do not pass `reusables-ref`; reusable workflows resolve their
+scripts from `job.workflow_sha` (the pinned `uses:` ref).
 
 Grant **job-level** `actions: read` on the workflow-security calling job (not at workflow level; Sonar rule
 `githubactions:S8264`).
