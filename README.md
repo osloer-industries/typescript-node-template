@@ -120,14 +120,16 @@ Branch protection is intentionally not automated. After the first successful run
 
 - Pull requests required with at least one approval
 - Stale approval dismissal and conversation resolution
-- Required checks: `workflow-security / Workflow security`, `CI / Quality`, the four `Setup smoke` jobs,
+- Required status check: prefer the org aggregate `CI / ci-passed` when present (see [AGENTS.md](AGENTS.md));
+  until then require `workflow-security / Workflow security`, `CI / Quality`, the four `Setup smoke` jobs,
   `CodeQL / Analyze JavaScript and TypeScript`, `Dependency review / Review dependency changes`, `Pull
   request title / Semantic pull request`, and `SonarCloud / SonarCloud zero open issues` once SonarCloud is
   configured
 - Up-to-date branches when parallel development makes it useful
 - Force pushes and branch deletion blocked
 - Rules applied to administrators unless an emergency process exists
-- Signed commits and linear history when the contributor workflow supports them
+- Signed commits when the contributor workflow supports them (avoid requiring linear history that implies
+  rebasing shared branches; merge `main` into pull request branches instead — see [AGENTS.md](AGENTS.md))
 - Squash merging only, with the pull request title used as the squash commit title
 
 Do not require Sonar until SonarCloud and `SONAR_TOKEN` are configured.

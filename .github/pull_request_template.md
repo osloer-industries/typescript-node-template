@@ -22,6 +22,15 @@ See [AGENTS.md](../AGENTS.md) for the verification ladder. At minimum:
 - [ ] Documentation updated if behavior changed
 - [ ] No secrets, credentials, or generated files committed
 
+## Ready for review
+
+See [AGENTS.md](../AGENTS.md) (Agent workflow). Confirm all of the following before requesting review:
+
+- [ ] No merge conflicts; branch is up to date with `main` (merge `main` in — do not rebase or force-push)
+- [ ] Every required check on the current head is green (pending is not ready)
+- [ ] No unresolved review threads, requested changes, or open SonarCloud issues
+- [ ] Linked issues are referenced in the PR description
+
 ## Related issue
 
 Closes #

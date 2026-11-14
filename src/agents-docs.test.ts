@@ -42,6 +42,8 @@ function expectToolingAdrSection(toolingAdr: string, marker: string): void {
 
 describe("agent documentation contract", () => {
   it("documents operational sections in AGENTS.md", () => {
+    expect(agentsMd).toMatch(/## Agent workflow/i);
+    expect(agentsMd).toMatch(/org-wide, keep identical across osloer-industries repos/i);
     expect(agentsMd).toMatch(/## Repository map/i);
     expect(agentsMd).toMatch(/## Verification/i);
     expect(agentsMd).toMatch(/## Change recipes/i);
