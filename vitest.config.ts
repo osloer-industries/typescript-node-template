@@ -9,6 +9,7 @@ export default defineConfig({
       "src/**/*.test.ts",
       "scripts/**/*.test.ts",
       "scripts/**/*.test.mjs",
+      "scripts/**/*.e2e.test.ts",
       "packages/eslint-sonarjs/**/*.test.mjs",
     ],
     coverage: {

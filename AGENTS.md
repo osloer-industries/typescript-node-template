@@ -72,10 +72,16 @@ When touching `scripts/`, setup, or CI install steps, follow
 ## Continuous integration
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the main pipeline: workflow security, `npm run check`,
-setup smoke matrix, CodeQL, Sonar scan (`sonarqube-cloud-node.yml` with coverage upload), Sonar zero-open-issues,
-then org **`ci-passed`**. Repositories created from this template must keep **SonarCloud Automatic Analysis
-disabled** and use the CI scan instead ([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Branch
-protection should require only the **`ci-passed`** check—not individual jobs ([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)).
+setup smoke matrix, **journey e2e** (`npm run test:e2e`), CodeQL, Sonar scan (`sonarqube-cloud-node.yml` with coverage
+upload), Sonar zero-open-issues, then org **`ci-passed`**. Repositories created from this template must keep
+**SonarCloud Automatic Analysis disabled** and use the CI scan instead
+([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Branch protection should require only the
+**`ci-passed`** check—not individual jobs ([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)).
+
+**End-to-end tests:** `scripts/journey.e2e.test.ts` exercises the README path (`npm ci` → `npm run setup` →
+`npm run build` → run the built entrypoint → `npm run check`) without importing `setup-lib`. Replace
+`journey.e2e.test.ts` and the `journey-e2e` CI job with your product’s primary user journey after scaffolding;
+keep black-box coverage through public npm scripts and documented entry points.
 
 ## Change recipes
 
