@@ -116,8 +116,10 @@ root cause instead of bypassing the check.
 | Rule | Agent workaround to avoid |
 | --- | --- |
 | `typescript/no-explicit-any` | Typing values as `unknown` then narrowing, or a proper generic/interface. |
-| `typescript/ban-ts-comment` | Fix the type error; do not use `@ts-ignore` / `@ts-expect-error`. |
+| `typescript/ban-ts-comment` (all directives, even described `@ts-expect-error`) | Fix the type error; in tests pass bad input as `unknown` through the real parser. |
 | `typescript/no-non-null-assertion` | Guard with `if`, optional chaining, or an explicit throw on invalid state. |
+| `typescript/consistent-type-assertions` (`never`: every `as`/`<T>`; `as const` and `satisfies` allowed) | Parse external data with a schema, narrow with type guards, build typed test fixtures. |
+| `osloer/no-definite-assignment` (`scripts/oxlint-plugin-osloer.ts`) | Initialise `x!:` fields and variables, or type them `T \| undefined` and narrow. |
 | `unicorn/no-abusive-eslint-disable` | Do not blanket-disable rules; shrink the suppression baseline instead. |
 | `no-empty` (`allowEmptyCatch: false`) | Handle errors explicitly; do not use empty `catch` blocks. |
 | `reportUnusedDisableDirectives` | Do not add disable comments that hide real findings. |
