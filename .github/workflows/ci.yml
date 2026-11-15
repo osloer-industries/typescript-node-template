@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: ./.github/actions/npm-workspace
+      - uses: $/.github/actions/npm-workspace
         with:
           fetch-depth: 0
           install-eslint-sonarjs: true
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: ./.github/actions/npm-workspace
+      - uses: $/.github/actions/npm-workspace
         with:
           fetch-depth: 0
       - name: Mutation (changed src on pull request)
@@ -60,5 +60,5 @@ jobs:
       matrix:
         scenario: [plugin, mcp, npm-package, cli]
     steps:
-      - uses: ./.github/actions/npm-workspace
+      - uses: $/.github/actions/npm-workspace
       - run: npm run setup -- --scenario ${{ matrix.scenario }} --name @smoke/${{ matrix.scenario }}-template --yes
