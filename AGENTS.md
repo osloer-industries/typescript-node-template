@@ -85,8 +85,19 @@ When touching `scripts/`, setup, or CI install steps, follow
 - `package-lock.json` — only with intentional dependency changes via `npm ci` / exact install policy.
 - Release Please manifest, changelogs, and version bumps outside the release pull request.
 - Pin SHAs in GitHub Actions workflows except when bumping dependencies via Dependabot or a focused CI change.
-- Org reusable workflows (`uses: osloer-industries/.github/…`) share one SHA per bump; see
-  [docs/consuming-org-reusables.md](docs/consuming-org-reusables.md).
+- Org reusable workflows (`uses: osloer-industries/.github/…`) share one tag-backed SHA per bump (`# v0.x.y`
+  comment, not `# main`); see [docs/consuming-org-reusables.md](docs/consuming-org-reusables.md).
+
+## Agent and local working files
+
+- Never commit agent session state, tool caches or per-tool instruction and config files. The
+  "Agent and local working files" block in `.gitignore` lists them
+  and the org `agent-files-guard` CI check rejects them ([ADR 0010](docs/adr/0010-agent-and-local-files-not-committed.md)).
+- Do not work around it with `git add -f` or by removing `.gitignore` entries. To commit one on
+  purpose, a maintainer adds the path to `.github/agent-files.allow` with a `# reason:` comment.
+- Exception: shared skills live in `.agents/skills/<name>/SKILL.md` (Agent Skills standard). That
+  path and `AGENTS.md` are the only agent paths committed by default. Do not copy skills into
+  `.claude/skills/` or other vendor folders.
 
 ## Priorities
 
@@ -119,8 +130,10 @@ root cause instead of bypassing the check.
 | Rule | Agent workaround to avoid |
 | --- | --- |
 | `typescript/no-explicit-any` | Typing values as `unknown` then narrowing, or a proper generic/interface. |
-| `typescript/ban-ts-comment` | Fix the type error; do not use `@ts-ignore` / `@ts-expect-error`. |
+| `typescript/ban-ts-comment` (all directives, even described `@ts-expect-error`) | Fix the type error; in tests pass bad input as `unknown` through the real parser. |
 | `typescript/no-non-null-assertion` | Guard with `if`, optional chaining, or an explicit throw on invalid state. |
+| `typescript/consistent-type-assertions` (`never`: every `as`/`<T>`; `as const` and `satisfies` allowed) | Parse external data with a schema, narrow with type guards, build typed test fixtures. |
+| `osloer/no-definite-assignment` (`scripts/oxlint-plugin-osloer.ts`) | Initialise `x!:` fields and variables, or type them `T \| undefined` and narrow. |
 | `unicorn/no-abusive-eslint-disable` | Do not blanket-disable rules; shrink the suppression baseline instead. |
 | `no-empty` (`allowEmptyCatch: false`) | Handle errors explicitly; do not use empty `catch` blocks. |
 | `reportUnusedDisableDirectives` | Do not add disable comments that hide real findings. |
@@ -152,6 +165,8 @@ with `node scripts/count-suppressions.ts --write-baseline` after intentional cle
 ## Tests and security
 
 - Add tests for success, failure, and boundary behavior affected by a change.
+- For pure exported functions, prefer a `@fast-check/vitest` `test.prop` when a single
+  invariant covers more ground than fixed examples (`src/index.test.ts`; [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)).
 - Keep branch, function, line, and statement coverage at or above 80% for `src/`
   and testable `scripts/` modules. Cover CLI wiring with focused unit tests or
   CI smoke jobs when direct unit coverage is impractical.
@@ -179,6 +194,9 @@ Browser automation dependencies (for example Playwright) must follow
   `main` is Release Please's release input.
 - Do not edit generated Release Please versions or changelogs outside its
   release pull request unless correcting release metadata deliberately.
+- Pre-1.0 versioning uses `bump-minor-pre-major` in `release-please-config.json`; cut `1.0.0` only via
+  `Release-As: 1.0.0`. New repos from the template should reset `.release-please-manifest.json` to `0.0.0`
+  (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 - Never bypass required reviews, checks, or organization rules.
 
 For system design and scenario behavior, read [docs/architecture.md](docs/architecture.md).

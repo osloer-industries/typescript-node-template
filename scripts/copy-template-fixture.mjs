@@ -46,6 +46,7 @@ const pathGroups = [
     "scripts/run-npm.d.mts",
     "scripts/lint-sonarjs.mjs",
     "scripts/count-suppressions.ts",
+    "scripts/oxlint-plugin-osloer.ts",
     "scripts/check-no-claude-md.ts",
     "scripts/suppression-baseline.json",
     "scripts/fixture-vitest.config.ts",

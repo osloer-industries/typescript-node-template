@@ -67,8 +67,10 @@ the nested `typescript` devDependency in `packages/eslint-sonarjs`.
 
 <!-- devDependency: @fast-check/vitest -->
 
-**Why chosen:** Vitest-native property-test integration for the MCP scaffold handler (`scripts/mcp-contract.test.ts`,
-generated `src/index.test.ts` for the **mcp** profile) per [issue #88](https://github.com/osloer-industries/typescript-node-template/issues/88).
+**Why chosen:** Vitest-native property-test integration for template `src/index.test.ts`, the MCP scaffold handler
+(`scripts/mcp-contract.test.ts`, generated `src/index.test.ts` for the **mcp** profile) per
+[issue #52](https://github.com/osloer-industries/typescript-node-template/issues/52) and
+[issue #88](https://github.com/osloer-industries/typescript-node-template/issues/88).
 
 **Alternatives considered:** Manual example tables only; raw `fast-check` without the Vitest bridge.
 
@@ -92,13 +94,14 @@ errors while generated repos still own the runtime `dependencies` pin.
 
 <!-- devDependency: fast-check -->
 
-**Why chosen:** Property-based assertions for greet handler validation in MCP contract and generated tests
-([issue #88](https://github.com/osloer-industries/typescript-node-template/issues/88)).
+**Why chosen:** Property-based assertions for the template `createGreeting` export, greet handler validation in MCP
+contract and generated tests ([#52](https://github.com/osloer-industries/typescript-node-template/issues/52),
+[#88](https://github.com/osloer-industries/typescript-node-template/issues/88)).
 
-**Alternatives considered:** No property tests until Phase 3 ([#52](https://github.com/osloer-industries/typescript-node-template/issues/52)).
+**Alternatives considered:** Example-only tables for `createGreeting` and MCP handlers.
 
-**Why they lost:** The MCP contract issue requires one property test before downstream MCP servers copy the
-pattern.
+**Why they lost:** Properties shrink failing inputs and express trim/default invariants without redundant cases;
+MCP contract work established the pattern before downstream servers copy it.
 
 ### `vitest`
 
