@@ -61,6 +61,7 @@ describe("isGuardrailPath", () => {
     expect(isGuardrailPath("scripts/check-guardrail-changes.ts")).toBe(true);
     expect(isGuardrailPath("scripts/agent-hooks/block-guardrail-edits.ts")).toBe(true);
     expect(isGuardrailPath("scripts/count-suppressions.ts")).toBe(true);
+    expect(isGuardrailPath(".agents/skills/release/SKILL.md")).toBe(true);
     expect(isGuardrailPath("src/index.ts")).toBe(false);
   });
 });

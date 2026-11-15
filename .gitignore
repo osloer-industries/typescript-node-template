@@ -33,7 +33,9 @@ service-account*.json
 .cursor/
 .codex/
 .gemini/
-.agents/
+# .agents/ is denied except the Agent Skills standard path (ADR 0010, built-in exception).
+.agents/*
+!.agents/skills/
 .windsurf/
 .continue/
 .serena/

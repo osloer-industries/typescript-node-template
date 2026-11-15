@@ -94,6 +94,9 @@ When touching `scripts/`, setup, or CI install steps, follow
   and the org `agent-files-guard` CI check rejects them ([ADR 0010](docs/adr/0010-agent-and-local-files-not-committed.md)).
 - Do not work around it with `git add -f` or by removing `.gitignore` entries. To commit one on
   purpose, a maintainer adds the path to `.github/agent-files.allow` with a `# reason:` comment.
+- Exception: shared skills live in `.agents/skills/<name>/SKILL.md` (Agent Skills standard). That
+  path and `AGENTS.md` are the only agent paths committed by default. Do not copy skills into
+  `.claude/skills/` or other vendor folders.
 
 ## Priorities
 

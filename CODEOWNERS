@@ -3,6 +3,7 @@
 
 /AGENTS.md @osloer-industries/platform
 /.gitignore @osloer-industries/platform
+/.agents/skills/ @osloer-industries/platform
 /CODEOWNERS @osloer-industries/platform
 /.github/ @osloer-industries/platform
 /.oxlintrc.json @osloer-industries/platform
