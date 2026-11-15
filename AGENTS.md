@@ -53,9 +53,12 @@ Run gates in this order when preparing a pull request:
 7. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 8. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 9. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
-   runs after `build` so `package.json` dist entries resolve)
+ runs after `build` so `package.json` dist entries resolve)
 10. `npm run check` (all of the above) before opening a pull request
 11. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+
+`npm run test:mutation` runs Stryker on `src/` (see `stryker.config.mjs` for the TypeScript 7 workaround). It is a
+separate CI job, not part of `check`.
 
 After `npm ci`, run `npm run prepare` once locally to install Lefthook pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 (CI uses `npm ci --ignore-scripts`, so hooks are not installed in Actions).
