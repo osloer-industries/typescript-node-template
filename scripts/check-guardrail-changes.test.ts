@@ -60,12 +60,14 @@ describe("isGuardrailPath", () => {
     const guardrailPaths = [
       ".github/workflows/ci.yml",
       agentsMdPath,
+      ".gitignore",
       "CODEOWNERS",
       "lefthook.yml",
       "packages/eslint-sonarjs/eslint.config.mjs",
       guardrailCheckRelativePath,
       "scripts/agent-hooks/block-guardrail-edits.ts",
       "scripts/count-suppressions.ts",
+      ".agents/skills/release/SKILL.md",
     ] as const;
     for (const path of guardrailPaths) {
       expect(isGuardrailPath(path)).toBe(true);

@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["import", "typescript", "unicorn", "vitest"],
+  "jsPlugins": ["./scripts/oxlint-plugin-osloer.ts"],
   "categories": {
     "correctness": "error",
     "perf": "warn",
@@ -22,7 +23,12 @@
     "typescript/no-floating-promises": "error",
     "typescript/no-misused-promises": "error",
     "typescript/no-explicit-any": "error",
-    "typescript/ban-ts-comment": "error",
+    "typescript/ban-ts-comment": [
+      "error",
+      { "ts-ignore": true, "ts-nocheck": true, "ts-expect-error": true, "ts-check": false }
+    ],
+    "typescript/consistent-type-assertions": ["error", { "assertionStyle": "never" }],
+    "osloer/no-definite-assignment": "error",
     "typescript/no-non-null-assertion": "error",
     "unicorn/no-abusive-eslint-disable": "error",
     "no-await-in-loop": "error",
