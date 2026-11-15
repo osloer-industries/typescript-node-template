@@ -106,6 +106,11 @@ request updates `CHANGELOG.md` and package versions, creates a `vX.Y.Z` tag, and
 4. Use Conventional Commit prefixes such as `feat:`, `fix:`, and `chore:`. Merge the Release Please pull
    request when the proposed version and changelog are ready.
 
+While the version is below `1.0.0`, breaking changes bump the minor version (`0.x`) rather than advancing to
+`1.0.0`; cut `1.0.0` deliberately with a `Release-As: 1.0.0` commit footer. After creating a repo from this
+template, set `.release-please-manifest.json` to `"0.0.0"` so the first release is `0.1.0`. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
 The organization-level token is intentional. Pull requests created with the built-in `GITHUB_TOKEN` do not
 trigger other GitHub Actions workflows, which prevents required CI checks from running on a protected
 release pull request. Prefer a short-lived GitHub App token over a long-lived personal access token when
