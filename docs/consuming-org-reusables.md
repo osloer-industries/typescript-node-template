@@ -36,7 +36,7 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | --- | --- | --- |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`workflow-security` job) | `workflow-security.yml` | actionlint + zizmor; **job**-level `actions: read` on the calling job (zizmor online audits); default empty `min-severity` / `min-confidence` (strictest). |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`codeql` job) | `codeql-javascript-typescript.yml` | Public repo: default Code Scanning upload. Private repos without GHAS: set `code-scanning-upload: false` and keep `fail-on-sarif-level: error` (see org doc). |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-analyze` job) | `sonarqube-cloud-node.yml` | Runs `npm run test:coverage`, uploads `coverage/lcov.info` via `sonar-project.properties`; requires `SONAR_TOKEN`. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-analyze` job) | *(inlined from `sonarqube-cloud-node.yml`)* | Same steps as the org reusable plus `npm ci --prefix packages/eslint-sonarjs` for the nested helper package; requires `SONAR_TOKEN`. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-zero-open-issues` job) | `sonarcloud-zero-issues.yml` | Polls SonarCloud after CI analysis; requires `SONAR_TOKEN`. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`journey-e2e` job) | *(in-repo)* | Black-box `npm run test:e2e` for the template setup journey; replace in generated repos. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | `ci-passed.yml` | Aggregate required check; `needs:` quality, setup smoke, journey e2e, workflow-security, CodeQL, and Sonar zero-issues. |
