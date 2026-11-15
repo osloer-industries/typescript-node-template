@@ -78,8 +78,9 @@ upload), Sonar zero-open-issues, then org **`ci-passed`**. Repositories created 
 ([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Branch protection should require only the
 **`ci-passed`** check—not individual jobs ([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)).
 
-**End-to-end tests:** `scripts/journey.e2e.test.ts` exercises the README path (`npm ci` → `npm run setup` →
-`npm run build` → run the built entrypoint → `npm run check`) without importing `setup-lib`. Replace
+**End-to-end tests:** `scripts/journey.e2e.test.ts` exercises the README path (`npm ci` → setup CLI with `--yes`
+so verify runs `npm run check` and `npm pack --dry-run` → run the built entrypoint) without importing `setup-lib`.
+Replace
 `journey.e2e.test.ts` and the `journey-e2e` CI job with your product’s primary user journey after scaffolding;
 keep black-box coverage through public npm scripts and documented entry points.
 
