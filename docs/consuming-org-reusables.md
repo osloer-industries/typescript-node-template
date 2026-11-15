@@ -38,7 +38,7 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`codeql` job) | `codeql-javascript-typescript.yml` | Public repo: default Code Scanning upload. Private repos without GHAS: set `code-scanning-upload: false` and keep `fail-on-sarif-level: error` (see org doc). |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-analyze` job) | *(inlined from `sonarqube-cloud-node.yml`)* | Same steps as the org reusable plus `npm ci --prefix packages/eslint-sonarjs` for the nested helper package; requires `SONAR_TOKEN`. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-zero-open-issues` job) | `sonarcloud-zero-issues.yml` | Polls SonarCloud after CI analysis; requires `SONAR_TOKEN`. |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | `ci-passed.yml` | Aggregate required check; `needs:` quality, setup smoke, workflow-security, CodeQL, and Sonar zero-issues. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | `ci-passed.yml` | Aggregate required check; `needs:` quality, mutation, setup smoke, workflow-security, CodeQL, and Sonar zero-issues. |
 | [`release.yml`](../.github/workflows/release.yml) | `release-please.yml` | Release GitHub App secrets (see org doc). |
 
 Other workflows (CI quality, setup smoke, dependency review, PR title) may still be inlined in this
