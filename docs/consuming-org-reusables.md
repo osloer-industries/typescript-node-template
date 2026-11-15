@@ -19,9 +19,11 @@ on that repository.
    When the caller is a job on `CI`, the check name is `workflow-security / Workflow security` (reusable workflow
    name + job name).
 
-Pin every org reusable to the same `.github` `main` commit SHA (for example
-`d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3` on current `main`); bump via Dependabot or template-sync when org
-`main` moves. Callers do not pass `reusables-ref`; reusable workflows resolve their scripts from
+Pin every org reusable to the same `.github` release tag commit SHA (for example
+`d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2`); use the tag in the `#` comment, not `main`, so
+zizmor ref-version-mismatch stays green when org `main` advances. Bump via Dependabot (`osloer-reusables`
+group) or template-sync when a new `.github` tag ships. Callers do not pass `reusables-ref`; reusable
+workflows resolve their scripts from
 `job.workflow_sha` (the pinned `uses:` ref).
 
 Grant **job-level** `actions: read` on the workflow-security calling job (not at workflow level; Sonar rule
@@ -35,8 +37,10 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) | `codeql-javascript-typescript.yml` | Public repo: default Code Scanning upload. Private repos without GHAS: set `code-scanning-upload: false` and keep `fail-on-sarif-level: error` (see org doc). |
 | [`.github/workflows/sonar.yml`](../.github/workflows/sonar.yml) | `sonarcloud-zero-issues.yml` | SonarCloud **automatic analysis** supplies scans; CI enforces zero open issues on pull requests via `SONAR_TOKEN`. |
 
-Other workflows (CI quality, setup smoke, dependency review, release, PR title) may still be inlined
-in this template until they are migrated; fleet-wide copies belong in org `.github` per
+| [`release.yml`](../.github/workflows/release.yml) | `release-please.yml` | Release GitHub App secrets (see org doc). |
+
+Other workflows (CI quality, setup smoke, dependency review, PR title) may still be inlined in this
+template until they are migrated; fleet-wide copies belong in org `.github` per
 [ADR 0005](adr/0005-placement-template-vs-org-github.md).
 
 ## Private repository CodeQL
