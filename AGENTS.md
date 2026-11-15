@@ -47,15 +47,19 @@ Run gates in this order when preparing a pull request:
 1. `npm run lint` (Oxlint — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 2. `npm run lint:suppressions` (shrink-only suppression baseline — [ADR 0006](docs/adr/0006-escape-hatch-lint-and-suppression-baseline.md))
 3. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-4. `npm run lint:dup` (jscpd — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+4. `npm run lint:dup` (jscpd on Markdown, workflow YAML, and shell under `.jscpd.json` paths — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
+   TypeScript/JavaScript duplication is gated by SonarCloud on the pull request)
 5. `npm run lint:md` and `npm run lint:md-links` ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 6. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 7. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 8. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 9. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
-   runs after `build` so `package.json` dist entries resolve)
+ runs after `build` so `package.json` dist entries resolve)
 10. `npm run check` (all of the above) before opening a pull request
 11. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+
+`npm run test:mutation` runs Stryker on `src/` (see `stryker.config.mjs` for the TypeScript 7 workaround). It is a
+separate CI job, not part of `check`.
 
 After `npm ci`, run `npm run prepare` once locally to install Lefthook pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 (CI uses `npm ci --ignore-scripts`, so hooks are not installed in Actions).
@@ -119,8 +123,10 @@ protection should require only the **`ci-passed`** check—not individual jobs (
 - Install reproducibly with `npm ci`. Use `npm install --save-exact` when a
   dependency intentionally changes, then commit `package-lock.json`.
 - Run `npm run check` before submitting a change. This runs Oxlint, SonarJS ESLint,
-  duplication detection, Markdown checks, the TypeScript compiler, coverage, production build, and knip
-  (after build so `package.json` dist entries resolve).
+  jscpd duplication checks (Markdown, workflow YAML, shell at 0%), Markdown lint/link checks, the TypeScript
+  compiler, coverage, production build, and knip (after build so `package.json` dist entries resolve).
+  SonarCloud owns TypeScript/JavaScript duplication (Sonar way fails above **3%** duplicated new lines) and the
+  org zero-open-issues check — see [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md).
 - Run `npm audit --omit=dev` whenever dependencies or the lockfile change. For transitive
   production findings, follow [docs/npm-overrides.md](docs/npm-overrides.md) before adding
   npm `overrides`.

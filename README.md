@@ -18,8 +18,8 @@ coverage enforcement, and GitHub security automation.
 - Full commit SHA pins, minimal permissions, timeouts, and concurrency cancellation
 - Secret-safe ignores, issue forms, and pull request guidance
 - Provider-neutral [AGENTS.md](AGENTS.md) and [docs/architecture.md](docs/architecture.md) for contributors and coding agents
-- Local SonarJS rules (`npm run lint:sonarjs`), jscpd duplication checks, knip unused-code detection, and
-  Lefthook pre-commit hooks
+- Local SonarJS rules (`npm run lint:sonarjs`), jscpd duplication checks (Markdown, workflow YAML, shell),
+  knip unused-code detection, and Lefthook pre-commit hooks; SonarCloud gates TypeScript/JavaScript duplication
 
 ## Start a project
 
@@ -62,11 +62,12 @@ Further patterns (provider-neutral):
 | --- | --- |
 | `npm run lint` | Lint with the explicit `.oxlintrc.json` policy, including type-aware rules |
 | `npm run lint:sonarjs` | SonarJS ESLint `recommended` rules (see `packages/eslint-sonarjs/`) |
-| `npm run lint:dup` | Detect duplicated code and markdown (jscpd, 0% threshold) |
+| `npm run lint:dup` | Detect duplicated Markdown, workflow YAML, and shell (jscpd, 0% threshold; TS/JS via SonarCloud) |
 | `npm run lint:knip` | Detect unused files, exports, and dependencies (knip) |
 | `npm run typecheck` | Check types without emitting files |
 | `npm test` | Run unit tests |
 | `npm run test:coverage` | Test and enforce coverage thresholds |
+| `npm run test:mutation` | Stryker mutation testing on `src/` (80% break threshold; separate from `check`) |
 | `npm run build` | Compile to `dist/` |
 | `npm run check` | Run all local quality gates |
 | `npm audit --omit=dev` | Audit production dependencies |

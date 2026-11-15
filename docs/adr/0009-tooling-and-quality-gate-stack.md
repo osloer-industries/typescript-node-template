@@ -128,17 +128,43 @@ with ESM `NodeNext` defaults in this template.
 **Why they lost:** Vitest documents V8 as the primary provider; skipping coverage would not enforce template
 coverage contracts in `AGENTS.md`.
 
+### `@stryker-mutator/core`
+
+<!-- devDependency: @stryker-mutator/core -->
+
+**Why chosen:** Mutation testing on `src/` with an **80%** break threshold (`stryker.config.mjs`), separate
+from Vitest coverage ([#51](https://github.com/osloer-industries/typescript-node-template/issues/51)).
+
+**Alternatives considered:** No mutation gate; PIT-style manual review only.
+
+**Why they lost:** Coverage alone does not prove tests catch real faults; Stryker is the standard JS mutation
+runner and pairs with the existing Vitest suite.
+
+### `@stryker-mutator/vitest-runner`
+
+<!-- devDependency: @stryker-mutator/vitest-runner -->
+
+**Why chosen:** Runs mutants through the same Vitest config as unit tests (`vitest.config.ts`) without a
+custom Jest/Mocha adapter.
+
+**Alternatives considered:** `@stryker-mutator/jest-runner`; command-runner invoking `npm test` per mutant.
+
+**Why they lost:** Template standardizes on Vitest; command-runner is slower and harder to scope per mutant.
+
 ### `jscpd`
 
 <!-- devDependency: jscpd -->
 
-**Why chosen:** Duplication detection on TypeScript, JavaScript, and Markdown with **0%** tolerated
-duplication in `.jscpd.json` ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
+**Why chosen:** Local duplication detection with **0%** tolerated duplication in `.jscpd.json` on
+Markdown, workflow YAML, and shell (Bash) — artifacts SonarCloud does not fully cover in the same
+way ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
 
-**Alternatives considered:** Sonar duplication only; manual review.
+**Alternatives considered:** Sonar duplication only; scanning TypeScript/JavaScript locally with jscpd.
 
-**Why they lost:** Sonar duplication is PR/cloud scoped; jscpd runs locally in `npm run check` and blocks
-copy-pasted agent instructions across markdown.
+**Why they lost:** SonarCloud already gates TypeScript/JavaScript duplication on pull requests (Sonar way
+fails above **3%** duplicated new lines) and the org zero-open-issues check. jscpd runs in `npm run check`
+so copy-pasted agent instructions, workflows, and shell glue fail before push without duplicating Sonar’s TS/JS
+signal.
 
 ### `knip`
 
