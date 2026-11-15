@@ -91,7 +91,11 @@ describe("agent documentation contract", () => {
   it("does not reference Cursor-only bootstrap paths", () => {
     expect(agentsMd).not.toMatch(/cursor-agent-setup/);
     expect(agentsMd).not.toMatch(/\.cursor\//);
-    expect(agentsMd).not.toMatch(/\.agents\/skills/);
+  });
+
+  it("documents .agents/skills as the only shared skills path (ADR 0010 exception)", () => {
+    expect(agentsMd).toMatch(/`\.agents\/skills\/<name>\/SKILL\.md`/);
+    expect(agentsMd).toMatch(/Do not copy skills into\s+`\.claude\/skills\/`/);
   });
 
   it("includes SonarJS, duplication, and knip gates in npm run check", () => {

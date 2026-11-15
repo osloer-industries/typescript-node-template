@@ -20,6 +20,14 @@ export function pickHarnessDevDependencies(
 
 export function applyHarnessDevDependencies(pkg: Record<string, unknown>, scenario: SetupScenario): void;
 
+export function configureHarnessDevDependencies(
+  pkg: Record<string, unknown>,
+  scenario: SetupScenario,
+  baseDir: string
+): void;
+
+export function pruneMcpOnlyHarnessDevDependencies(pkg: Record<string, unknown>): void;
+
 export function parseArgs(args: readonly string[]): Record<string, string | boolean | undefined>;
 
 export function packageName(value: string): string;

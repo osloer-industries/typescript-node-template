@@ -23,6 +23,13 @@ PR [#71](https://github.com/osloer-industries/typescript-node-template/pull/71) 
   (`scripts/count-suppressions.ts`) allows the baseline to **shrink only**, never grow without an
   intentional baseline update in review.
 
+- **Blanket scope (15 Nov 2026, issue #121):** every type escape hatch is an error in production,
+  test and tooling code with no per-path exemptions: `any`, non-null `!`, every type assertion
+  (`typescript/consistent-type-assertions` with `assertionStyle: "never"`; `as const` and
+  `satisfies` remain allowed), all `@ts-*` directives including described `@ts-expect-error`,
+  and definite assignment (`x!: T`) through the in-repo Oxlint JS plugin
+  `scripts/oxlint-plugin-osloer.ts`, because Oxlint has no `no-restricted-syntax`.
+
 ## Consequences
 
 - New suppressions fail CI until code is fixed or the baseline is deliberately lowered after cleanup.
