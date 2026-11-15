@@ -4,8 +4,13 @@ on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    - cron: "17 3 * * 1"
 permissions:
   contents: read
+  actions: read
+  pull-requests: read
+  security-events: write
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -50,3 +55,32 @@ jobs:
         with: { node-version-file: .nvmrc, cache: npm }
       - run: npm ci --ignore-scripts
       - run: npm run setup -- --scenario ${{ matrix.scenario }} --name @smoke/${{ matrix.scenario }}-template --yes
+
+  codeql:
+    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+
+  sonar-analyze:
+    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  sonar-zero-open-issues:
+    needs: sonar-analyze
+    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    with:
+      project-key: osloer-industries_typescript-node-template
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  ci-passed:
+    name: ci-passed
+    needs:
+      - workflow-security
+      - quality
+      - setup-smoke
+      - codeql
+      - sonar-zero-open-issues
+    if: always()
+    uses: osloer-industries/.github/.github/workflows/ci-passed.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    with:
+      needs-json: ${{ toJSON(needs) }}
