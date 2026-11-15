@@ -129,6 +129,8 @@ describe("gate self-test harness", () => {
   });
 });
 
+const consistentTypeAssertionsRule = "typescript/consistent-type-assertions";
+
 describe("gate self-tests (oxlint escape hatches)", () => {
   it.each([
     ["explicit any", "export const value: any = 1;\n", "any.ts", "typescript/no-explicit-any"],
@@ -160,19 +162,19 @@ describe("gate self-tests (oxlint escape hatches)", () => {
       "upcast as",
       "export const widened = \"x\" as string;\n",
       "as-upcast.ts",
-      "typescript/consistent-type-assertions",
+      consistentTypeAssertionsRule,
     ],
     [
       "double cast",
       "export const forced = (\"s\" as unknown) as number;\n",
       "as-double.ts",
-      "typescript/consistent-type-assertions",
+      consistentTypeAssertionsRule,
     ],
     [
       "angle-bracket assertion",
       "declare const raw: unknown;\nexport const text = <string>raw;\n",
       "as-angle.ts",
-      "typescript/consistent-type-assertions",
+      consistentTypeAssertionsRule,
     ],
     [
       "ts-expect-error with description",
