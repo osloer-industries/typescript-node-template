@@ -39,7 +39,7 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-analyze` job) | *(inlined from `sonarqube-cloud-node.yml`)* | Same steps as the org reusable plus `npm ci --prefix packages/eslint-sonarjs` for the nested helper package; requires `SONAR_TOKEN`. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-zero-open-issues` job) | `sonarcloud-zero-issues.yml` | Polls SonarCloud after CI analysis; requires `SONAR_TOKEN`. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`journey-e2e` job) | *(in-repo)* | Black-box `npm run test:e2e` for the template setup journey; replace in generated repos. |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | `ci-passed.yml` | Aggregate required check; `needs:` quality, setup smoke, journey e2e, workflow-security, CodeQL, and Sonar zero-issues. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | `ci-passed.yml` | Aggregate required check; `needs:` quality, mutation, setup smoke, journey e2e, workflow-security, CodeQL, and Sonar zero-issues. |
 | [`release.yml`](../.github/workflows/release.yml) | `release-please.yml` | Release GitHub App secrets (see org doc). |
 
 Other workflows (CI quality, setup smoke, dependency review, PR title) may still be inlined in this
@@ -48,11 +48,32 @@ template until they are migrated; fleet-wide copies belong in org `.github` per
 
 ## Private repository CodeQL
 
-Do not enable paid GitHub Advanced Security for CodeQL alone. Use artifact mode from the org doc:
+Do not enable paid GitHub Advanced Security for CodeQL alone. Use artifact mode from the org doc. Under
+`workflow_call` in a private repository, set workflow-level `permissions: contents: read`, and grant the
+**calling job** `contents: read` plus `actions: read`. Without job-level `actions: read`, `github/codeql-action`
+fails with **Resource not accessible by integration** (keep `actions: read` on the job, not at workflow
+level; Sonar rule `githubactions:S8264`).
 
 ```yaml
+name: CodeQL
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
+    permissions:
+      contents: read
+      actions: read
     uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@REUSABLES_SHA
     with:
       code-scanning-upload: false
