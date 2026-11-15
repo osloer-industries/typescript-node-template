@@ -54,12 +54,14 @@ describe("isGuardrailPath", () => {
   it("matches harness files and workflow directories", () => {
     expect(isGuardrailPath(".github/workflows/ci.yml")).toBe(true);
     expect(isGuardrailPath("AGENTS.md")).toBe(true);
+    expect(isGuardrailPath(".gitignore")).toBe(true);
     expect(isGuardrailPath("CODEOWNERS")).toBe(true);
     expect(isGuardrailPath("lefthook.yml")).toBe(true);
     expect(isGuardrailPath("packages/eslint-sonarjs/eslint.config.mjs")).toBe(true);
     expect(isGuardrailPath("scripts/check-guardrail-changes.ts")).toBe(true);
     expect(isGuardrailPath("scripts/agent-hooks/block-guardrail-edits.ts")).toBe(true);
     expect(isGuardrailPath("scripts/count-suppressions.ts")).toBe(true);
+    expect(isGuardrailPath(".agents/skills/release/SKILL.md")).toBe(true);
     expect(isGuardrailPath("src/index.ts")).toBe(false);
   });
 });
