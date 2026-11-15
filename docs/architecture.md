@@ -31,9 +31,14 @@ running integration tests in `scripts/setup.test.ts`.
 
 ## Dependency direction
 
-- `src/` must not import from `scripts/`.
+- `src/` must not import from `scripts/` (enforced by Oxlint `no-restricted-imports` on `src/**`,
+  banning `**/scripts/**`).
 - `scripts/setup.mjs` imports only `scripts/setup-lib.mjs`.
 - Avoid import cycles (enforced by Oxlint).
+
+Future layer boundaries (for example core versus adapters in #49) should use the same pattern:
+scoped `no-restricted-imports` overrides in `.oxlintrc.json` with a `patterns` group and a message
+that cites this document.
 
 ## Public API
 

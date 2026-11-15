@@ -255,7 +255,7 @@ export function isScriptEntry(metaUrl, argvEntry) {
 }
 
 /** Default MCP tools exercised by generated `scripts/test-mcp.mjs`. */
-export const defaultProjectMcpSmoke = {
+const defaultProjectMcpSmoke = {
   expectedTools: ["greet"],
   toolCall: { name: "greet", arguments: { name: "smoke" } },
 };

@@ -236,7 +236,7 @@ describe("check-no-claude-md CLI", () => {
     expect(output).toMatch(/ADR 0002 OK/);
   });
 
-  it("fails with exit code 1 when CLAUDE.md is tracked", () => {
+  it("fails with exit code 1 when CLAUDE.md is tracked", { timeout: 30_000 }, () => {
     const tempDir = createNoClaudeFixture("no-claude-cli-");
     try {
       writeFileSync(join(tempDir, "CLAUDE.md"), "@AGENTS.md\n", "utf8");

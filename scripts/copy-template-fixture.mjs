@@ -14,6 +14,7 @@ const rootFiles = [
   ".markdownlintignore",
   ".markdown-link-check.json",
   ".jscpd.json",
+  "knip.config.ts",
   "lefthook.yml",
   "AGENTS.md",
   "CONTRIBUTING.md",
@@ -34,8 +35,10 @@ const pathGroups = [
     "scripts/run-npm.d.mts",
     "scripts/lint-sonarjs.mjs",
     "scripts/count-suppressions.ts",
+    "scripts/oxlint-plugin-osloer.ts",
     "scripts/check-no-claude-md.ts",
     "scripts/suppression-baseline.json",
+    "scripts/fixture-vitest.config.ts",
   ],
   ["src/index.ts", "src/index.test.ts"],
   [
@@ -44,6 +47,8 @@ const pathGroups = [
     "packages/eslint-sonarjs/eslint.config.mjs",
     "packages/eslint-sonarjs/run.mjs",
     "packages/eslint-sonarjs/list-enabled-rules.mjs",
+    "packages/eslint-sonarjs/list-enabled-rules.test.mjs",
+    "packages/eslint-sonarjs/run.test.mjs",
     "packages/eslint-sonarjs/tsconfig.json",
   ],
 ];
@@ -51,7 +56,7 @@ const pathGroups = [
 /**
  * @param {string} repoRoot
  */
-export function buildFixtureTsconfig(repoRoot) {
+function buildFixtureTsconfig(repoRoot) {
   const base = JSON.parse(readFileSync(join(repoRoot, "tsconfig.json"), "utf8"));
   const compilerOptions = { ...base.compilerOptions };
   delete compilerOptions.allowJs;

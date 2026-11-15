@@ -29,7 +29,7 @@ scenario.
 - Generated project files: `scripts/test-mcp.mjs` (calls `runGeneratedTestMcpCli`) and a
   copy of `scripts/mcp-stdio-smoke.mjs`.
 
-When you add or rename MCP tools, update `defaultProjectMcpSmoke` in
+When you add or rename MCP tools, update the default smoke expectations in
 `scripts/mcp-stdio-smoke.mjs` and keep at least one credential-free `tools/call` in the
 smoke test when possible.
 

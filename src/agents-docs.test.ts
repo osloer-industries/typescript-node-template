@@ -90,10 +90,14 @@ describe("agent documentation contract", () => {
   it("does not reference Cursor-only bootstrap paths", () => {
     expect(agentsMd).not.toMatch(/cursor-agent-setup/);
     expect(agentsMd).not.toMatch(/\.cursor\//);
-    expect(agentsMd).not.toMatch(/\.agents\/skills/);
   });
 
-  it("includes SonarJS and duplication gates in npm run check", () => {
+  it("documents .agents/skills as the only shared skills path (ADR 0010 exception)", () => {
+    expect(agentsMd).toMatch(/`\.agents\/skills\/<name>\/SKILL\.md`/);
+    expect(agentsMd).toMatch(/Do not copy skills into\s+`\.claude\/skills\/`/);
+  });
+
+  it("includes SonarJS, duplication, and knip gates in npm run check", () => {
     const parsed: unknown = JSON.parse(packageJson);
     if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
     const scripts = Reflect.get(parsed, "scripts");
@@ -104,6 +108,8 @@ describe("agent documentation contract", () => {
     expect(check).toContain("check:no-claude-md");
     expect(check).toContain("lint:sonarjs");
     expect(check).toContain("lint:dup");
+    expect(check).toContain("lint:knip");
+    expect(check).toMatch(/build && npm run lint:knip/);
   });
 
   it("links MCP and dependency pattern docs from AGENTS.md", () => {

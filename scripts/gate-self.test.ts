@@ -80,6 +80,19 @@ function writeTempOxlintSource(source: string, fileName: string): { filePath: st
   };
 }
 
+/** Oxlint `src/**` boundary overrides apply only to files under `src/`. */
+function writeTempSrcOxlintSource(source: string, fileName: string): { filePath: string; cleanup: () => void } {
+  const tempDir = mkdtempSync(join(repoRoot, "src", "gate-self-"));
+  const filePath = join(tempDir, fileName);
+  writeFileSync(filePath, source, "utf8");
+  return {
+    filePath,
+    cleanup: () => {
+      rmSync(tempDir, { recursive: true, force: true });
+    },
+  };
+}
+
 function writeTempSonarjsSource(source: string, fileName: string): { filePath: string; cleanup: () => void } {
   const tempDir = mkdtempSync(join(repoRoot, "scripts", "gate-self-"));
   const filePath = join(tempDir, fileName);
@@ -143,11 +156,77 @@ describe("gate self-tests (oxlint escape hatches)", () => {
       "empty-catch.ts",
       "no-empty",
     ],
+    [
+      "upcast as",
+      "export const widened = \"x\" as string;\n",
+      "as-upcast.ts",
+      "typescript/consistent-type-assertions",
+    ],
+    [
+      "double cast",
+      "export const forced = (\"s\" as unknown) as number;\n",
+      "as-double.ts",
+      "typescript/consistent-type-assertions",
+    ],
+    [
+      "angle-bracket assertion",
+      "declare const raw: unknown;\nexport const text = <string>raw;\n",
+      "as-angle.ts",
+      "typescript/consistent-type-assertions",
+    ],
+    [
+      "ts-expect-error with description",
+      "// @ts-expect-error intentionally wrong for this canary\nexport const value: number = \"a\";\n",
+      "ts-expect-error.ts",
+      "typescript/ban-ts-comment",
+    ],
+    [
+      "definite-assignment field",
+      "export class Holder {\n  value!: number;\n}\n",
+      "definite-field.ts",
+      "osloer/no-definite-assignment",
+    ],
+    [
+      "definite-assignment variable",
+      "let later!: string;\nlater = \"a\";\nexport { later };\n",
+      "definite-variable.ts",
+      "osloer/no-definite-assignment",
+    ],
   ] as const)("rejects %s with rule %s", (_label, source, fileName, ruleId) => {
     const { filePath, cleanup } = writeTempOxlintSource(source, fileName);
     try {
       expect.assertions(2);
       assertLintReportsRule(runOxlintOnFile(filePath), ruleId);
+    } finally {
+      cleanup();
+    }
+  });
+});
+
+describe("gate self-tests (allowed type constructs)", () => {
+  it("allows as const and satisfies under the blanket assertion ban", () => {
+    const { filePath, cleanup } = writeTempOxlintSource(
+      'export const modes = ["a", "b"] as const;\nexport const config = { port: 1 } satisfies { port: number };\n',
+      "allowed-constructs.ts",
+    );
+    try {
+      const result = runOxlintOnFile(filePath);
+      expect({ status: result.status, output: result.output }).toEqual({ status: 0, output: expect.any(String) });
+    } finally {
+      cleanup();
+    }
+  });
+});
+
+describe("gate self-tests (architecture boundaries)", () => {
+  it("rejects src imports from scripts/", () => {
+    const { filePath, cleanup } = writeTempSrcOxlintSource(
+      'import "../scripts/run-npm.mjs";\n',
+      "uses-scripts.ts",
+    );
+    try {
+      expect.assertions(2);
+      assertLintReportsRule(runOxlintOnFile(filePath), "no-restricted-imports");
     } finally {
       cleanup();
     }

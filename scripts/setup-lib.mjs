@@ -10,6 +10,91 @@ import { stdin, stdout } from "node:process";
 /** @typedef {"plugin" | "mcp" | "npm-package" | "cli"} SetupScenario */
 
 const setupLibDir = dirname(fileURLToPath(import.meta.url));
+const templateRootDir = resolve(setupLibDir, "..");
+
+/** Dev dependencies every generated project keeps (see `pickHarnessDevDependencies`). */
+export const harnessDevDependencyKeys = [
+  "@types/node",
+  "@vitest/coverage-v8",
+  "@osloer-industries/markdown-link-check",
+  "jscpd",
+  "knip",
+  "lefthook",
+  "markdownlint-cli2",
+  "oxlint",
+  "oxlint-tsgolint",
+  "typescript",
+  "vitest",
+];
+
+const mcpHarnessDevDependencyKeys = ["fast-check"];
+
+/** Vitest bridge used only by template `src/`; harness scripts keep `fast-check` for MCP contract tests. */
+const templateMcpOnlyDevDependencyKeys = ["@fast-check/vitest"];
+
+/**
+ * MCP-only dev dependencies kept on the template harness but omitted after in-repo
+ * setup for non-mcp scenarios (setup-smoke runs applySetup in the template root).
+ *
+ * @param {Record<string, unknown>} pkg
+ */
+export function pruneMcpOnlyHarnessDevDependencies(pkg) {
+  if (typeof pkg.devDependencies !== "object" || pkg.devDependencies === null) {
+    return;
+  }
+  for (const key of templateMcpOnlyDevDependencyKeys) {
+    delete pkg.devDependencies[key];
+  }
+}
+
+/**
+ * @param {SetupScenario} scenario
+ * @param {Record<string, string>} templateDevDependencies
+ */
+export function pickHarnessDevDependencies(scenario, templateDevDependencies) {
+  const keys = [...harnessDevDependencyKeys];
+  if (scenario === "mcp") {
+    keys.push(...mcpHarnessDevDependencyKeys);
+  }
+  /** @type {Record<string, string>} */
+  const picked = {};
+  for (const key of keys) {
+    const version = templateDevDependencies[key];
+    if (typeof version === "string") {
+      picked[key] = version;
+    }
+  }
+  return picked;
+}
+
+function readTemplateDevDependencyCatalog() {
+  const templatePkg = JSON.parse(readFileSync(join(setupLibDir, "..", "package.json"), "utf8"));
+  const devDependencies = {
+    ...(typeof templatePkg.devDependencies === "object" && templatePkg.devDependencies !== null
+      ? templatePkg.devDependencies
+      : {}),
+    ...(typeof templatePkg.dependencies === "object" && templatePkg.dependencies !== null
+      ? templatePkg.dependencies
+      : {}),
+  };
+  const overrides =
+    typeof templatePkg.overrides === "object" && templatePkg.overrides !== null
+      ? templatePkg.overrides
+      : undefined;
+  return { devDependencies, overrides };
+}
+
+/**
+ * @param {Record<string, unknown>} pkg
+ * @param {SetupScenario} scenario
+ */
+export function applyHarnessDevDependencies(pkg, scenario) {
+  const catalog = readTemplateDevDependencyCatalog();
+  pkg.devDependencies = pickHarnessDevDependencies(scenario, catalog.devDependencies);
+  if (catalog.overrides) {
+    pkg.overrides = catalog.overrides;
+  }
+}
 
 export const generatedTestMcpScript = `import { runGeneratedTestMcpCli } from "./mcp-stdio-smoke.mjs";
 
@@ -309,12 +394,41 @@ export async function resolveSetupOptions(parsed, reader) {
 }
 
 /**
+ * @param {Record<string, unknown>} pkg
+ * @param {SetupScenario} scenario
+ * @param {string} baseDir
+ */
+export function configureHarnessDevDependencies(pkg, scenario, baseDir) {
+  if (resolve(baseDir) !== templateRootDir) {
+    applyHarnessDevDependencies(pkg, scenario);
+    return;
+  }
+  pruneMcpOnlyHarnessDevDependencies(pkg);
+}
+
+/** @param {Record<string, unknown>} pkg */
+function dropDevDependenciesDuplicatingProduction(pkg) {
+  if (
+    typeof pkg.dependencies !== "object" ||
+    pkg.dependencies === null ||
+    typeof pkg.devDependencies !== "object" ||
+    pkg.devDependencies === null
+  ) {
+    return;
+  }
+  for (const name of Object.keys(pkg.dependencies)) {
+    delete pkg.devDependencies[name];
+  }
+}
+
+/**
  * @param {{ scenario: SetupScenario, name: string, description: string, profile: (typeof profiles)[SetupScenario] }} selected
  * @param {{ runInstall?: boolean, baseDir?: string }} [options]
  */
 export function applySetup(selected, options = {}) {
   const baseDir = options.baseDir ?? ".";
   const pkg = JSON.parse(readFileSync(join(baseDir, "package.json"), "utf8"));
+  configureHarnessDevDependencies(pkg, selected.scenario, baseDir);
   pkg.name = selected.name;
   pkg.description = selected.description;
   pkg.private = !selected.profile.publishable;
@@ -325,6 +439,7 @@ export function applySetup(selected, options = {}) {
   else delete pkg.bin;
   if (selected.profile.dependencies) pkg.dependencies = selected.profile.dependencies;
   else delete pkg.dependencies;
+  dropDevDependenciesDuplicatingProduction(pkg);
   if (selected.scenario === "mcp") {
     pkg.scripts["test:mcp"] = "npm run build && node scripts/test-mcp.mjs";
   } else {

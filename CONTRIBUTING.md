@@ -3,7 +3,8 @@
 1. Install Node.js 24.22.0.
 2. Run `npm ci` (or `npm ci --ignore-scripts` to match CI; then run `npm prepare` locally to install Git hooks).
 3. Create a focused branch and add tests with the change.
-4. Run `npm run check` (Oxlint, SonarJS ESLint, jscpd, markdownlint, markdown link checks, TypeScript, tests, and build)
+4. Run `npm run check` (Oxlint, SonarJS ESLint, jscpd, knip, markdownlint, markdown link checks, TypeScript,
+   tests, and build)
    and `npm audit --omit=dev`.
 5. Open a pull request using the provided template and a Conventional Commit title.
 
@@ -19,6 +20,13 @@ new annotated tag on the fork, set the tag in root `package.json`, run `npm inst
 Use Conventional Commit prefixes such as `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, and `chore:`.
 Release Please treats `feat:` as a minor release and `fix:` as a patch release. Use a `BREAKING CHANGE:`
 footer or `!` marker for a major release.
+
+While the version stays below `1.0.0`, `release-please-config.json` sets `bump-minor-pre-major`, so breaking
+changes bump the **minor** version instead of jumping to `1.0.0`; features still bump minor and fixes bump patch.
+Repos remain on `0.x` until the owner deliberately cuts `1.0.0` with a squash-merge commit footer
+`Release-As: 1.0.0` (see [Release Please](https://github.com/googleapis/release-please#how-do-i-change-the-version-number)).
+When you create a new repository from this template, reset `.release-please-manifest.json` to `"0.0.0"` for the
+root package (and align `package.json` `version` if you publish) so the first release is `0.1.0`.
 
 Harness files listed in `CODEOWNERS` (lint config, workflows, `AGENTS.md`, and related scripts)
 should receive maintainer review. Replace `@osloer-industries/platform` in `CODEOWNERS` with your
