@@ -3,16 +3,16 @@
 Tooling rationale for Oxlint, SonarJS, Vitest, and CI integrations:
 [ADR 0009](adr/0009-tooling-and-quality-gate-stack.md).
 
-This template uses **two Sonar integrations** that complement each other:
+This template uses **CI Sonar analysis plus a zero-open-issues gate**:
 
 | Check | Source | Typical behavior |
 | --- | --- | --- |
-| **SonarCloud Code Analysis** | SonarCloud GitHub App (automatic analysis) | Scans the default branch and pull requests; enforces the **quality gate** on new/changed code. |
-| **SonarCloud / SonarCloud zero open issues** | `.github/workflows/sonar.yml` → org `sonarcloud-zero-issues.yml` | Polls SonarCloud on each pull request and fails when open issues remain on the PR head commit. Requires `SONAR_TOKEN`. |
+| **CI / Analyze** | `.github/workflows/ci.yml` → org `sonarqube-cloud-node.yml` | Runs `npm run coverage:sonar` (nested `packages/eslint-sonarjs` install, then `test:coverage`), uploads analysis and **coverage** (`coverage/lcov.info`) via `sonar-project.properties`. Requires `SONAR_TOKEN`. |
+| **CI / SonarCloud zero open issues** | `.github/workflows/ci.yml` → org `sonarcloud-zero-issues.yml` | After CI analysis, polls SonarCloud and fails when open issues remain on the PR head commit. |
 
-Do not enable `SonarSource/sonarqube-scan-action` in CI while automatic analysis is on—the same project cannot
-use both. Fix findings on the PR diff or adjust Sonar project settings deliberately—not by disabling gates
-without team approval.
+**Disable SonarCloud Automatic Analysis** on every repository generated from this template. Automatic Analysis
+and `SonarSource/sonarqube-scan-action` cannot run on the same project. Fix findings on the PR diff or adjust
+Sonar project settings deliberately—not by disabling gates without team approval.
 
 ## Local enforcement (shift left)
 
@@ -88,7 +88,9 @@ do not enable scripts globally “just in case”.
 - Keep cyclomatic complexity, promise safety, and import-cycle rules in
   [`.oxlintrc.json`](../.oxlintrc.json)—they reduce correctness issues Sonar may also report.
 - Do not duplicate long guidance across markdown files; `npm run lint:dup` (jscpd) enforces a **0%**
-  duplication threshold on code and docs.
+  duplication threshold on Markdown, workflow YAML, and shell. TypeScript and JavaScript duplication is owned
+  by SonarCloud (Sonar way fails above **3%** duplicated new lines on the pull request) plus the org
+  zero-open-issues gate — refactor shared helpers instead of copying blocks.
 
 ## Change checklist (agents and humans)
 
@@ -104,8 +106,9 @@ When adding or changing:
 ## Sonar configuration
 
 See [README.md](../README.md#sonarqube-cloud-setup) for organization/project keys, organization **`SONAR_TOKEN`**,
-and keeping **Automatic Analysis** enabled.
+and turning **Automatic Analysis off** in favor of CI analysis.
 
 Analysis scope is defined in [`sonar-project.properties`](../sonar-project.properties) (`src`, `scripts`, test
-inclusions/exclusions). Coverage upload is not part of CI Sonar; `npm run test:coverage` still runs in
-`CI / Quality` and locally via `npm run check`.
+inclusions/exclusions, and `sonar.javascript.lcov.reportPaths=coverage/lcov.info`). The Sonar job runs
+`npm run coverage:sonar` before scan (same Vitest coverage as `test:coverage` after nested install).
+`CI / Quality` and local `npm run check` still run the same coverage gate.

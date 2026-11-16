@@ -21,8 +21,9 @@ These rules apply to every agent (Cursor, Grok Bot, any other) working in this r
 
 - Pin GitHub Actions by full commit SHA with an accurate version comment. Org reusables from
   `osloer-industries/.github` are pinned `@<full sha> # v0.x.y` (a release tag, never `# main`).
-- Every CI job feeds the single `ci-passed` aggregate job, including Workflow security, CodeQL and the SonarCloud
-  zero-issues job. `ci-passed` is the only required status check.
+- Every CI job feeds the single `ci-passed` aggregate job, including Workflow security, CodeQL, and Sonar analyze.
+  The SonarCloud zero-open-issues job runs on pull requests only; `ci-passed` tolerates it being skipped on
+  `push` to `main`. `ci-passed` is the only required status check.
 - Only Dependabot patch/minor bumps and patch/minor release PRs auto-merge. Majors (or pre-1.0 breaking changes)
   never auto-merge; they wait for a human.
 - Run the repo's linters, tests and pre-commit checks locally before pushing. The pre-commit hook is never skipped
@@ -83,15 +84,19 @@ Run gates in this order when preparing a pull request:
 1. `npm run lint` (Oxlint — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 2. `npm run lint:suppressions` (shrink-only suppression baseline — [ADR 0006](docs/adr/0006-escape-hatch-lint-and-suppression-baseline.md))
 3. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-4. `npm run lint:dup` (jscpd — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+4. `npm run lint:dup` (jscpd on Markdown, workflow YAML, and shell under `.jscpd.json` paths — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
+   TypeScript/JavaScript duplication is gated by SonarCloud on the pull request)
 5. `npm run lint:md` and `npm run lint:md-links` ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 6. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 7. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 8. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 9. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
-   runs after `build` so `package.json` dist entries resolve)
+ runs after `build` so `package.json` dist entries resolve)
 10. `npm run check` (all of the above) before opening a pull request
 11. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+
+`npm run test:mutation` runs Stryker on `src/` (see `stryker.config.mjs` for the TypeScript 7 workaround). It is a
+separate CI job, not part of `check`.
 
 After `npm ci`, run `npm run prepare` once locally to install Lefthook pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 (CI uses `npm ci --ignore-scripts`, so hooks are not installed in Actions).
@@ -102,8 +107,16 @@ For the **mcp** scenario, also run `npm run test:mcp` when MCP tools or the stdi
 change (included in unattended `--yes` setup). See [docs/mcp-stdio-smoke-test.md](docs/mcp-stdio-smoke-test.md).
 
 When touching `scripts/`, setup, or CI install steps, follow
-[docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) so **SonarCloud Code Analysis** stays green
+[docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) so **SonarCloud CI analysis** stays green
 (use `scripts/run-npm.mjs`, prefer `--ignore-scripts` on npm ci/install).
+
+## Continuous integration
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the main pipeline: workflow security, `npm run check`,
+setup smoke matrix, CodeQL, Sonar scan (`sonarqube-cloud-node.yml` with coverage upload), Sonar zero-open-issues,
+then org **`ci-passed`**. Repositories created from this template must keep **SonarCloud Automatic Analysis
+disabled** and use the CI scan instead ([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Branch
+protection should require only the **`ci-passed`** check—not individual jobs ([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)).
 
 ## Change recipes
 
@@ -146,6 +159,11 @@ When touching `scripts/`, setup, or CI install steps, follow
 - Use the Node.js 24 version declared by `.nvmrc` and `.node-version`.
 - Install reproducibly with `npm ci`. Use `npm install --save-exact` when a
   dependency intentionally changes, then commit `package-lock.json`.
+- Run `npm run check` before submitting a change. This runs Oxlint, SonarJS ESLint,
+  jscpd duplication checks (Markdown, workflow YAML, and shell at 0%), Markdown lint/link checks, the TypeScript
+  compiler, coverage, production build, and knip (after build so `package.json` dist entries resolve).
+  SonarCloud owns TypeScript/JavaScript duplication (Sonar way fails above **3%** duplicated new lines) and the
+  org zero-open-issues check — see [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md).
 - Run `npm audit --omit=dev` whenever dependencies or the lockfile change. For transitive
   production findings, follow [docs/npm-overrides.md](docs/npm-overrides.md) before adding
   npm `overrides`.
