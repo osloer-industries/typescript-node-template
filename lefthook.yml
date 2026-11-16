@@ -13,5 +13,5 @@ pre-commit:
       glob: "*.md"
       run: markdownlint-cli2 {staged_files}
     jscpd:
-      glob: "*.{md,yml,yaml}"
+      glob: "*.{ts,tsx,mts,cts,js,mjs,cjs,md,yml,yaml}"
       run: npm run lint:dup

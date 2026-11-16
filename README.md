@@ -19,9 +19,9 @@ coverage enforcement, and GitHub security automation.
 - Full commit SHA pins, minimal permissions, timeouts, and concurrency cancellation
 - Secret-safe ignores, issue forms, and pull request guidance
 - Provider-neutral [AGENTS.md](AGENTS.md) and [docs/architecture.md](docs/architecture.md) for contributors and coding agents
-- Local SonarJS rules (`npm run lint:sonarjs`), jscpd duplication checks (Markdown, workflow YAML, shell),
-  knip unused-code detection, and Lefthook pre-commit hooks (including jscpd when docs or workflows are staged);
-  SonarCloud gates TypeScript/JavaScript duplication
+- Local SonarJS rules (`npm run lint:sonarjs`), jscpd duplication checks (`src/`, `scripts/`, `packages/`, docs,
+  workflows; **3%** threshold aligned with Sonar), knip unused-code detection, and Lefthook pre-commit hooks
+  (including jscpd when source or docs are staged); SonarCloud still runs on pull requests for org gates
 
 ## Start a project
 
@@ -64,7 +64,7 @@ Further patterns (provider-neutral):
 | --- | --- |
 | `npm run lint` | Lint with the explicit `.oxlintrc.json` policy, including type-aware rules |
 | `npm run lint:sonarjs` | SonarJS ESLint `recommended` rules (see `packages/eslint-sonarjs/`) |
-| `npm run lint:dup` | Detect duplicated Markdown, workflow YAML, and shell (jscpd, 3% threshold aligned with Sonar; TS/JS via SonarCloud) |
+| `npm run lint:dup` | Detect duplicated TypeScript, JavaScript, Markdown, workflow YAML, and shell (jscpd, 3% threshold aligned with Sonar) |
 | `npm run lint:knip` | Detect unused files, exports, and dependencies (knip) |
 | `npm run typecheck` | Check types without emitting files |
 | `npm test` | Run unit tests |

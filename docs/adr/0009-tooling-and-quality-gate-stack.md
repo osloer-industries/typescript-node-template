@@ -156,15 +156,15 @@ custom Jest/Mocha adapter.
 <!-- devDependency: jscpd -->
 
 **Why chosen:** Local duplication detection with a **3%** `threshold` in `.jscpd.json` (aligned with
-SonarCloud duplicated-lines-on-new-code) on Markdown, workflow YAML, and shell (Bash) — artifacts SonarCloud
-does not fully cover in the same way ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
+SonarCloud duplicated-lines-on-new-code) on TypeScript, JavaScript, Markdown, workflow YAML, and shell (Bash)
+in `src/`, `scripts/`, `packages/`, tests, and docs ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27),
+lunch-money [#22](https://github.com/osloer-industries/lunch-money/pull/22) motivation). Catches TS/JS copy-paste
+before commit and push; SonarCloud remains the PR gate and zero-open-issues owner.
 
-**Alternatives considered:** Sonar duplication only; scanning TypeScript/JavaScript locally with jscpd.
+**Alternatives considered:** Sonar duplication only (no local TS/JS jscpd); Markdown/workflow-only jscpd scope.
 
-**Why they lost:** SonarCloud already gates TypeScript/JavaScript duplication on pull requests (Sonar way
-fails above **3%** duplicated new lines) and the org zero-open-issues check. jscpd runs in `npm run check`
-so copy-pasted agent instructions, workflows, and shell glue fail before push without duplicating Sonar’s TS/JS
-signal.
+**Why they lost:** Sonar-only feedback arrives on the pull request, after duplicated TypeScript has already landed
+locally. Markdown-only jscpd missed the failure mode that prompted expanding scope.
 
 ### `knip`
 
@@ -214,7 +214,8 @@ documented in `AGENTS.md` because Dependabot does not bump git-tag dependencies.
 <!-- devDependency: lefthook -->
 
 **Why chosen:** Git hooks runner for staged Oxlint, SonarJS, and markdownlint, plus full-repo
-`npm run lint:dup` when Markdown or workflow YAML is staged (`lefthook.yml`, `npm run prepare`); CI uses
+`npm run lint:dup` when TypeScript, JavaScript, Markdown, or workflow YAML is staged (`lefthook.yml`,
+`npm run prepare`); CI uses
 `npm ci --ignore-scripts` so hooks never run in Actions
 ([#32](https://github.com/osloer-industries/typescript-node-template/pull/32)).
 
