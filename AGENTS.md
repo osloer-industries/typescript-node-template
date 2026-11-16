@@ -91,7 +91,7 @@ Run gates in this order when preparing a pull request:
 7. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 8. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 9. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
- runs after `build` so `package.json` dist entries resolve)
+   runs after `build` so `package.json` dist entries resolve)
 10. `npm run check` (all of the above) before opening a pull request
 11. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 
@@ -164,6 +164,7 @@ protection should require only the **`ci-passed`** check—not individual jobs (
   compiler, coverage, production build, and knip (after build so `package.json` dist entries resolve).
   SonarCloud owns TypeScript/JavaScript duplication (Sonar way fails above **3%** duplicated new lines) and the
   org zero-open-issues check — see [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md).
+
 - Run `npm audit --omit=dev` whenever dependencies or the lockfile change. For transitive
   production findings, follow [docs/npm-overrides.md](docs/npm-overrides.md) before adding
   npm `overrides`.
