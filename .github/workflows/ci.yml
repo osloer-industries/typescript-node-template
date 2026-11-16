@@ -29,8 +29,7 @@ jobs:
         with: { persist-credentials: false, fetch-depth: 0 }
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: npm }
-      - run: npm ci --ignore-scripts
-      - run: npm ci --ignore-scripts --prefix packages/eslint-sonarjs
+      - run: node scripts/ci-npm-workspace.mjs --install-eslint-sonarjs
       - name: Guardrail path change notice
         if: github.event_name == 'pull_request'
         env:
@@ -49,7 +48,7 @@ jobs:
         with: { persist-credentials: false, fetch-depth: 0 }
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: npm }
-      - run: npm ci --ignore-scripts
+      - run: node scripts/ci-npm-workspace.mjs
       - name: Mutation (changed src on pull request)
         if: github.event_name == 'pull_request'
         env:
@@ -72,7 +71,7 @@ jobs:
         with: { persist-credentials: false }
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: npm }
-      - run: npm ci --ignore-scripts
+      - run: node scripts/ci-npm-workspace.mjs
       - run: npm run setup -- --scenario ${{ matrix.scenario }} --name @smoke/${{ matrix.scenario }}-template --yes
 
   codeql:
@@ -83,36 +82,11 @@ jobs:
       security-events: write
 
   sonar-analyze:
-    name: Analyze
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: read
-      pull-requests: read
-    env:
+    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    with:
+      timeout-minutes: 20
+    secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - if: env.SONAR_TOKEN != ''
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - if: env.SONAR_TOKEN != ''
-        run: npm ci --ignore-scripts
-      - if: env.SONAR_TOKEN != ''
-        run: npm ci --ignore-scripts --prefix packages/eslint-sonarjs
-      - if: env.SONAR_TOKEN != ''
-        run: npm run test:coverage
-      - if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65 # v8.4.1
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      - if: env.SONAR_TOKEN == ''
-        run: echo "SonarQube Cloud analysis skipped because SONAR_TOKEN is not configured."
 
   sonar-zero-open-issues:
     needs: sonar-analyze
