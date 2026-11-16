@@ -8,7 +8,7 @@ This template uses **CI Sonar analysis plus a zero-open-issues gate**:
 | Check | Source | Typical behavior |
 | --- | --- | --- |
 | **CI / Analyze** | `.github/workflows/ci.yml` → org `sonarqube-cloud-node.yml` | Runs `npm run coverage:sonar` (nested `packages/eslint-sonarjs` install, then `test:coverage`), uploads analysis and **coverage** (`coverage/lcov.info`) via `sonar-project.properties`. Requires `SONAR_TOKEN`. |
-| **CI / SonarCloud zero open issues** | `.github/workflows/ci.yml` → org `sonarcloud-zero-issues.yml` | After CI analysis, polls SonarCloud and fails when open issues remain on the PR head commit. |
+| **CI / SonarCloud zero open issues** | `.github/workflows/ci.yml` → org `sonarcloud-zero-issues.yml` | **Pull requests only.** After CI analysis, polls SonarCloud and fails when open issues remain on the PR head commit. Pushes to `main` still upload analysis via **CI / Analyze** without the zero-issues poll. |
 
 **Disable SonarCloud Automatic Analysis** on every repository generated from this template. Automatic Analysis
 and `SonarSource/sonarqube-scan-action` cannot run on the same project. Fix findings on the PR diff or adjust
