@@ -10,48 +10,34 @@ import {
   listChangedPaths,
   runGuardrailCheckCli,
 } from "./check-guardrail-changes.js";
+import {
+  gitCommitPaths,
+  gitExecutableForTests,
+  initGitRepo,
+} from "./test-git-fixture.js";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const gitExecutable = process.env.GUARDRAIL_GIT_PATH ?? "/usr/bin/git";
-const gitPipe = { stdio: "pipe" } as const;
-const commitMessageBase = "base";
+const gitExecutable = gitExecutableForTests("GUARDRAIL_GIT_PATH");
 const srcIndexPath = "src/index.ts";
 const agentsMdPath = "AGENTS.md";
 const guardrailCheckRelativePath = "scripts/check-guardrail-changes.ts";
 
-function initGitRepo(tempDir: string): void {
-  execFileSync(gitExecutable, ["init"], { cwd: tempDir, ...gitPipe });
-  execFileSync(gitExecutable, ["config", "user.email", "test@example.com"], { cwd: tempDir, ...gitPipe });
-  execFileSync(gitExecutable, ["config", "user.name", "test"], { cwd: tempDir, ...gitPipe });
-}
-
-function gitCommitPaths(tempDir: string, message: string, relativePaths: readonly string[]): string {
-  for (const relativePath of relativePaths) {
-    execFileSync(gitExecutable, ["add", relativePath], { cwd: tempDir, ...gitPipe });
-  }
-  execFileSync(gitExecutable, ["commit", "-m", message], { cwd: tempDir, ...gitPipe });
-  return execFileSync(gitExecutable, ["rev-parse", "HEAD"], {
-    cwd: tempDir,
-    encoding: "utf8",
-  }).trim();
-}
-
 function initTwoCommitRepo(tempDir: string): { base: string; head: string } {
-  initGitRepo(tempDir);
+  initGitRepo(tempDir, gitExecutable);
   writeFileSync(join(tempDir, "README.md"), "# base\n", "utf8");
-  const base = gitCommitPaths(tempDir, commitMessageBase, ["README.md"]);
+  const base = gitCommitPaths(tempDir, "base", ["README.md"], gitExecutable);
   writeFileSync(join(tempDir, agentsMdPath), "# agents\n", "utf8");
-  const head = gitCommitPaths(tempDir, "guardrail", [agentsMdPath]);
+  const head = gitCommitPaths(tempDir, "guardrail", [agentsMdPath], gitExecutable);
   return { base, head };
 }
 
 function initSrcOnlyDiffRepo(tempDir: string): { base: string; head: string } {
-  initGitRepo(tempDir);
+  initGitRepo(tempDir, gitExecutable);
   writeFileSync(join(tempDir, "README.md"), "# base\n", "utf8");
-  const base = gitCommitPaths(tempDir, commitMessageBase, ["README.md"]);
+  const base = gitCommitPaths(tempDir, "base", ["README.md"], gitExecutable);
   mkdirSync(join(tempDir, "src"), { recursive: true });
   writeFileSync(join(tempDir, srcIndexPath), "export {};\n", "utf8");
-  const head = gitCommitPaths(tempDir, "src only", [srcIndexPath]);
+  const head = gitCommitPaths(tempDir, "src only", [srcIndexPath], gitExecutable);
   return { base, head };
 }
 
@@ -143,5 +129,7 @@ describe("check-guardrail-changes CLI", () => {
 function cpGuardrailScript(tempDir: string): void {
   const scriptsDir = join(tempDir, "scripts");
   mkdirSync(scriptsDir, { recursive: true });
-  cpSync(join(repoRoot, guardrailCheckRelativePath), join(scriptsDir, "check-guardrail-changes.ts"));
+  for (const fileName of ["check-guardrail-changes.ts", "git-list-changed-paths.mjs"]) {
+    cpSync(join(repoRoot, "scripts", fileName), join(scriptsDir, fileName));
+  }
 }

@@ -171,8 +171,11 @@ describe("applySetup metadata", () => {
         throw new Error("Invalid devDependencies");
       }
       expect(Reflect.get(devDependencies, "knip")).toBeDefined();
-      expect(Reflect.get(devDependencies, fastCheckPackageName)).toBeUndefined();
-      expect(Reflect.get(devDependencies, fastCheckVitestPackageName)).toBeUndefined();
+      expect(Reflect.get(devDependencies, "fast-check")).toBeUndefined();
+      expect(Reflect.get(devDependencies, "@fast-check/vitest")).toBeUndefined();
+      const scripts = readPackageField(join(tempDir, "package.json"), "scripts");
+      if (typeof scripts !== "object" || scripts === null) throw new Error("Invalid scripts");
+      expect(Reflect.get(scripts, "test:mutation")).toBeUndefined();
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
