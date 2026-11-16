@@ -334,7 +334,7 @@ GHAS, Sonar-only).
 
 <!-- ci-tool: sonarqube-cloud-node -->
 
-**Why chosen:** Org `sonarqube-cloud-node.yml` on `.github/workflows/ci.yml` runs `npm run test:coverage` and
+**Why chosen:** Org `sonarqube-cloud-node.yml` on `.github/workflows/ci.yml` runs `npm run coverage:sonar` and
 uploads analysis plus LCOV coverage (`sonar.javascript.lcov.reportPaths` in `sonar-project.properties`).
 Automatic Analysis must stay **off** on SonarCloud projects ([docs/sonar-quality-gate.md](../sonar-quality-gate.md)).
 
