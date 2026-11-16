@@ -98,6 +98,21 @@ jobs:
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+  fleet-adoption-doc:
+    name: Fleet adoption table sync
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false, fetch-depth: 0 }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version-file: .nvmrc }
+      - name: Require fleet-adoption.md when workflows change
+        if: github.event_name == 'pull_request'
+        env:
+          FLEET_ADOPTION_BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check-fleet-adoption-doc.ts
+
   ci-passed:
     name: ci-passed
     needs:
@@ -108,6 +123,7 @@ jobs:
       - codeql
       - sonar-analyze
       - sonar-zero-open-issues
+      - fleet-adoption-doc
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

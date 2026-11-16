@@ -12,6 +12,11 @@ The squash-merge commit uses this title so Release Please can calculate the vers
 - [ ] Behavior matches the linked issue (or PR summary) and tests cover success, failure, and boundary cases where relevant
 - [ ] Public exports, CLI behavior, plugin interfaces, or MCP tools are documented when changed
 
+## Fleet adoption
+
+- [ ] Workflow, org reusable, or template harness feature changes update [docs/fleet-adoption.md](../docs/fleet-adoption.md)
+- [ ] Consuming repositories have a linked PR or issue recorded in that table (or `not adopted, no tracking issue`)
+
 ## Verification
 
 See [AGENTS.md](../AGENTS.md) for the verification ladder. At minimum:
