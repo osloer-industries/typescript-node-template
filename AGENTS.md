@@ -72,8 +72,16 @@ For the **mcp** scenario, also run `npm run test:mcp` when MCP tools or the stdi
 change (included in unattended `--yes` setup). See [docs/mcp-stdio-smoke-test.md](docs/mcp-stdio-smoke-test.md).
 
 When touching `scripts/`, setup, or CI install steps, follow
-[docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) so **SonarCloud Code Analysis** stays green
+[docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) so **SonarCloud CI analysis** stays green
 (use `scripts/run-npm.mjs`, prefer `--ignore-scripts` on npm ci/install).
+
+## Continuous integration
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the main pipeline: workflow security, `npm run check`,
+setup smoke matrix, CodeQL, Sonar scan (`sonarqube-cloud-node.yml` with coverage upload), Sonar zero-open-issues,
+then org **`ci-passed`**. Repositories created from this template must keep **SonarCloud Automatic Analysis
+disabled** and use the CI scan instead ([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Branch
+protection should require only the **`ci-passed`** check—not individual jobs ([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)).
 
 ## Change recipes
 

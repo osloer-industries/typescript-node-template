@@ -323,7 +323,7 @@ changes.
 <!-- ci-tool: codeql -->
 
 **Why chosen:** Scheduled and PR JavaScript/TypeScript analysis via org reusable
-`codeql-javascript-typescript.yml` (caller `.github/workflows/codeql.yml`; public repos use Code Scanning
+`codeql-javascript-typescript.yml` (caller job on `.github/workflows/ci.yml`; public repos use Code Scanning
 upload; private repos use SARIF artifact mode per org doc).
 
 **Alternatives considered:** Disable CodeQL on private repos pending license/GHAS
@@ -332,18 +332,27 @@ upload; private repos use SARIF artifact mode per org doc).
 **Why they lost:** ADR 0008 is **proposed**; workflow remains until Thomas decides replacement (Semgrep CE,
 GHAS, Sonar-only).
 
+### CI: SonarQube Cloud Node scan (org reusable)
+
+<!-- ci-tool: sonarqube-cloud-node -->
+
+**Why chosen:** Org `sonarqube-cloud-node.yml` on `.github/workflows/ci.yml` runs `npm run coverage:sonar` and
+uploads analysis plus LCOV coverage (`sonar.javascript.lcov.reportPaths` in `sonar-project.properties`).
+Automatic Analysis must stay **off** on SonarCloud projects ([docs/sonar-quality-gate.md](../sonar-quality-gate.md)).
+
 ### CI: SonarCloud zero open issues (org reusable)
 
 <!-- ci-tool: sonarcloud-zero-issues -->
 
-**Why chosen:** Org `sonarcloud-zero-issues.yml` caller in `.github/workflows/sonar.yml` enforces zero open
-SonarCloud issues on the PR head while **automatic analysis** performs scans (no `sonarqube-scan-action`;
-[docs/sonar-quality-gate.md](../sonar-quality-gate.md)).
+**Why chosen:** Org `sonarcloud-zero-issues.yml` on `.github/workflows/ci.yml` enforces zero open SonarCloud
+issues on the PR head after the CI scan job completes.
 
-**Alternatives considered:** `SonarSource/sonarqube-scan-action` in CI with automatic analysis disabled.
+### CI: ci-passed aggregate (org reusable)
 
-**Why they lost:** CI scanning conflicts with SonarCloud automatic analysis on the same project; local
-`lint:sonarjs` and `CI / Quality` coverage already shift-left before SonarCloud reports on the PR.
+<!-- ci-tool: ci-passed -->
+
+**Why chosen:** Org `ci-passed.yml` is the **only** required branch protection check; it fails closed when any
+upstream job in `ci.yml` fails or is cancelled.
 
 ### CI: zizmor
 
