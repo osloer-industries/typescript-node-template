@@ -84,6 +84,7 @@ jobs:
   sonar-analyze:
     uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
     with:
+      coverage-npm-script: coverage:sonar
       timeout-minutes: 20
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

@@ -7,7 +7,7 @@ This template uses **CI Sonar analysis plus a zero-open-issues gate**:
 
 | Check | Source | Typical behavior |
 | --- | --- | --- |
-| **CI / Analyze** | `.github/workflows/ci.yml` → org `sonarqube-cloud-node.yml` | Runs `npm run test:coverage`, uploads analysis and **coverage** (`coverage/lcov.info`) via `sonar-project.properties`. Requires `SONAR_TOKEN`. |
+| **CI / Analyze** | `.github/workflows/ci.yml` → org `sonarqube-cloud-node.yml` | Runs `npm run coverage:sonar` (nested `packages/eslint-sonarjs` install, then `test:coverage`), uploads analysis and **coverage** (`coverage/lcov.info`) via `sonar-project.properties`. Requires `SONAR_TOKEN`. |
 | **CI / SonarCloud zero open issues** | `.github/workflows/ci.yml` → org `sonarcloud-zero-issues.yml` | After CI analysis, polls SonarCloud and fails when open issues remain on the PR head commit. |
 
 **Disable SonarCloud Automatic Analysis** on every repository generated from this template. Automatic Analysis
@@ -110,4 +110,5 @@ and turning **Automatic Analysis off** in favor of CI analysis.
 
 Analysis scope is defined in [`sonar-project.properties`](../sonar-project.properties) (`src`, `scripts`, test
 inclusions/exclusions, and `sonar.javascript.lcov.reportPaths=coverage/lcov.info`). The Sonar job runs
-`npm run test:coverage` before scan; `CI / Quality` and local `npm run check` still run the same coverage gate.
+`npm run coverage:sonar` before scan (same Vitest coverage as `test:coverage` after nested install).
+`CI / Quality` and local `npm run check` still run the same coverage gate.
