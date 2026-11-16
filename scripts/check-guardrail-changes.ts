@@ -96,12 +96,5 @@ function isDirectExecution(moduleUrl: string, argvEntry: string | undefined): bo
 }
 
 if (isDirectExecution(import.meta.url, process.argv[1])) {
-  try {
-    const exitCode = runGuardrailDetectCli(import.meta.url, process.argv.slice(2));
-    process.exit(exitCode);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`${message}\n`);
-    process.exit(1);
-  }
+  process.exit(runGuardrailDetectCli(import.meta.url, process.argv.slice(2)));
 }
