@@ -1,8 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { findNeedsFailures, parseNeedsJson, runCiPassedGate } from "./ci-passed-gate.js";
+import {
+  findNeedsFailures,
+  guardrailHarnessApprovalNotRequired,
+  parseNeedsJson,
+  runCiPassedGate,
+} from "./ci-passed-gate.js";
+
+const allGreenPr = {
+  "workflow-security": { result: "success" },
+  quality: { result: "success" },
+  "sonar-zero-open-issues": { result: "success" },
+} as const;
 
 describe("findNeedsFailures", () => {
-  it("accepts success only by default", () => {
+  it("accepts success only for ordinary jobs", () => {
     expect(findNeedsFailures({ lint: { result: "success" } })).toEqual([]);
     expect(findNeedsFailures({ lint: { result: "failure" } })).toEqual(["lint: failure"]);
     expect(findNeedsFailures({ lint: { result: "cancelled" } })).toEqual(["lint: cancelled"]);
@@ -11,40 +22,84 @@ describe("findNeedsFailures", () => {
     ]);
   });
 
-  it("allows sonar-zero-open-issues skipped on push", () => {
-    const needs = { "sonar-zero-open-issues": { result: "skipped" }, quality: { result: "success" } };
-    expect(findNeedsFailures(needs, "push")).toEqual([]);
-    expect(findNeedsFailures(needs, "schedule")).toEqual([]);
+  describe("sonar-zero-open-issues", () => {
+    it("allows skipped on push when other jobs succeeded", () => {
+      const needs = { "sonar-zero-open-issues": { result: "skipped" }, quality: { result: "success" } };
+      expect(findNeedsFailures(needs, "push")).toEqual([]);
+    });
+
+    it("fails sonar skipped on pull_request", () => {
+      expect(findNeedsFailures({ "sonar-zero-open-issues": { result: "skipped" } }, "pull_request")).toEqual(
+        ["sonar-zero-open-issues: skipped"],
+      );
+    });
+
+    it("fails sonar cancelled or missing result on pull_request", () => {
+      expect(
+        findNeedsFailures({ "sonar-zero-open-issues": { result: "cancelled" } }, "pull_request"),
+      ).toEqual(["sonar-zero-open-issues: cancelled"]);
+      expect(
+        findNeedsFailures({ "sonar-zero-open-issues": { result: "" } }, "pull_request"),
+      ).toEqual(["sonar-zero-open-issues: missing result"]);
+    });
+
+    it("fails when sonar-zero-open-issues is absent from needs on pull_request", () => {
+      expect(findNeedsFailures({ quality: { result: "success" } }, "pull_request")).toEqual([
+        "sonar-zero-open-issues: missing from needs on pull_request",
+      ]);
+    });
+
+    it("fails sonar failure on push", () => {
+      expect(
+        findNeedsFailures(
+          { "sonar-zero-open-issues": { result: "failure" }, quality: { result: "success" } },
+          "push",
+        ),
+      ).toEqual(["sonar-zero-open-issues: failure"]);
+    });
+
+    it("fails another job skipped on push", () => {
+      expect(findNeedsFailures({ quality: { result: "skipped" } }, "push")).toEqual(["quality: skipped"]);
+    });
+
+    it("passes all-success pull_request including sonar", () => {
+      expect(findNeedsFailures({ ...allGreenPr }, "pull_request")).toEqual([]);
+    });
+
+    it("does not allow sonar skip without event name", () => {
+      expect(findNeedsFailures({ "sonar-zero-open-issues": { result: "skipped" } })).toEqual([
+        "sonar-zero-open-issues: skipped",
+      ]);
+    });
   });
 
-  it("rejects sonar-zero-open-issues skipped or failed on pull_request", () => {
-    const skipped = { "sonar-zero-open-issues": { result: "skipped" } };
-    const failed = { "sonar-zero-open-issues": { result: "failure" } };
-    expect(findNeedsFailures(skipped, "pull_request")).toEqual([
-      "sonar-zero-open-issues: skipped",
-    ]);
-    expect(findNeedsFailures(failed, "pull_request")).toEqual([
-      "sonar-zero-open-issues: failure",
-    ]);
-    expect(findNeedsFailures({ "sonar-zero-open-issues": { result: "success" } }, "pull_request")).toEqual(
-      [],
-    );
-  });
+  describe("harness-approval", () => {
+    it("allows skipped when guardrail-detect reports no harness change", () => {
+      const needs = {
+        "guardrail-detect": { result: "success", outputs: { guardrail_changed: "false" } },
+        "harness-approval": { result: "skipped" },
+        "sonar-zero-open-issues": { result: "success" },
+      };
+      expect(findNeedsFailures(needs, "pull_request")).toEqual([]);
+      expect(guardrailHarnessApprovalNotRequired(needs)).toBe(true);
+    });
 
-  it("allows harness-approval skipped on non-pull_request events", () => {
-    const needs = { "harness-approval": { result: "skipped" } };
-    expect(findNeedsFailures(needs, "push")).toEqual([]);
-    expect(findNeedsFailures(needs, "pull_request")).toEqual(["harness-approval: skipped"]);
-  });
+    it("fails harness-approval skipped when guardrail changed", () => {
+      const needs = {
+        "guardrail-detect": { result: "success", outputs: { guardrail_changed: "true" } },
+        "harness-approval": { result: "skipped" },
+        "sonar-zero-open-issues": { result: "success" },
+      };
+      expect(findNeedsFailures(needs, "pull_request")).toEqual(["harness-approval: skipped"]);
+    });
 
-  it("does not allow arbitrary jobs skipped on push", () => {
-    expect(findNeedsFailures({ quality: { result: "skipped" } }, "push")).toEqual(["quality: skipped"]);
-  });
-
-  it("requires GITHUB_EVENT_NAME to allow pull-request-only skips", () => {
-    expect(findNeedsFailures({ "sonar-zero-open-issues": { result: "skipped" } })).toEqual([
-      "sonar-zero-open-issues: skipped",
-    ]);
+    it("fails harness-approval skipped when guardrail-detect output is absent", () => {
+      const needs = {
+        "guardrail-detect": { result: "success" },
+        "harness-approval": { result: "skipped" },
+      };
+      expect(findNeedsFailures(needs, "push")).toEqual(["harness-approval: skipped"]);
+    });
   });
 });
 
@@ -69,6 +124,7 @@ describe("runCiPassedGate", () => {
     expect(
       runCiPassedGate(JSON.stringify({ a: { result: "success" }, b: { result: "success" } }), "push"),
     ).toBe(0);
+    expect(runCiPassedGate(JSON.stringify({ ...allGreenPr }), "pull_request")).toBe(0);
     expect(runCiPassedGate(JSON.stringify({ a: { result: "failure" } }), "pull_request")).toBe(1);
     expect(runCiPassedGate("")).toBe(1);
     expect(
@@ -80,5 +136,11 @@ describe("runCiPassedGate", () => {
         "push",
       ),
     ).toBe(0);
+    expect(
+      runCiPassedGate(
+        JSON.stringify({ "sonar-zero-open-issues": { result: "skipped" } }),
+        "pull_request",
+      ),
+    ).toBe(1);
   });
 });

@@ -1,18 +1,20 @@
 #!/usr/bin/env node
 /**
  * Fail closed unless every entry in the GitHub Actions `needs` context is result success.
- * Jobs gated to pull_request only may be `skipped` on other workflow events (push, schedule).
+ *
+ * Org-standard exceptions (port to osloer-industries/.github ci-passed-gate.ts):
+ * - `sonar-zero-open-issues`: `skipped` is OK on non–pull_request events only (caller runs it on PR).
+ * - `harness-approval`: `skipped` is OK when `guardrail-detect` outputs `guardrail_changed: "false"`.
  */
 
 import { fileURLToPath } from "node:url";
 
 export const ALLOWED_NEEDS_RESULTS = new Set(["success"]);
 
-/**
- * Upstream `needs` job ids that run only on `pull_request` (caller job-level `if:`).
- * Skipped is acceptable on non-pull_request events; never on pull_request.
- */
-export const PULL_REQUEST_ONLY_NEED_JOBS = new Set(["sonar-zero-open-issues", "harness-approval"]);
+export const SONAR_ZERO_OPEN_ISSUES_JOB_ID = "sonar-zero-open-issues";
+export const HARNESS_APPROVAL_JOB_ID = "harness-approval";
+export const GUARDRAIL_DETECT_JOB_ID = "guardrail-detect";
+export const GUARDRAIL_CHANGED_OUTPUT_KEY = "guardrail_changed";
 
 export interface NeedsJobEntry {
   result: string;
@@ -75,14 +77,23 @@ export function parseNeedsJson(raw: string): NeedsMap {
   return needs;
 }
 
-function skippedAllowedForJob(jobId: string, eventName: string | undefined): boolean {
-  if (!PULL_REQUEST_ONLY_NEED_JOBS.has(jobId)) {
-    return false;
+export function guardrailHarnessApprovalNotRequired(needs: NeedsMap): boolean {
+  const detect = needs[GUARDRAIL_DETECT_JOB_ID];
+  return detect?.outputs?.[GUARDRAIL_CHANGED_OUTPUT_KEY] === "false";
+}
+
+function sonarZeroOpenIssuesSkipAllowed(eventName: string | undefined): boolean {
+  return eventName !== undefined && eventName.length > 0 && eventName !== "pull_request";
+}
+
+function skippedResultTolerated(jobId: string, needs: NeedsMap, eventName: string | undefined): boolean {
+  if (jobId === SONAR_ZERO_OPEN_ISSUES_JOB_ID) {
+    return sonarZeroOpenIssuesSkipAllowed(eventName);
   }
-  if (eventName === "pull_request") {
-    return false;
+  if (jobId === HARNESS_APPROVAL_JOB_ID) {
+    return guardrailHarnessApprovalNotRequired(needs);
   }
-  return eventName !== undefined && eventName.length > 0;
+  return false;
 }
 
 export function findNeedsFailures(needs: NeedsMap, eventName?: string): string[] {
@@ -92,13 +103,21 @@ export function findNeedsFailures(needs: NeedsMap, eventName?: string): string[]
     failures.push("needs context has no jobs (misconfigured ci-passed gate)");
     return failures;
   }
+
+  if (eventName === "pull_request") {
+    const sonar = needs[SONAR_ZERO_OPEN_ISSUES_JOB_ID];
+    if (sonar === undefined) {
+      failures.push(`${SONAR_ZERO_OPEN_ISSUES_JOB_ID}: missing from needs on pull_request`);
+    }
+  }
+
   for (const [jobId, entry] of entries) {
     const result = (entry?.result ?? "").trim();
     if (result.length === 0) {
       failures.push(`${jobId}: missing result`);
       continue;
     }
-    if (result === "skipped" && skippedAllowedForJob(jobId, eventName)) {
+    if (result === "skipped" && skippedResultTolerated(jobId, needs, eventName)) {
       continue;
     }
     if (!ALLOWED_NEEDS_RESULTS.has(result)) {
