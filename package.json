@@ -35,6 +35,7 @@
     "setup": "node scripts/setup.mjs",
     "test": "vitest run",
     "test:fast": "vitest run --exclude '**/*.integration.test.ts'",
+    "coverage:sonar": "node scripts/run-sonar-coverage.mjs",
     "test:coverage": "vitest run --coverage",
     "test:mutation": "stryker run",
     "test:watch": "vitest",
