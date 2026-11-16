@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.0...v0.3.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* **ci:** dedupe workflow bootstrap and strengthen greeting tests for Stryker ([#131](https://github.com/osloer-industries/typescript-node-template/issues/131)) ([5bb4d08](https://github.com/osloer-industries/typescript-node-template/commit/5bb4d08a6fadc4c132f74376dd492384f2a47f53))
+
 ## [0.3.0](https://github.com/osloer-industries/typescript-node-template/compare/v0.2.0...v0.3.0) (2026-11-15)
 
 
