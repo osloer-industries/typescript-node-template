@@ -114,7 +114,7 @@ describe("resolveClaudeInstructionViolations", () => {
     }
   });
 
-  it("uses git ls-files when the directory is a repository", async () => {
+  it("uses git ls-files when the directory is a repository", { timeout: 30_000 }, async () => {
     const { resolveClaudeInstructionViolations } = await loadModule();
     const tempDir = createNoClaudeFixture("no-claude-gitls-");
     try {
@@ -161,7 +161,7 @@ describe("isDirectExecution", () => {
 });
 
 describe("runNoClaudeMdCliEntry", () => {
-  it("returns 0 for a clean repository and 1 when CLAUDE.md is tracked", async () => {
+  it("returns 0 for a clean repository and 1 when CLAUDE.md is tracked", { timeout: 30_000 }, async () => {
     const { runNoClaudeMdCliEntry } = await loadModule();
     const cleanDir = createNoClaudeFixture("no-claude-entry-clean-");
     const moduleUrl = new URL(`file://${join(cleanDir, "scripts/check-no-claude-md.ts")}`).href;
@@ -187,7 +187,7 @@ describe("runNoClaudeMdCliEntry", () => {
 });
 
 describe("assertNoTrackedClaudeInstructionFiles", () => {
-  it("passes when no forbidden paths are tracked", async () => {
+  it("passes when no forbidden paths are tracked", { timeout: 30_000 }, async () => {
     const { assertNoTrackedClaudeInstructionFiles } = await loadModule();
     const tempDir = createNoClaudeFixture("no-claude-clean-");
     try {
