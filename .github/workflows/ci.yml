@@ -90,6 +90,7 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   sonar-zero-open-issues:
+    if: github.event_name == 'pull_request'
     needs: sonar-analyze
     uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
     with:
@@ -105,8 +106,20 @@ jobs:
       - mutation
       - setup-smoke
       - codeql
+      - sonar-analyze
       - sonar-zero-open-issues
     if: always()
-    uses: osloer-industries/.github/.github/workflows/ci-passed.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
-    with:
-      needs-json: ${{ toJSON(needs) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version-file: .nvmrc }
+      - name: Require every upstream job to succeed
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/ci-passed-gate.ts
