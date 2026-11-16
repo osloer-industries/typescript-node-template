@@ -87,10 +87,11 @@ do not enable scripts globally “just in case”.
 - Vitest **`toThrow()`** must include a message or regex (Oxlint `vitest/require-to-throw-message`).
 - Keep cyclomatic complexity, promise safety, and import-cycle rules in
   [`.oxlintrc.json`](../.oxlintrc.json)—they reduce correctness issues Sonar may also report.
-- Do not duplicate long guidance across markdown files; `npm run lint:dup` (jscpd) enforces a **0%**
-  duplication threshold on Markdown, workflow YAML, and shell. TypeScript and JavaScript duplication is owned
-  by SonarCloud (Sonar way fails above **3%** duplicated new lines on the pull request) plus the org
-  zero-open-issues gate — refactor shared helpers instead of copying blocks.
+- Do not duplicate long guidance across markdown files; `npm run lint:dup` (jscpd) enforces the same **3%**
+  duplication threshold as SonarCloud duplicated-lines-on-new-code on Markdown, workflow YAML, and shell.
+  TypeScript and JavaScript duplication is owned by SonarCloud on the pull request plus the org
+  zero-open-issues gate — refactor shared helpers instead of copying blocks. Lefthook runs `lint:dup` on
+  pre-commit when Markdown or workflow YAML is staged.
 
 ## Change checklist (agents and humans)
 

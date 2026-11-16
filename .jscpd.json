@@ -23,5 +23,5 @@
     "scripts"
   ],
   "reporters": ["console"],
-  "threshold": 0
+  "threshold": 3
 }

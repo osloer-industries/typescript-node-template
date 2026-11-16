@@ -155,9 +155,9 @@ custom Jest/Mocha adapter.
 
 <!-- devDependency: jscpd -->
 
-**Why chosen:** Local duplication detection with **0%** tolerated duplication in `.jscpd.json` on
-Markdown, workflow YAML, and shell (Bash) — artifacts SonarCloud does not fully cover in the same
-way ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
+**Why chosen:** Local duplication detection with a **3%** `threshold` in `.jscpd.json` (aligned with
+SonarCloud duplicated-lines-on-new-code) on Markdown, workflow YAML, and shell (Bash) — artifacts SonarCloud
+does not fully cover in the same way ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
 
 **Alternatives considered:** Sonar duplication only; scanning TypeScript/JavaScript locally with jscpd.
 
@@ -213,8 +213,9 @@ documented in `AGENTS.md` because Dependabot does not bump git-tag dependencies.
 
 <!-- devDependency: lefthook -->
 
-**Why chosen:** Git hooks runner for staged Oxlint, SonarJS, and markdownlint (`lefthook.yml`, `npm run
-prepare`); CI uses `npm ci --ignore-scripts` so hooks never run in Actions
+**Why chosen:** Git hooks runner for staged Oxlint, SonarJS, and markdownlint, plus full-repo
+`npm run lint:dup` when Markdown or workflow YAML is staged (`lefthook.yml`, `npm run prepare`); CI uses
+`npm ci --ignore-scripts` so hooks never run in Actions
 ([#32](https://github.com/osloer-industries/typescript-node-template/pull/32)).
 
 **Alternatives considered:** Husky; no pre-commit hooks.

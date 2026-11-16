@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const jscpdConfigRaw = readFileSync(new URL("../.jscpd.json", import.meta.url), "utf8");
+const lefthookYml = readFileSync(new URL("../lefthook.yml", import.meta.url), "utf8");
 
 describe(".jscpd.json contract", () => {
   it("scopes jscpd to Markdown, YAML, and Bash (not TypeScript/JavaScript)", () => {
@@ -15,9 +16,15 @@ describe(".jscpd.json contract", () => {
     );
     expect(path).not.toContain("src");
     expect(path).not.toContain("packages/eslint-sonarjs");
-    expect(Reflect.get(parsed, "threshold")).toBe(0);
+    expect(Reflect.get(parsed, "threshold")).toBe(3);
     expect(Reflect.get(parsed, "mode")).toBe("strict");
     expect(Reflect.get(parsed, "minLines")).toBe(8);
     expect(Reflect.get(parsed, "minTokens")).toBe(70);
+  });
+
+  it("runs lint:dup from lefthook when jscpd-scoped files are staged", () => {
+    expect(lefthookYml).toContain("jscpd:");
+    expect(lefthookYml).toContain("npm run lint:dup");
+    expect(lefthookYml).toContain('glob: "*.{md,yml,yaml}"');
   });
 });

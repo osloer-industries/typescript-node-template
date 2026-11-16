@@ -62,7 +62,9 @@ Run gates in this order when preparing a pull request:
 separate CI job, not part of `check`.
 
 After `npm ci`, run `npm run prepare` once locally to install Lefthook pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-(CI uses `npm ci --ignore-scripts`, so hooks are not installed in Actions).
+(CI uses `npm ci --ignore-scripts`, so hooks are not installed in Actions). Pre-commit runs staged Oxlint,
+SonarJS, markdownlint, and full-repo `npm run lint:dup` (jscpd) when Markdown or workflow YAML is staged; jscpd needs
+the whole configured tree, not staged files alone, to detect cross-file clones reliably (~200ms).
 
 After editing setup profiles, rely on `scripts/setup.test.ts` integration cases for all four scenarios.
 
@@ -115,7 +117,8 @@ When touching `scripts/`, setup, or CI install steps, follow
 - Install reproducibly with `npm ci`. Use `npm install --save-exact` when a
   dependency intentionally changes, then commit `package-lock.json`.
 - Run `npm run check` before submitting a change. This runs Oxlint, SonarJS ESLint,
-  jscpd duplication checks (Markdown, workflow YAML, shell at 0%), Markdown lint/link checks, the TypeScript
+  jscpd duplication checks (Markdown, workflow YAML, shell at the same **3%** threshold as Sonar
+  duplicated-lines-on-new-code), Markdown lint/link checks, the TypeScript
   compiler, coverage, production build, and knip (after build so `package.json` dist entries resolve).
   SonarCloud owns TypeScript/JavaScript duplication (Sonar way fails above **3%** duplicated new lines) and the
   org zero-open-issues check — see [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md).

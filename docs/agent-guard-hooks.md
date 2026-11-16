@@ -74,7 +74,14 @@ node scripts/agent-hooks/pre-stop-fast-check.ts --fast-check-strike 0
 typecheck, SonarJS, and Vitest **excluding** `*.integration.test.ts` (setup scenario installs).
 Use it while iterating; run full `npm run check` before opening a pull request (see `AGENTS.md`).
 
-## Optional Lefthook integration
+## Lefthook pre-commit
+
+`lefthook.yml` runs staged Oxlint, SonarJS, and markdownlint. When Markdown or workflow YAML is
+staged, it also runs full-repo `npm run lint:dup` (jscpd). jscpd compares clones across the configured
+tree, so staged-file-only scans are unreliable; the full check finishes in roughly 200ms on this
+template.
+
+## Optional guardrail pre-commit hook
 
 To fail locally when staging guardrail paths (human or agent), add a `pre-commit` command that
 passes staged paths into `block-guardrail-edits`. The template does not enable this by default so
