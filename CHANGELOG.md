@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.1](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.0...v0.3.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* **ci:** dedupe workflow bootstrap and strengthen greeting tests for Stryker ([#131](https://github.com/osloer-industries/typescript-node-template/issues/131)) ([5bb4d08](https://github.com/osloer-industries/typescript-node-template/commit/5bb4d08a6fadc4c132f74376dd492384f2a47f53))
+
+## [0.3.0](https://github.com/osloer-industries/typescript-node-template/compare/v0.2.0...v0.3.0) (2026-11-15)
+
+
+### Features
+
+* agent and local working files are not committed (ADR 0010) ([#95](https://github.com/osloer-industries/typescript-node-template/issues/95)) ([0ea27b4](https://github.com/osloer-industries/typescript-node-template/commit/0ea27b4c225b68ced6766291e8a85d3b24012f05))
+* **lint:** blanket-block every type escape hatch ([#122](https://github.com/osloer-industries/typescript-node-template/issues/122)) ([7d9f398](https://github.com/osloer-industries/typescript-node-template/commit/7d9f398f8618bcc585c71233ee9f8ede9c861482))
+
 ## [0.2.0](https://github.com/osloer-industries/typescript-node-template/compare/v0.1.0...v0.2.0) (2026-11-14)
 
 

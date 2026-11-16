@@ -128,17 +128,43 @@ with ESM `NodeNext` defaults in this template.
 **Why they lost:** Vitest documents V8 as the primary provider; skipping coverage would not enforce template
 coverage contracts in `AGENTS.md`.
 
+### `@stryker-mutator/core`
+
+<!-- devDependency: @stryker-mutator/core -->
+
+**Why chosen:** Mutation testing on `src/` with an **80%** break threshold (`stryker.config.mjs`), separate
+from Vitest coverage ([#51](https://github.com/osloer-industries/typescript-node-template/issues/51)).
+
+**Alternatives considered:** No mutation gate; PIT-style manual review only.
+
+**Why they lost:** Coverage alone does not prove tests catch real faults; Stryker is the standard JS mutation
+runner and pairs with the existing Vitest suite.
+
+### `@stryker-mutator/vitest-runner`
+
+<!-- devDependency: @stryker-mutator/vitest-runner -->
+
+**Why chosen:** Runs mutants through the same Vitest config as unit tests (`vitest.config.ts`) without a
+custom Jest/Mocha adapter.
+
+**Alternatives considered:** `@stryker-mutator/jest-runner`; command-runner invoking `npm test` per mutant.
+
+**Why they lost:** Template standardizes on Vitest; command-runner is slower and harder to scope per mutant.
+
 ### `jscpd`
 
 <!-- devDependency: jscpd -->
 
-**Why chosen:** Duplication detection on TypeScript, JavaScript, and Markdown with **0%** tolerated
-duplication in `.jscpd.json` ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
+**Why chosen:** Local duplication detection with **0%** tolerated duplication in `.jscpd.json` on
+Markdown, workflow YAML, and shell (Bash) — artifacts SonarCloud does not fully cover in the same
+way ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
 
-**Alternatives considered:** Sonar duplication only; manual review.
+**Alternatives considered:** Sonar duplication only; scanning TypeScript/JavaScript locally with jscpd.
 
-**Why they lost:** Sonar duplication is PR/cloud scoped; jscpd runs locally in `npm run check` and blocks
-copy-pasted agent instructions across markdown.
+**Why they lost:** SonarCloud already gates TypeScript/JavaScript duplication on pull requests (Sonar way
+fails above **3%** duplicated new lines) and the org zero-open-issues check. jscpd runs in `npm run check`
+so copy-pasted agent instructions, workflows, and shell glue fail before push without duplicating Sonar’s TS/JS
+signal.
 
 ### `knip`
 
@@ -295,7 +321,7 @@ changes.
 <!-- ci-tool: codeql -->
 
 **Why chosen:** Scheduled and PR JavaScript/TypeScript analysis via org reusable
-`codeql-javascript-typescript.yml` (caller `.github/workflows/codeql.yml`; public repos use Code Scanning
+`codeql-javascript-typescript.yml` (caller job on `.github/workflows/ci.yml`; public repos use Code Scanning
 upload; private repos use SARIF artifact mode per org doc).
 
 **Alternatives considered:** Disable CodeQL on private repos pending license/GHAS
@@ -304,18 +330,27 @@ upload; private repos use SARIF artifact mode per org doc).
 **Why they lost:** ADR 0008 is **proposed**; workflow remains until Thomas decides replacement (Semgrep CE,
 GHAS, Sonar-only).
 
+### CI: SonarQube Cloud Node scan (org reusable)
+
+<!-- ci-tool: sonarqube-cloud-node -->
+
+**Why chosen:** Org `sonarqube-cloud-node.yml` on `.github/workflows/ci.yml` runs `npm run coverage:sonar` and
+uploads analysis plus LCOV coverage (`sonar.javascript.lcov.reportPaths` in `sonar-project.properties`).
+Automatic Analysis must stay **off** on SonarCloud projects ([docs/sonar-quality-gate.md](../sonar-quality-gate.md)).
+
 ### CI: SonarCloud zero open issues (org reusable)
 
 <!-- ci-tool: sonarcloud-zero-issues -->
 
-**Why chosen:** Org `sonarcloud-zero-issues.yml` caller in `.github/workflows/sonar.yml` enforces zero open
-SonarCloud issues on the PR head while **automatic analysis** performs scans (no `sonarqube-scan-action`;
-[docs/sonar-quality-gate.md](../sonar-quality-gate.md)).
+**Why chosen:** Org `sonarcloud-zero-issues.yml` on `.github/workflows/ci.yml` enforces zero open SonarCloud
+issues on the PR head after the CI scan job completes.
 
-**Alternatives considered:** `SonarSource/sonarqube-scan-action` in CI with automatic analysis disabled.
+### CI: ci-passed aggregate (org reusable)
 
-**Why they lost:** CI scanning conflicts with SonarCloud automatic analysis on the same project; local
-`lint:sonarjs` and `CI / Quality` coverage already shift-left before SonarCloud reports on the PR.
+<!-- ci-tool: ci-passed -->
+
+**Why chosen:** Org `ci-passed.yml` is the **only** required branch protection check; it fails closed when any
+upstream job in `ci.yml` fails or is cancelled.
 
 ### CI: zizmor
 
