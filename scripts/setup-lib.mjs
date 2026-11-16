@@ -429,6 +429,9 @@ export function applySetup(selected, options = {}) {
   const baseDir = options.baseDir ?? ".";
   const pkg = JSON.parse(readFileSync(join(baseDir, "package.json"), "utf8"));
   configureHarnessDevDependencies(pkg, selected.scenario, baseDir);
+  if (resolve(baseDir) !== templateRootDir) {
+    delete pkg.scripts["test:mutation"];
+  }
   pkg.name = selected.name;
   pkg.description = selected.description;
   pkg.private = !selected.profile.publishable;

@@ -11,16 +11,15 @@ coverage enforcement, and GitHub security automation.
 - 80% minimum coverage for branches, functions, lines, and statements in `src/` and testable `scripts/`
   helpers (CLI entry `scripts/setup.mjs` is exercised by CI smoke jobs)
 - Pull request and `main` CI with `npm run check`, `npm audit --omit=dev`, and a four-scenario setup smoke matrix
-- Org-pinned workflow security (actionlint + zizmor) and CodeQL reusables; SonarCloud automatic analysis plus
-  org zero-issues gate, Dependabot, and
-  pull request dependency review
+- Org-pinned workflow security (actionlint + zizmor), CodeQL, SonarCloud CI scan with coverage upload, and
+  zero-open-issues gate; aggregate **`ci-passed`** required check; Dependabot and pull request dependency review
 - Release Please for Conventional Commit-based release pull requests, changelogs, tags, and GitHub releases
 - Conventional pull request title validation and matching Dependabot commit prefixes
 - Full commit SHA pins, minimal permissions, timeouts, and concurrency cancellation
 - Secret-safe ignores, issue forms, and pull request guidance
 - Provider-neutral [AGENTS.md](AGENTS.md) and [docs/architecture.md](docs/architecture.md) for contributors and coding agents
-- Local SonarJS rules (`npm run lint:sonarjs`), jscpd duplication checks, knip unused-code detection, and
-  Lefthook pre-commit hooks
+- Local SonarJS rules (`npm run lint:sonarjs`), jscpd duplication checks (Markdown, workflow YAML, shell),
+  knip unused-code detection, and Lefthook pre-commit hooks; SonarCloud gates TypeScript/JavaScript duplication
 
 ## Start a project
 
@@ -63,11 +62,12 @@ Further patterns (provider-neutral):
 | --- | --- |
 | `npm run lint` | Lint with the explicit `.oxlintrc.json` policy, including type-aware rules |
 | `npm run lint:sonarjs` | SonarJS ESLint `recommended` rules (see `packages/eslint-sonarjs/`) |
-| `npm run lint:dup` | Detect duplicated code and markdown (jscpd, 0% threshold) |
+| `npm run lint:dup` | Detect duplicated Markdown, workflow YAML, and shell (jscpd, 0% threshold; TS/JS via SonarCloud) |
 | `npm run lint:knip` | Detect unused files, exports, and dependencies (knip) |
 | `npm run typecheck` | Check types without emitting files |
 | `npm test` | Run unit tests |
 | `npm run test:coverage` | Test and enforce coverage thresholds |
+| `npm run test:mutation` | Stryker mutation testing on `src/` (80% break threshold; separate from `check`) |
 | `npm run build` | Compile to `dist/` |
 | `npm run check` | Run all local quality gates |
 | `npm audit --omit=dev` | Audit production dependencies |
@@ -78,13 +78,13 @@ Contributors and agents should follow [docs/sonar-quality-gate.md](docs/sonar-qu
 **SonarCloud Code Analysis** failures (PATH-safe npm via `scripts/run-npm.mjs`, `--ignore-scripts` on CI
 installs, and local `eslint-plugin-sonarjs` via `npm run lint:sonarjs`).
 
-1. Import the repository into SonarQube Cloud and keep **Automatic Analysis** enabled for the project
-   (GitHub Actions must not run `SonarSource/sonarqube-scan-action`; it conflicts with automatic analysis).
+1. Import the repository into SonarQube Cloud and **disable Automatic Analysis** (CI runs
+   `sonarqube-scan-action` via org `sonarqube-cloud-node.yml`; both modes cannot share one project).
 2. Set `sonar.organization` and `sonar.projectKey` in `sonar-project.properties` (this template uses
    `osloer-industries` / `osloer-industries_typescript-node-template`).
 3. Ensure organization Actions secret **`SONAR_TOKEN`** is available to the repository (or add a repository
    secret with the same name).
-4. Open a pull request and confirm **SonarCloud Code Analysis** and **SonarCloud / SonarCloud zero open issues**
+4. Open a pull request and confirm **CI / Analyze**, **CI / SonarCloud zero open issues**, and **`ci-passed`**
    run on the PR head commit.
 
 Never commit the token.
@@ -125,10 +125,9 @@ Branch protection is intentionally not automated. After the first successful run
 
 - Pull requests required with at least one approval
 - Stale approval dismissal and conversation resolution
-- Required checks: `workflow-security / Workflow security`, `CI / Quality`, the four `Setup smoke` jobs,
-  `CodeQL / Analyze JavaScript and TypeScript`, `Dependency review / Review dependency changes`, `Pull
-  request title / Semantic pull request`, and `SonarCloud / SonarCloud zero open issues` once SonarCloud is
-  configured
+- Required check: **`ci-passed`** (aggregates quality, setup smoke, workflow security, CodeQL, and Sonar gates).
+  Optionally require `Dependency review / Review dependency changes` and `Pull request title / Semantic pull
+  request` separately if your org policy wants those outside the aggregate
 - Up-to-date branches when parallel development makes it useful
 - Force pushes and branch deletion blocked
 - Rules applied to administrators unless an emergency process exists

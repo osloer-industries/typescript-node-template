@@ -4,8 +4,12 @@ on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    - cron: "17 3 * * 1"
 permissions:
   contents: read
+  actions: read
+  pull-requests: read
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -25,8 +29,7 @@ jobs:
         with: { persist-credentials: false, fetch-depth: 0 }
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: npm }
-      - run: npm ci --ignore-scripts
-      - run: npm ci --ignore-scripts --prefix packages/eslint-sonarjs
+      - run: node scripts/ci-npm-workspace.mjs --install-eslint-sonarjs
       - name: Guardrail path change notice
         if: github.event_name == 'pull_request'
         env:
@@ -35,6 +38,26 @@ jobs:
       - run: npm audit --omit=dev --audit-level=high
       - run: npm audit --omit=dev --audit-level=high --prefix packages/eslint-sonarjs
       - run: npm run check
+
+  mutation:
+    name: Mutation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false, fetch-depth: 0 }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version-file: .nvmrc, cache: npm }
+      - run: node scripts/ci-npm-workspace.mjs
+      - name: Mutation (changed src on pull request)
+        if: github.event_name == 'pull_request'
+        env:
+          MUTATION_BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/run-mutation-changed.ts
+      - name: Mutation (full src on main)
+        if: github.event_name == 'push'
+        run: npm run test:mutation
+
   setup-smoke:
     name: Setup smoke (${{ matrix.scenario }})
     runs-on: ubuntu-latest
@@ -48,5 +71,42 @@ jobs:
         with: { persist-credentials: false }
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: npm }
-      - run: npm ci --ignore-scripts
+      - run: node scripts/ci-npm-workspace.mjs
       - run: npm run setup -- --scenario ${{ matrix.scenario }} --name @smoke/${{ matrix.scenario }}-template --yes
+
+  codeql:
+    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+
+  sonar-analyze:
+    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    with:
+      coverage-npm-script: coverage:sonar
+      timeout-minutes: 20
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  sonar-zero-open-issues:
+    needs: sonar-analyze
+    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    with:
+      project-key: osloer-industries_typescript-node-template
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  ci-passed:
+    name: ci-passed
+    needs:
+      - workflow-security
+      - quality
+      - mutation
+      - setup-smoke
+      - codeql
+      - sonar-zero-open-issues
+    if: always()
+    uses: osloer-industries/.github/.github/workflows/ci-passed.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    with:
+      needs-json: ${{ toJSON(needs) }}
