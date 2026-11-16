@@ -18,7 +18,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function parsePathList(value: unknown): string[] | undefined {
   if (value === undefined) return undefined;
   if (!Array.isArray(value)) {
-    throw new Error('Hook JSON field "paths" must be an array of strings.');
+    throw new TypeError('Hook JSON field "paths" must be an array of strings.');
   }
   const paths: string[] = [];
   for (const entry of value) {
@@ -78,7 +78,7 @@ export function parseHookArgv(argv: readonly string[]): HookInput {
     if (token === "--paths") {
       const next = argv[index + 1];
       if (typeof next !== "string") {
-        throw new Error("Missing value for --paths.");
+        throw new TypeError("Missing value for --paths.");
       }
       input.paths = splitCommaList(next);
       index += 1;
@@ -87,7 +87,7 @@ export function parseHookArgv(argv: readonly string[]): HookInput {
     if (token === "--fast-check-strike") {
       const next = argv[index + 1];
       if (typeof next !== "string") {
-        throw new Error("Missing value for --fast-check-strike.");
+        throw new TypeError("Missing value for --fast-check-strike.");
       }
       const strike = Number.parseInt(next, 10);
       if (!Number.isInteger(strike) || strike < 0) {
