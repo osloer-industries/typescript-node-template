@@ -1,6 +1,6 @@
 {
   "name": "typescript-node-template",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A minimal, secure Node.js and TypeScript starter.",
   "private": true,
   "type": "module",
@@ -35,6 +35,7 @@
     "setup": "node scripts/setup.mjs",
     "test": "vitest run",
     "test:fast": "vitest run --exclude '**/*.integration.test.ts'",
+    "coverage:sonar": "node scripts/run-sonar-coverage.mjs",
     "test:coverage": "vitest run --coverage",
     "test:mutation": "stryker run",
     "test:watch": "vitest",
