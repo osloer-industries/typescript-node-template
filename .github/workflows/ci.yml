@@ -37,7 +37,7 @@ jobs:
         run: node scripts/check-guardrail-changes.ts
       - run: npm audit --omit=dev --audit-level=high
       - run: npm audit --omit=dev --audit-level=high --prefix packages/eslint-sonarjs
-      - run: npm run check
+      - run: npm run precommit
 
   mutation:
     name: Mutation
@@ -57,6 +57,7 @@ jobs:
       - name: Mutation (full src on main)
         if: github.event_name == 'push'
         run: npm run test:mutation
+
   setup-smoke:
     name: Setup smoke (${{ matrix.scenario }})
     runs-on: ubuntu-latest

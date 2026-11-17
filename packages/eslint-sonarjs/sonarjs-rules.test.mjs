@@ -13,10 +13,10 @@ describe("recommendedSeverityToError", () => {
   });
 
   it("promotes warn and error to error", () => {
-    expect(recommendedSeverityToError("warn")).toBe("error");
-    expect(recommendedSeverityToError("error")).toBe("error");
-    expect(recommendedSeverityToError(1)).toBe("error");
-    expect(recommendedSeverityToError(2)).toBe("error");
+    expect(recommendedSeverityToError("warn")).toEqual(["error"]);
+    expect(recommendedSeverityToError("error")).toEqual(["error"]);
+    expect(recommendedSeverityToError(1)).toEqual(["error"]);
+    expect(recommendedSeverityToError(2)).toEqual(["error"]);
   });
 
   it("preserves options while forcing error", () => {

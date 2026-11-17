@@ -34,7 +34,9 @@ export function recommendedSeverityToError(severity) {
     return ruleWithOptions;
   }
   if (severity === "error" || severity === "warn" || severity === 1 || severity === 2) {
-    return "error";
+    /** @type {RuleEntry} */
+    const rule = ["error"];
+    return rule;
   }
   return undefined;
 }
