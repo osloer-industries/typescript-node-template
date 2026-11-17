@@ -1,6 +1,6 @@
 {
   "name": "typescript-node-template",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A minimal, secure Node.js and TypeScript starter.",
   "private": true,
   "type": "module",
@@ -52,7 +52,10 @@
   "license": "MIT",
   "overrides": {
     "basic-ftp": "6.2.6",
-    "katex": "0.19.1"
+    "katex": "0.19.1",
+    "minimatch": "11.0.8",
+    "qs": "6.16.1",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@fast-check/vitest": "0.5.0",

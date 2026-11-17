@@ -10,19 +10,24 @@ This template already uses minimal examples for transitive dev-tooling gaps:
 ```json
 "overrides": {
   "basic-ftp": "6.2.6",
-  "katex": "0.19.1"
+  "katex": "0.19.1",
+  "minimatch": "11.0.8",
+  "qs": "6.16.1",
+  "zod": "4.6.7"
 }
 ```
 
-`basic-ftp` is pulled in by `@osloer-industries/markdown-link-check` (see
-[GHSA-5pm8-86m8-9m6r](https://github.com/advisories/GHSA-5pm8-86m8-9m6r)). `katex` is pulled in
-by `markdownlint` → `micromark-extension-math` (see
-[GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7)).
-Remove each override when upstream ranges include a fixed release.
+Active root overrides and why (see `package.json`):
 
-The nested `packages/eslint-sonarjs` package uses a `minimatch` override for the same reason (eslint and
-`@typescript-eslint/*` transitively depend on a vulnerable range; see
-[GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249)).
+| Package | Version | Reason |
+| --- | --- | --- |
+| `basic-ftp` | `6.2.6` | Transitive via `markdown-link-check` / `proxy-agent` ([GHSA-5pm8-86m8-9m6r](https://github.com/advisories/GHSA-5pm8-86m8-9m6r)). |
+| `qs` | `6.16.1` | `@stryker-mutator/core@10.1.1` pins `typed-rest-client@~2.3.0`, which resolves `qs@6.15.1`. |
+| `minimatch` | `11.0.8` | `@stryker-mutator/core@10.1.1` and other tooling depend on a vulnerable `minimatch` range ([GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249)). |
+| `katex` | `0.19.1` | `micromark-extension-math` via `markdownlint` ([GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7)). |
+| `zod` | `4.6.7` | Transitive via `@modelcontextprotocol/sdk` ([GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)). |
+
+`packages/eslint-sonarjs` also overrides `minimatch@11.0.8` in its own lockfile (ESLint / typescript-eslint tree).
 
 ## When an override is acceptable
 
