@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.4](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.3...v0.3.4) (2026-11-17)
+
+
+### Bug Fixes
+
+* clear npm audit findings in root and eslint-sonarjs ([#105](https://github.com/osloer-industries/typescript-node-template/issues/105)) ([4a97b8c](https://github.com/osloer-industries/typescript-node-template/commit/4a97b8c56bcc2b1b0aba73f4ff82fb4ad49275d6))
+
 ## [0.3.3](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.2...v0.3.3) (2026-11-17)
 
 
