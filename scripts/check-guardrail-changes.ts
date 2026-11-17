@@ -10,6 +10,8 @@ export const GUARDRAIL_PATH_PREFIXES = [
   ".agents/skills/",
   "CODEOWNERS",
   "scripts/check-guardrail-changes.ts",
+  "scripts/check-fleet-adoption-doc.ts",
+  "docs/fleet-adoption.md",
   ".oxlintrc.json",
   "lefthook.yml",
   "scripts/suppression-baseline.json",
