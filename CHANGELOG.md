@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.1...v0.3.2) (2026-11-16)
+
+
+### Bug Fixes
+
+* run Sonar zero-issues gate only on pull requests ([#144](https://github.com/osloer-industries/typescript-node-template/issues/144)) ([89e560e](https://github.com/osloer-industries/typescript-node-template/commit/89e560ee84623e0be6e4e446237ea87bf109f86d))
+
 ## [0.3.1](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.0...v0.3.1) (2026-11-16)
 
 

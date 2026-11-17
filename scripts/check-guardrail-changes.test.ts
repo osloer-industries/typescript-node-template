@@ -43,22 +43,19 @@ function initSrcOnlyDiffRepo(tempDir: string): { base: string; head: string } {
 
 describe("isGuardrailPath", () => {
   it("matches harness files and workflow directories", () => {
-    const guardrailPaths = [
-      ".github/workflows/ci.yml",
-      agentsMdPath,
-      ".gitignore",
-      "CODEOWNERS",
-      "lefthook.yml",
-      "packages/eslint-sonarjs/eslint.config.mjs",
-      guardrailCheckRelativePath,
-      "scripts/agent-hooks/block-guardrail-edits.ts",
-      "scripts/count-suppressions.ts",
-      ".agents/skills/release/SKILL.md",
-    ] as const;
-    for (const path of guardrailPaths) {
-      expect(isGuardrailPath(path)).toBe(true);
-    }
-    expect(isGuardrailPath(srcIndexPath)).toBe(false);
+    expect(isGuardrailPath(".github/workflows/ci.yml")).toBe(true);
+    expect(isGuardrailPath("AGENTS.md")).toBe(true);
+    expect(isGuardrailPath(".gitignore")).toBe(true);
+    expect(isGuardrailPath("CODEOWNERS")).toBe(true);
+    expect(isGuardrailPath("lefthook.yml")).toBe(true);
+    expect(isGuardrailPath("packages/eslint-sonarjs/eslint.config.mjs")).toBe(true);
+    expect(isGuardrailPath("scripts/check-guardrail-changes.ts")).toBe(true);
+    expect(isGuardrailPath("scripts/check-fleet-adoption-doc.ts")).toBe(true);
+    expect(isGuardrailPath("docs/fleet-adoption.md")).toBe(true);
+    expect(isGuardrailPath("scripts/agent-hooks/block-guardrail-edits.ts")).toBe(true);
+    expect(isGuardrailPath("scripts/count-suppressions.ts")).toBe(true);
+    expect(isGuardrailPath(".agents/skills/release/SKILL.md")).toBe(true);
+    expect(isGuardrailPath("src/index.ts")).toBe(false);
   });
 });
 

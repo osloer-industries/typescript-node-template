@@ -48,6 +48,10 @@ Related: [issue #60](https://github.com/osloer-industries/typescript-node-templa
   must opt it in explicitly, with a reason that reviewers can see.
 - Shared skills are committed once under `.agents/skills/<name>/SKILL.md`, never duplicated into
   vendor skill directories.
+- Claude Code reads `AGENTS.md` natively (2.1.277, 18 Sep 2026), but only while no `CLAUDE.md`,
+  `.claude/CLAUDE.md` or `CLAUDE.local.md` sits at or above the working directory. Denying
+  `CLAUDE.md` in CI keeps the committed tree safe. A *local* `CLAUDE.local.md` still disables
+  AGENTS.md for that developer, so `vakt doctor` warns about it (osloer-industries/vakt#144).
 - New agent tools need their paths added to the reusable's deny list; until then they are caught
   only by review.
 

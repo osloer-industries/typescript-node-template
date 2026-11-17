@@ -362,7 +362,10 @@ issues on the PR head after the CI scan job completes.
 <!-- ci-tool: ci-passed -->
 
 **Why chosen:** Org `ci-passed.yml` is the **only** required branch protection check; it fails closed when any
-upstream job in `ci.yml` fails or is cancelled.
+upstream job in `ci.yml` fails or is cancelled. Caller or inlined [`scripts/ci-passed-gate.ts`](../scripts/ci-passed-gate.ts)
+implements the org skip rules: `sonar-zero-open-issues` may be **skipped** only off `pull_request`; on
+`pull_request` it must succeed. `harness-approval` may be **skipped** only when `guardrail-detect` outputs
+`guardrail_changed: false` (no widening to event-based allowlists).
 
 ### CI: zizmor
 
