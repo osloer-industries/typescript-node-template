@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.2...v0.3.3) (2026-11-17)
+
+
+### Bug Fixes
+
+* **deps:** resolve eight Dependabot transitive security alerts ([#132](https://github.com/osloer-industries/typescript-node-template/issues/132)) ([d382902](https://github.com/osloer-industries/typescript-node-template/commit/d382902e47b54f3565cf83468d15c37715900fe4))
+
 ## [0.3.2](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.1...v0.3.2) (2026-11-16)
 
 
