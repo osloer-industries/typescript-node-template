@@ -9,9 +9,20 @@ This template already uses a minimal example:
 
 ```json
 "overrides": {
-  "basic-ftp": "6.2.3"
+  "basic-ftp": "6.2.4"
 }
 ```
+
+Active root overrides and why (see `package.json`):
+
+| Package | Version | Reason |
+| --- | --- | --- |
+| `basic-ftp` | `6.2.4` | Transitive via `markdown-link-check` / `proxy-agent`; no fixed release on that path yet. |
+| `qs` | `6.16.1` | `@stryker-mutator/core@10.1.1` pins `typed-rest-client@~2.3.0`, which resolves `qs@6.15.1`. |
+| `minimatch` | `11.0.1` | `@stryker-mutator/core@10.1.1` depends on `minimatch@~10.2.4` (below GHSA fix). |
+| `katex` | `0.18.2` | `micromark-extension-math` allows `^0.16.0` but the lockfile stayed on a vulnerable patch. |
+
+`packages/eslint-sonarjs` also overrides `minimatch@11.0.1` in its own lockfile (ESLint / typescript-eslint tree).
 
 ## When an override is acceptable
 
