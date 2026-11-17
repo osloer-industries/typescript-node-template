@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   workflow-security:
-    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@80340f8b509c4c5ecde51bff0ddb6c04e6687fdc # v0.1.4
     permissions:
       contents: read
       actions: read
@@ -75,14 +75,14 @@ jobs:
       - run: npm run setup -- --scenario ${{ matrix.scenario }} --name @smoke/${{ matrix.scenario }}-template --yes
 
   codeql:
-    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@80340f8b509c4c5ecde51bff0ddb6c04e6687fdc # v0.1.4
     permissions:
       contents: read
       actions: read
       security-events: write
 
   sonar-analyze:
-    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@80340f8b509c4c5ecde51bff0ddb6c04e6687fdc # v0.1.4
     with:
       coverage-npm-script: coverage:sonar
       timeout-minutes: 20
@@ -92,7 +92,7 @@ jobs:
   sonar-zero-open-issues:
     if: github.event_name == 'pull_request'
     needs: sonar-analyze
-    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@80340f8b509c4c5ecde51bff0ddb6c04e6687fdc # v0.1.4
     with:
       project-key: osloer-industries_typescript-node-template
     secrets:

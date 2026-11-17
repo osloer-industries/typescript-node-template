@@ -308,8 +308,8 @@ PR flow; Renovate adds another bot/policy surface.
 
 <!-- ci-tool: dependency-review-action -->
 
-**Why chosen:** Fail PRs that introduce **high** severity vulnerable dependencies
-(`.github/workflows/dependency-review.yml`).
+**Why chosen:** Fail PRs that introduce **high** severity vulnerable dependencies via org reusable
+`dependency-review.yml` (caller `.github/workflows/dependency-review.yml`).
 
 **Alternatives considered:** `npm audit` only in CI.
 

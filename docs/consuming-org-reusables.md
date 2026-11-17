@@ -21,7 +21,7 @@ on that repository.
    aggregate job already fails when any upstream job fails or is cancelled.
 
 Pin every org reusable to the same `.github` release tag commit SHA (for example
-`d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2`); use the tag in the `#` comment, not `main`, so
+`80340f8b509c4c5ecde51bff0ddb6c04e6687fdc # v0.1.4`); use the tag in the `#` comment, not `main`, so
 zizmor ref-version-mismatch stays green when org `main` advances. Bump via Dependabot (`osloer-reusables`
 group) or template-sync when a new `.github` tag ships. Callers do not pass `reusables-ref`; reusable
 workflows resolve their scripts from
@@ -40,9 +40,12 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-zero-open-issues` job) | `sonarcloud-zero-issues.yml` | Pull requests only (`if: github.event_name == 'pull_request'`); polls after `sonar-analyze`. Push to `main` still runs CI Sonar analysis for baseline/coverage. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | In-repo `scripts/ci-passed-gate.ts` | **Org standard** aggregate gate ([`scripts/ci-passed-gate.ts`](../scripts/ci-passed-gate.ts), port to org `.github/scripts/`). `needs:` every upstream job including `sonar-analyze`. Only tolerated skips: `sonar-zero-open-issues` **skipped** on non–`pull_request` events; `harness-approval` **skipped** when `guardrail-detect` outputs `guardrail_changed: false`. All other skip/cancel/failure/missing results fail closed; on `pull_request`, `sonar-zero-open-issues` must be present and **success**. |
 | [`release.yml`](../.github/workflows/release.yml) | `release-please.yml` | Release GitHub App secrets (see org doc). |
+| [`pr-title.yml`](../.github/workflows/pr-title.yml) | `semantic-pull-request.yml` | `pull_request` title events; job-level `pull-requests: read`. |
+| [`dependency-review.yml`](../.github/workflows/dependency-review.yml) | `dependency-review.yml` | `pull_request` only; default `fail-on-severity: high`. |
 
-Other workflows (CI quality, setup smoke, dependency review, PR title) may still be inlined in this
-template until they are migrated; fleet-wide copies belong in org `.github` per
+CI quality, setup smoke, and mutation jobs remain inlined until org reusables cover guardrails and workspace
+audit prefixes ([#56](https://github.com/osloer-industries/typescript-node-template/issues/56));
+fleet-wide copies belong in org `.github` per
 [ADR 0005](adr/0005-placement-template-vs-org-github.md).
 
 ## Private repository CodeQL
