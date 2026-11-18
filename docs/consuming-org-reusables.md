@@ -37,12 +37,16 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`workflow-security` job) | `workflow-security.yml` | actionlint + zizmor; **job**-level `actions: read` on the calling job (zizmor online audits); default empty `min-severity` / `min-confidence` (strictest). |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`codeql` job) | `codeql-javascript-typescript.yml` | Public repo: default Code Scanning upload. Private repos without GHAS: set `code-scanning-upload: false` and keep `fail-on-sarif-level: error` (see org doc). |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-analyze` job) | `sonarqube-cloud-node.yml` | `npm run coverage:sonar` (`run-sonar-coverage.mjs` installs nested `packages/eslint-sonarjs` via `ci-npm-workspace.mjs` after the reusable’s root `npm ci`, then `test:coverage`); requires `SONAR_TOKEN`. |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-zero-open-issues` job) | `sonarcloud-zero-issues.yml` | Pull requests only (`if: github.event_name == 'pull_request'`); polls after `sonar-analyze`. Push to `main` still runs CI Sonar analysis for baseline/coverage. |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | In-repo `scripts/ci-passed-gate.ts` | **Org standard** aggregate gate ([`scripts/ci-passed-gate.ts`](../scripts/ci-passed-gate.ts), port to org `.github/scripts/`). `needs:` every upstream job including `sonar-analyze`. Only tolerated skips: `sonar-zero-open-issues` **skipped** on non–`pull_request` events; `harness-approval` **skipped** when `guardrail-detect` outputs `guardrail_changed: false`. All other skip/cancel/failure/missing results fail closed; on `pull_request`, `sonar-zero-open-issues` must be present and **success**. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`quality` job) | `node-npm-quality.yml` | `check` via org package-manager; `fetch-depth: 0`; `pr-pre-check-script: scripts/check-guardrail-changes.ts`; `npm-prefixes-json` for `packages/eslint-sonarjs`. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`mutation` job) | `mutation-changed.yml` | Org `run-mutation-changed.ts` at reusables pin. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`setup-smoke` job) | `node-setup-smoke.yml` | Default four-scenario matrix. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-zero-open-issues` job) | `sonarcloud-zero-issues.yml` | Pull requests only (`if: github.event_name == 'pull_request'`); `ce-task-id` from `sonar-analyze`. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | `ci-passed.yml` | Org aggregate gate; Sonar zero-open skip tolerated only off `pull_request`. Template [`scripts/ci-passed-gate.ts`](../scripts/ci-passed-gate.ts) still documents future `harness-approval` / `guardrail-detect` semantics until org ports them. |
+| [`dependency-review.yml`](../.github/workflows/dependency-review.yml) | `dependency-review.yml` | Job-level `contents` / `actions` / `pull-requests` read and `security-events: write` (nested OSV reusable). |
+| [`pr-title.yml`](../.github/workflows/pr-title.yml) | `semantic-pull-request.yml` | `pull_request_target` caller; job-level `pull-requests: read`. |
 | [`release.yml`](../.github/workflows/release.yml) | `release-please.yml` | Release GitHub App secrets (see org doc). |
 
-Other workflows (CI quality, setup smoke, dependency review, PR title) may still be inlined in this
-template until they are migrated; fleet-wide copies belong in org `.github` per
+Domain-only jobs remain in-repo (for example `fleet-adoption-doc`, future `harness-approval`) per
 [ADR 0005](adr/0005-placement-template-vs-org-github.md).
 
 ## Private repository CodeQL
