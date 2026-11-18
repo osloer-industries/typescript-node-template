@@ -43,7 +43,7 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-zero-open-issues` job) | `sonarcloud-zero-issues.yml` | Pull requests only (`if: github.event_name == 'pull_request'`); `ce-task-id` from `sonar-analyze`. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | `ci-passed.yml` | Org aggregate gate; Sonar zero-open skip tolerated only off `pull_request`. Template [`scripts/ci-passed-gate.ts`](../scripts/ci-passed-gate.ts) still documents future `harness-approval` / `guardrail-detect` semantics until org ports them. |
 | [`dependency-review.yml`](../.github/workflows/dependency-review.yml) | `dependency-review.yml` | Job-level `contents` / `actions` / `pull-requests` read and `security-events: write` (nested OSV reusable). |
-| [`pr-title.yml`](../.github/workflows/pr-title.yml) | `semantic-pull-request.yml` | `pull_request_target` caller; job-level `pull-requests: read`. |
+| [`pr-title.yml`](../.github/workflows/pr-title.yml) | `semantic-pull-request.yml` | `pull_request` caller (not org doc `pull_request_target` — workflow-security zizmor rejects `pull_request_target` in this repo); job-level `pull-requests: read`. |
 | [`release.yml`](../.github/workflows/release.yml) | `release-please.yml` | Release GitHub App secrets (see org doc). |
 
 Domain-only jobs remain in-repo (for example `fleet-adoption-doc`, future `harness-approval`) per
