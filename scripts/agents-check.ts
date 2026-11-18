@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { NODE_CMD_PATTERN, NPM_RUN_PATTERN } from "./agents-check-patterns.mjs";
 
 /** Root and harness docs always scanned for cited paths and npm scripts. */
 export const FIXED_GUIDANCE_FILES = [
@@ -53,17 +54,7 @@ export interface GuidanceFinding {
   readonly token: string;
 }
 
-const MARKDOWN_LINK_PATTERN = new RegExp("\\[[^\\[\\]]*\\]\\(([^)]+)\\)", "gu");
 const BACKTICK = String.fromCodePoint(96);
-const BACKTICK_PATTERN = new RegExp(
-  BACKTICK + "([^" + BACKTICK + "]+)" + BACKTICK,
-  "gu",
-);
-const NPM_RUN_PATTERN = new RegExp(
-  "\\bnpm run(?:-script)? +([!#$%&'*+.0-9:A-Z^_a-z~-]+)",
-  "gu",
-);
-const NODE_CMD_PATTERN = /\bnode +(\S+)/gu;
 
 function normalizeSlashes(value: string): string {
   return value.replaceAll("\\", "/").trim();
@@ -164,20 +155,60 @@ function referenceKey(reference: GuidanceReference): string {
   return reference.kind + ":" + reference.line + ":" + reference.token;
 }
 
+function markdownLinkTargets(rawLine: string): string[] {
+  const targets: string[] = [];
+  let index = 0;
+  while (index < rawLine.length) {
+    if (rawLine[index] !== "[") {
+      index += 1;
+      continue;
+    }
+    const labelEnd = rawLine.indexOf("]", index + 1);
+    if (labelEnd === -1) {
+      break;
+    }
+    if (rawLine[labelEnd + 1] !== "(") {
+      index = labelEnd + 1;
+      continue;
+    }
+    const targetEnd = rawLine.indexOf(")", labelEnd + 2);
+    if (targetEnd === -1) {
+      break;
+    }
+    targets.push(rawLine.slice(labelEnd + 2, targetEnd));
+    index = targetEnd + 1;
+  }
+  return targets;
+}
+
 function extractMarkdownLinks(
   rawLine: string,
   lineNumber: number,
   pushReference: (reference: GuidanceReference) => void,
 ): void {
-  MARKDOWN_LINK_PATTERN.lastIndex = 0;
-  let linkMatch = MARKDOWN_LINK_PATTERN.exec(rawLine);
-  while (linkMatch !== null) {
-    const target = linkMatch[1];
-    if (typeof target === "string" && !shouldSkipLinkTarget(target)) {
+  for (const target of markdownLinkTargets(rawLine)) {
+    if (!shouldSkipLinkTarget(target)) {
       pushReference({ kind: "path", line: lineNumber, token: normalizeSlashes(target) });
     }
-    linkMatch = MARKDOWN_LINK_PATTERN.exec(rawLine);
   }
+}
+
+function backtickSegments(rawLine: string): string[] {
+  const segments: string[] = [];
+  let searchFrom = 0;
+  while (searchFrom < rawLine.length) {
+    const start = rawLine.indexOf(BACKTICK, searchFrom);
+    if (start === -1) {
+      break;
+    }
+    const end = rawLine.indexOf(BACKTICK, start + 1);
+    if (end === -1) {
+      break;
+    }
+    segments.push(rawLine.slice(start + 1, end));
+    searchFrom = end + 1;
+  }
+  return segments;
 }
 
 function extractBacktickReferences(
@@ -185,19 +216,13 @@ function extractBacktickReferences(
   lineNumber: number,
   pushReference: (reference: GuidanceReference) => void,
 ): void {
-  BACKTICK_PATTERN.lastIndex = 0;
-  let tickMatch = BACKTICK_PATTERN.exec(rawLine);
-  while (tickMatch !== null) {
-    const inner = tickMatch[1];
-    if (typeof inner === "string") {
-      const normalized = normalizeSlashes(inner);
-      if (isPathLikeBacktickToken(normalized)) {
-        pushReference({ kind: "path", line: lineNumber, token: normalized });
-      }
-      collectPatterns(inner, NPM_RUN_PATTERN, lineNumber, "npm-script", pushReference);
-      collectPatterns(inner, NODE_CMD_PATTERN, lineNumber, "path", pushReference);
+  for (const inner of backtickSegments(rawLine)) {
+    const normalized = normalizeSlashes(inner);
+    if (isPathLikeBacktickToken(normalized)) {
+      pushReference({ kind: "path", line: lineNumber, token: normalized });
     }
-    tickMatch = BACKTICK_PATTERN.exec(rawLine);
+    collectPatterns(inner, NPM_RUN_PATTERN, lineNumber, "npm-script", pushReference);
+    collectPatterns(inner, NODE_CMD_PATTERN, lineNumber, "path", pushReference);
   }
 }
 

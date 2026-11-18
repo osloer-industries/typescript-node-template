@@ -57,6 +57,7 @@ const pathGroups = [
     "scripts/oxlint-plugin-osloer.ts",
     "scripts/check-no-claude-md.ts",
     "scripts/agents-check.ts",
+    "scripts/agents-check-patterns.mjs",
     "scripts/check-guardrail-changes.ts",
     "scripts/git-list-changed-paths.mjs",
     "scripts/suppression-baseline.json",
