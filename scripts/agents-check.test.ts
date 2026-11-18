@@ -20,7 +20,9 @@ function copyFixtureTree(name: string, destination: string): void {
 function copyAgentsCheckScript(destinationRoot: string): void {
   const scriptsDir = join(destinationRoot, "scripts");
   mkdirSync(scriptsDir, { recursive: true });
-  cpSync(join(repoRoot, "scripts/agents-check.ts"), join(scriptsDir, "agents-check.ts"));
+  for (const fileName of ["agents-check.ts", "agents-check-patterns.mjs"]) {
+    cpSync(join(repoRoot, "scripts", fileName), join(scriptsDir, fileName));
+  }
 }
 
 describe("isPlaceholderToken", () => {
