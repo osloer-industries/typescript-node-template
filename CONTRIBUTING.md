@@ -1,7 +1,7 @@
 # Contributing
 
 1. Install Node.js 24.22.0.
-2. Run `npm ci` (or `npm ci --ignore-scripts` to match CI; then run `npm prepare` locally to install Git hooks).
+2. Run `npm ci` (or `npm ci --ignore-scripts` to match CI; then run `npm run prepare` locally to install Git hooks).
 3. Create a focused branch and add tests with the change.
 4. Run `npm run check` (Oxlint, SonarJS ESLint, jscpd on Markdown/workflow YAML/shell, knip, markdownlint,
    markdown link checks, TypeScript,

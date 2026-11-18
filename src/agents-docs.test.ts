@@ -94,7 +94,17 @@ describe("agent documentation contract", () => {
 
   it("documents .agents/skills as the only shared skills path (ADR 0010 exception)", () => {
     expect(agentsMd).toMatch(/`\.agents\/skills\/<name>\/SKILL\.md`/);
-    expect(agentsMd).toMatch(/Do not copy skills into\s+`\.claude\/skills\/`/);
+    expect(agentsMd).toMatch(/Do not copy skills into\s+vendor-specific skill folders/);
+  });
+
+  it("includes agents:check in npm run check:fast", () => {
+    const parsed: unknown = JSON.parse(packageJson);
+    if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
+    const scripts = Reflect.get(parsed, "scripts");
+    if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
+    const checkFast = Reflect.get(scripts, "check:fast");
+    expect(typeof checkFast).toBe("string");
+    expect(checkFast).toContain("agents:check");
   });
 
   it("includes SonarJS, duplication, and knip gates in npm run check", () => {
@@ -106,6 +116,7 @@ describe("agent documentation contract", () => {
     expect(typeof check).toBe("string");
     expect(check).toContain("lint:suppressions");
     expect(check).toContain("check:no-claude-md");
+    expect(check).toContain("agents:check");
     expect(check).toContain("lint:sonarjs");
     expect(check).toContain("lint:dup");
     expect(check).toContain("lint:knip");
