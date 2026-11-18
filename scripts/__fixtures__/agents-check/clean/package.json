@@ -1,0 +1,8 @@
+{
+  "name": "agents-check-clean-fixture",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "echo lint"
+  }
+}

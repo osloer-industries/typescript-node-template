@@ -141,6 +141,27 @@ describe("pickHarnessDevDependencies", () => {
 });
 
 describe("applySetup metadata", () => {
+  it("prunes harness-only mutation guidance from AGENTS.md for consumer setup", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "setup-agents-prune-"));
+    try {
+      copyTemplateFixture(repoRoot, tempDir);
+      applySetup(
+        {
+          scenario: "plugin",
+          name: "demo-plugin",
+          description: "Demo",
+          profile: profiles.plugin,
+        },
+        { runInstall: false, baseDir: tempDir },
+      );
+      const agentsMd = readFileSync(join(tempDir, "AGENTS.md"), "utf8");
+      expect(agentsMd).not.toMatch(/test:mutation/);
+      expect(agentsMd).not.toMatch(/stryker\.config\.mjs/);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
   it("removes dependencies for the plugin scenario", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "setup-plugin-meta-"));
     try {
