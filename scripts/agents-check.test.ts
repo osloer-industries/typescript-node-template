@@ -204,6 +204,83 @@ describe("agents-check CLI", () => {
   });
 });
 
+describe("discoverGuidanceFiles", () => {
+  it("includes nested AGENTS.md and skips missing fixed files", async () => {
+    const { discoverGuidanceFiles } = await loadModule();
+    const tempDir = mkdtempSync(join(tmpdir(), "agents-check-discover-"));
+    try {
+      mkdirSync(join(tempDir, "packages", "nested"), { recursive: true });
+      writeFileSync(join(tempDir, "packages/nested/AGENTS.md"), "# nested\n", "utf8");
+      writeFileSync(join(tempDir, "package.json"), '{"scripts":{}}', "utf8");
+      const files = discoverGuidanceFiles(tempDir);
+      expect(files).toContain("packages/nested/AGENTS.md");
+      expect(files).not.toContain("CONTRIBUTING.md");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("expandDotdirGuidanceGlob", () => {
+  it("returns matches for skill globs and ignores invalid patterns", async () => {
+    const { expandDotdirGuidanceGlob } = await loadModule();
+    const tempDir = mkdtempSync(join(tmpdir(), "agents-check-glob-"));
+    try {
+      const skillPath = ".agents/skills/demo/SKILL.md";
+      mkdirSync(join(tempDir, ".agents/skills/demo"), { recursive: true });
+      writeFileSync(join(tempDir, skillPath), "# skill\n", "utf8");
+      expect(expandDotdirGuidanceGlob(tempDir, ".agents/skills/**/SKILL.md")).toEqual([skillPath]);
+      expect(expandDotdirGuidanceGlob(tempDir, "not-a-glob-pattern")).toEqual([]);
+      expect(expandDotdirGuidanceGlob(tempDir, ".missing/**/SKILL.md")).toEqual([]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("formatFinding and CLI helpers", () => {
+  it("formats npm script findings and direct execution detection", async () => {
+    const { formatFinding, isDirectExecution } = await loadModule();
+    expect(formatFinding({ file: "AGENTS.md", line: 2, kind: "npm-script", token: "lint" })).toBe(
+      "AGENTS.md:2: unknown npm script: lint",
+    );
+    const modulePath = join(repoRoot, "scripts/agents-check.ts");
+    const moduleUrl = pathToFileURL(modulePath).href;
+    expect(isDirectExecution(moduleUrl, modulePath)).toBe(true);
+    expect(isDirectExecution(moduleUrl, undefined)).toBe(false);
+  });
+
+  it("prints non-agent-check errors from runAgentsCheckCliEntry", async () => {
+    const { runAgentsCheckCliEntry } = await loadModule();
+    const tempDir = mkdtempSync(join(tmpdir(), "agents-check-no-pkg-"));
+    let stderr = "";
+    const stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation((chunk) => {
+      stderr += String(chunk);
+      return true;
+    });
+    try {
+      copyAgentsCheckScript(tempDir);
+      const moduleUrl = pathToFileURL(join(tempDir, "scripts/agents-check.ts")).href;
+      expect(runAgentsCheckCliEntry(moduleUrl)).toBe(1);
+      expect(stderr).toMatch(/package\.json/);
+    } finally {
+      stderrSpy.mockRestore();
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("reference validation edges", () => {
+  it("skips external, anchor, and allowlisted tokens", async () => {
+    const { extractGuidanceReferences, isAllowlistedPath } = await loadModule();
+    const refs = extractGuidanceReferences(
+      "Ignore [ext](https://example.com) [mail](mailto:a@b) [here](#x) `dist/out.js`",
+    );
+    expect(refs).toEqual([{ kind: "path", line: 1, token: "dist/out.js" }]);
+    expect(isAllowlistedPath("dist/out.js")).toBe(true);
+  });
+});
+
 describe("runAgentsCheckCliEntry", () => {
   it("returns 0 for clean trees and 1 when findings exist", async () => {
     const { runAgentsCheckCliEntry } = await loadModule();
