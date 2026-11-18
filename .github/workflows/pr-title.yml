@@ -1,7 +1,7 @@
 name: Pull request title
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, edited, synchronize]
 
 permissions:
@@ -9,26 +9,6 @@ permissions:
 
 jobs:
   semantic-title:
-    name: Semantic pull request
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+    uses: osloer-industries/.github/.github/workflows/semantic-pull-request.yml@348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6
     permissions:
       pull-requests: read
-    steps:
-      - name: Validate Conventional Commit title
-        uses: amannn/action-semantic-pull-request@2252a14e810aa9b85c2d560bd7070c802206ecf6 # v6.1.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          types: |
-            build
-            chore
-            ci
-            docs
-            feat
-            fix
-            perf
-            refactor
-            revert
-            style
-            test
