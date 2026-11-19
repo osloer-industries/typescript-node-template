@@ -626,7 +626,7 @@ export function listSkillRecords(rootDir: string): SkillRecord[] {
 }
 
 function escapeTableCell(value: string): string {
-  return value.replaceAll("|", "\\|").replaceAll("\n", " ").trim();
+  return value.replaceAll("|", String.raw`\|`).replaceAll("\n", " ").trim();
 }
 
 export function renderSkillsIndexInner(records: readonly SkillRecord[]): string {
