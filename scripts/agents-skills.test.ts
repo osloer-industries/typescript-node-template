@@ -17,12 +17,12 @@ import {
 } from "./agents-check.js";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const nodeArgs = ["scripts/agents-index.ts"];
+const nodeArgs = ["scripts/agents-check.ts", "index"];
 
 function copyHarnessScripts(targetRoot: string): void {
   const scriptsDir = join(targetRoot, "scripts");
   mkdirSync(scriptsDir, { recursive: true });
-  for (const fileName of ["agents-check.ts", "agents-check-patterns.mjs", "agents-index.ts"]) {
+  for (const fileName of ["agents-check.ts", "agents-check-patterns.mjs"]) {
     cpSync(join(repoRoot, "scripts", fileName), join(scriptsDir, fileName));
   }
 }

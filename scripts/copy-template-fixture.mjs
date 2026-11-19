@@ -60,7 +60,6 @@ const pathGroups = [
     "scripts/check-no-claude-md.ts",
     "scripts/agents-check.ts",
     "scripts/agents-check-patterns.mjs",
-    "scripts/agents-index.ts",
     "scripts/check-guardrail-changes.ts",
     "scripts/git-list-changed-paths.mjs",
     "scripts/suppression-baseline.json",

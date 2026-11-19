@@ -223,8 +223,9 @@ instructions ([#134](https://github.com/osloer-industries/typescript-node-templa
 
 ### `agents:index` (npm script)
 
-**Why chosen:** `scripts/agents-index.ts` regenerates the Skills table in `AGENTS.md` from
-`.agents/skills/*/SKILL.md` frontmatter ([#135](https://github.com/osloer-industries/typescript-node-template/issues/135)).
+**Why chosen:** `node scripts/agents-check.ts index` (`npm run agents:index`) regenerates the Skills table in
+`AGENTS.md` from `.agents/skills/*/SKILL.md` frontmatter
+([#135](https://github.com/osloer-industries/typescript-node-template/issues/135)).
 `agents:check` fails when the committed index is stale.
 
 **Alternatives considered:** Hand-edited index tables; generating the whole `AGENTS.md` file.
