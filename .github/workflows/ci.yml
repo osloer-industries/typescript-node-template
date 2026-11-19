@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   workflow-security:
-    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6
     permissions:
       contents: read
       actions: read
@@ -37,7 +37,7 @@ jobs:
         run: node scripts/check-guardrail-changes.ts
       - run: npm audit --omit=dev --audit-level=high
       - run: npm audit --omit=dev --audit-level=high --prefix packages/eslint-sonarjs
-      - run: npm run check
+      - run: npm run precommit
 
   mutation:
     name: Mutation
@@ -75,14 +75,14 @@ jobs:
       - run: npm run setup -- --scenario ${{ matrix.scenario }} --name @smoke/${{ matrix.scenario }}-template --yes
 
   codeql:
-    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6
     permissions:
       contents: read
       actions: read
       security-events: write
 
   sonar-analyze:
-    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6
     with:
       coverage-npm-script: coverage:sonar
       timeout-minutes: 20
@@ -90,12 +90,29 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   sonar-zero-open-issues:
+    if: github.event_name == 'pull_request'
     needs: sonar-analyze
-    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
+    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6
     with:
       project-key: osloer-industries_typescript-node-template
+      ce-task-id: ${{ needs.sonar-analyze.outputs.ce-task-id }}
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  fleet-adoption-doc:
+    name: Fleet adoption table sync
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false, fetch-depth: 0 }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version-file: .nvmrc }
+      - name: Require fleet-adoption.md when workflows change
+        if: github.event_name == 'pull_request'
+        env:
+          FLEET_ADOPTION_BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check-fleet-adoption-doc.ts
 
   ci-passed:
     name: ci-passed
@@ -105,8 +122,21 @@ jobs:
       - mutation
       - setup-smoke
       - codeql
+      - sonar-analyze
       - sonar-zero-open-issues
+      - fleet-adoption-doc
     if: always()
-    uses: osloer-industries/.github/.github/workflows/ci-passed.yml@d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2
-    with:
-      needs-json: ${{ toJSON(needs) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version-file: .nvmrc }
+      - name: Require every upstream job to succeed
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/ci-passed-gate.ts

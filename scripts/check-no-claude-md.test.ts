@@ -7,7 +7,26 @@ import { describe, expect, it, vi } from "vitest";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const gitExecutable = process.env.NO_CLAUDE_GIT_PATH ?? "git";
-const nodeArgs = ["scripts/check-no-claude-md.ts"];
+const checkNoClaudeMdRelativePath = "scripts/check-no-claude-md.ts";
+const nodeArgs = [checkNoClaudeMdRelativePath];
+const checkNoClaudeMdRepoPath = join(repoRoot, checkNoClaudeMdRelativePath);
+const claudeInstructionPath = "CLAUDE.md";
+const nestedClaudeInstructionPath = ".claude/CLAUDE.md";
+const agentsMdImport = "@AGENTS.md\n";
+
+function execCheckNoClaudeMdFromTemp(cwd: string): { failed: boolean; stderr: string } {
+  try {
+    execFileSync(process.execPath, nodeArgs, { cwd, encoding: "utf8" });
+    return { failed: false, stderr: "" };
+  } catch (error) {
+    let stderr = "";
+    if (error !== null && typeof error === "object" && "stderr" in error) {
+      const captured = Reflect.get(error, "stderr");
+      if (typeof captured === "string") stderr = captured;
+    }
+    return { failed: true, stderr };
+  }
+}
 
 async function loadModule() {
   return import("./check-no-claude-md.js");
@@ -33,22 +52,29 @@ function createNoClaudeFixture(prefix: string): string {
 
 function mkdirScriptsAndCopyCheck(tempDir: string): void {
   mkdirSync(join(tempDir, "scripts"), { recursive: true });
-  cpSync(
-    join(repoRoot, "scripts/check-no-claude-md.ts"),
-    join(tempDir, "scripts/check-no-claude-md.ts"),
-  );
+  cpSync(checkNoClaudeMdRepoPath, join(tempDir, checkNoClaudeMdRelativePath));
 }
 
 describe("findForbiddenTrackedInstructionFiles", () => {
   it("detects root CLAUDE.md and .claude/CLAUDE.md", async () => {
     const { findForbiddenTrackedInstructionFiles } = await loadModule();
     expect(findForbiddenTrackedInstructionFiles(["README.md"])).toEqual([]);
-    expect(findForbiddenTrackedInstructionFiles(["CLAUDE.md", "AGENTS.md"])).toEqual(["CLAUDE.md"]);
-    expect(findForbiddenTrackedInstructionFiles([".claude/CLAUDE.md"])).toEqual([".claude/CLAUDE.md"]);
-    expect(findForbiddenTrackedInstructionFiles(["", "  CLAUDE.md  "])).toEqual(["CLAUDE.md"]);
+    expect(findForbiddenTrackedInstructionFiles([claudeInstructionPath, "AGENTS.md"])).toEqual([
+      claudeInstructionPath,
+    ]);
+    expect(findForbiddenTrackedInstructionFiles([nestedClaudeInstructionPath])).toEqual([
+      nestedClaudeInstructionPath,
+    ]);
+    expect(findForbiddenTrackedInstructionFiles(["", `  ${claudeInstructionPath}  `])).toEqual([
+      claudeInstructionPath,
+    ]);
     expect(
-      findForbiddenTrackedInstructionFiles(["CLAUDE.md", ".claude/CLAUDE.md", "AGENTS.md"]),
-    ).toEqual(["CLAUDE.md", ".claude/CLAUDE.md"]);
+      findForbiddenTrackedInstructionFiles([
+        claudeInstructionPath,
+        nestedClaudeInstructionPath,
+        "AGENTS.md",
+      ]),
+    ).toEqual([claudeInstructionPath, nestedClaudeInstructionPath]);
   });
 });
 
@@ -75,8 +101,8 @@ describe("findForbiddenInstructionFilesOnDisk", () => {
     try {
       expect(findForbiddenInstructionFilesOnDisk(tempDir)).toEqual([]);
       mkdirSync(join(tempDir, ".claude"), { recursive: true });
-      writeFileSync(join(tempDir, ".claude/CLAUDE.md"), "import\n", "utf8");
-      expect(findForbiddenInstructionFilesOnDisk(tempDir)).toEqual([".claude/CLAUDE.md"]);
+      writeFileSync(join(tempDir, nestedClaudeInstructionPath), "import\n", "utf8");
+      expect(findForbiddenInstructionFilesOnDisk(tempDir)).toEqual([nestedClaudeInstructionPath]);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
@@ -90,8 +116,8 @@ describe("resolveClaudeInstructionViolations", () => {
     try {
       mkdirScriptsAndCopyCheck(tempDir);
       expect(resolveClaudeInstructionViolations(tempDir)).toEqual([]);
-      writeFileSync(join(tempDir, "CLAUDE.md"), "@AGENTS.md\n", "utf8");
-      expect(resolveClaudeInstructionViolations(tempDir)).toEqual(["CLAUDE.md"]);
+      writeFileSync(join(tempDir, claudeInstructionPath), agentsMdImport, "utf8");
+      expect(resolveClaudeInstructionViolations(tempDir)).toEqual([claudeInstructionPath]);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
@@ -118,11 +144,11 @@ describe("resolveClaudeInstructionViolations", () => {
     const { resolveClaudeInstructionViolations } = await loadModule();
     const tempDir = createNoClaudeFixture("no-claude-gitls-");
     try {
-      writeFileSync(join(tempDir, "CLAUDE.md"), "@AGENTS.md\n", "utf8");
+      writeFileSync(join(tempDir, claudeInstructionPath), agentsMdImport, "utf8");
       expect(resolveClaudeInstructionViolations(tempDir)).toEqual([]);
-      execFileSync(gitExecutable, ["add", "CLAUDE.md"], { cwd: tempDir, stdio: "pipe" });
+      execFileSync(gitExecutable, ["add", claudeInstructionPath], { cwd: tempDir, stdio: "pipe" });
       execFileSync(gitExecutable, ["commit", "-m", "track"], { cwd: tempDir, stdio: "pipe" });
-      expect(resolveClaudeInstructionViolations(tempDir)).toEqual(["CLAUDE.md"]);
+      expect(resolveClaudeInstructionViolations(tempDir)).toEqual([claudeInstructionPath]);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
@@ -133,7 +159,7 @@ describe("runNoClaudeMdCheckCli", () => {
   it("writes success output for a clean tree", async () => {
     const { runNoClaudeMdCheckCli } = await loadModule();
     const tempDir = createNoClaudeFixture("no-claude-run-cli-");
-    const moduleUrl = new URL(`file://${join(tempDir, "scripts/check-no-claude-md.ts")}`).href;
+    const moduleUrl = new URL(`file://${join(tempDir, checkNoClaudeMdRelativePath)}`).href;
     let output = "";
     const stdout = vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
       output += String(chunk);
@@ -152,7 +178,7 @@ describe("runNoClaudeMdCheckCli", () => {
 describe("isDirectExecution", () => {
   it("matches only the module argv entry", async () => {
     const { isDirectExecution } = await loadModule();
-    const modulePath = join(repoRoot, "scripts/check-no-claude-md.ts");
+    const modulePath = checkNoClaudeMdRepoPath;
     const moduleUrl = pathToFileURL(modulePath).href;
     expect(isDirectExecution(moduleUrl, modulePath)).toBe(true);
     expect(isDirectExecution(moduleUrl, undefined)).toBe(false);
@@ -164,7 +190,7 @@ describe("runNoClaudeMdCliEntry", () => {
   it("returns 0 for a clean repository and 1 when CLAUDE.md is tracked", async () => {
     const { runNoClaudeMdCliEntry } = await loadModule();
     const cleanDir = createNoClaudeFixture("no-claude-entry-clean-");
-    const moduleUrl = new URL(`file://${join(cleanDir, "scripts/check-no-claude-md.ts")}`).href;
+    const moduleUrl = new URL(`file://${join(cleanDir, checkNoClaudeMdRelativePath)}`).href;
     let stderr = "";
     const stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation((chunk) => {
       stderr += String(chunk);
@@ -172,8 +198,8 @@ describe("runNoClaudeMdCliEntry", () => {
     });
     try {
       expect(runNoClaudeMdCliEntry(moduleUrl)).toBe(0);
-      writeFileSync(join(cleanDir, "CLAUDE.md"), "@AGENTS.md\n", "utf8");
-      execFileSync(gitExecutable, ["add", "CLAUDE.md"], { cwd: cleanDir, stdio: "pipe" });
+      writeFileSync(join(cleanDir, claudeInstructionPath), agentsMdImport, "utf8");
+      execFileSync(gitExecutable, ["add", claudeInstructionPath], { cwd: cleanDir, stdio: "pipe" });
       execFileSync(gitExecutable, ["commit", "-m", "claude"], { cwd: cleanDir, stdio: "pipe" });
       stderr = "";
       expect(runNoClaudeMdCliEntry(moduleUrl)).toBe(1);
@@ -201,8 +227,8 @@ describe("assertNoTrackedClaudeInstructionFiles", () => {
     const { assertNoTrackedClaudeInstructionFiles } = await loadModule();
     const tempDir = createNoClaudeFixture("no-claude-violation-");
     try {
-      writeFileSync(join(tempDir, "CLAUDE.md"), "@AGENTS.md\n", "utf8");
-      execFileSync(gitExecutable, ["add", "CLAUDE.md"], { cwd: tempDir, stdio: "pipe" });
+      writeFileSync(join(tempDir, claudeInstructionPath), agentsMdImport, "utf8");
+      execFileSync(gitExecutable, ["add", claudeInstructionPath], { cwd: tempDir, stdio: "pipe" });
       execFileSync(gitExecutable, ["commit", "-m", "add claude"], { cwd: tempDir, stdio: "pipe" });
       expect(() => assertNoTrackedClaudeInstructionFiles(tempDir)).toThrow(/CLAUDE\.md/);
     } finally {
@@ -239,23 +265,10 @@ describe("check-no-claude-md CLI", () => {
   it("fails with exit code 1 when CLAUDE.md is tracked", { timeout: 30_000 }, () => {
     const tempDir = createNoClaudeFixture("no-claude-cli-");
     try {
-      writeFileSync(join(tempDir, "CLAUDE.md"), "@AGENTS.md\n", "utf8");
-      execFileSync(gitExecutable, ["add", "CLAUDE.md"], { cwd: tempDir, stdio: "pipe" });
+      writeFileSync(join(tempDir, claudeInstructionPath), agentsMdImport, "utf8");
+      execFileSync(gitExecutable, ["add", claudeInstructionPath], { cwd: tempDir, stdio: "pipe" });
       execFileSync(gitExecutable, ["commit", "-m", "track claude"], { cwd: tempDir, stdio: "pipe" });
-      let failed = false;
-      let stderr = "";
-      try {
-        execFileSync(process.execPath, ["scripts/check-no-claude-md.ts"], {
-          cwd: tempDir,
-          encoding: "utf8",
-        });
-      } catch (error) {
-        failed = true;
-        if (error !== null && typeof error === "object" && "stderr" in error) {
-          const captured = Reflect.get(error, "stderr");
-          if (typeof captured === "string") stderr = captured;
-        }
-      }
+      const { failed, stderr } = execCheckNoClaudeMdFromTemp(tempDir);
       expect(failed, "expected non-zero exit when CLAUDE.md is tracked").toBe(true);
       expect(stderr).toMatch(/0002-agents-md-single-instruction-file/);
     } finally {

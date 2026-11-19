@@ -35,6 +35,9 @@ Harness files listed in `CODEOWNERS` (lint config, workflows, `AGENTS.md`, and r
 should receive maintainer review. Replace `@osloer-industries/platform` in `CODEOWNERS` with your
 org team before enabling branch protection.
 
+Workflow or org-reusable changes must update [docs/fleet-adoption.md](docs/fleet-adoption.md) in the
+same pull request and link follow-up PRs or issues in consuming repositories (see [AGENTS.md](AGENTS.md)).
+
 Pull request titles are validated automatically. Squash merging uses the validated title as the commit
 subject on `main`, giving Release Please one reliable Conventional Commit per pull request. Dependabot
 uses `chore(deps):` for npm updates and `ci(deps):` for GitHub Actions updates.

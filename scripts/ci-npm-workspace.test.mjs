@@ -6,6 +6,9 @@ vi.mock("./run-npm.mjs", () => ({
 
 const { runNpm } = await import("./run-npm.mjs");
 const { runCiNpmWorkspace } = await import("./ci-npm-workspace.mjs");
+const inheritStdio = { stdio: "inherit" };
+const rootCiArgs = ["ci", "--ignore-scripts"];
+const eslintSonarjsPrefixArgs = ["ci", "--ignore-scripts", "--prefix", "packages/eslint-sonarjs"];
 
 describe("runCiNpmWorkspace", () => {
   afterEach(() => {
@@ -15,22 +18,18 @@ describe("runCiNpmWorkspace", () => {
   it("runs root npm ci by default", () => {
     runCiNpmWorkspace({ runInstall: runNpm });
     expect(runNpm).toHaveBeenCalledTimes(1);
-    expect(runNpm).toHaveBeenCalledWith(["ci", "--ignore-scripts"], { stdio: "inherit" });
+    expect(runNpm).toHaveBeenCalledWith(rootCiArgs, inheritStdio);
   });
 
   it("installs nested eslint-sonarjs when requested", () => {
     runCiNpmWorkspace({ runInstall: runNpm, installEslintSonarjs: true });
     expect(runNpm).toHaveBeenCalledTimes(2);
-    expect(runNpm).toHaveBeenNthCalledWith(2, ["ci", "--ignore-scripts", "--prefix", "packages/eslint-sonarjs"], {
-      stdio: "inherit",
-    });
+    expect(runNpm).toHaveBeenNthCalledWith(2, eslintSonarjsPrefixArgs, inheritStdio);
   });
 
   it("skips root npm ci when skipRootCi is set", () => {
     runCiNpmWorkspace({ runInstall: runNpm, skipRootCi: true, installEslintSonarjs: true });
     expect(runNpm).toHaveBeenCalledTimes(1);
-    expect(runNpm).toHaveBeenCalledWith(["ci", "--ignore-scripts", "--prefix", "packages/eslint-sonarjs"], {
-      stdio: "inherit",
-    });
+    expect(runNpm).toHaveBeenCalledWith(eslintSonarjsPrefixArgs, inheritStdio);
   });
 });
