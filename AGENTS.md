@@ -30,6 +30,22 @@ here. Do not duplicate this content in vendor-specific instruction files (`CLAUD
 | `docs/fleet-adoption.md` | Per-repo adoption of org reusables and template CI features ([ADR 0011](docs/adr/0011-fleet-adoption-table.md)). |
 | `lefthook.yml` | Pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `scripts/agent-hooks/` | Provider-neutral agent guard hook scripts ([docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)). |
+| `.agents/skills/` | Shared Agent Skills (`SKILL.md` per skill); index and rules in [docs/agent-skills.md](docs/agent-skills.md). |
+| `scripts/agents-index.ts` | Regenerates the Skills table in this file (`npm run agents:index`). |
+
+## Skills
+
+Shared skills use the [Agent Skills](https://agentskills.io) layout under `.agents/skills/<name>/SKILL.md`.
+Regenerate this index with `npm run agents:index` after adding or editing a skill. See
+[docs/agent-skills.md](docs/agent-skills.md).
+
+<!-- agents:skills:begin -->
+| Skill | Description | Path |
+| --- | --- | --- |
+| pr-ready | Confirm a branch is ready for review using the pull request template checklist, full npm run check, and fleet-adoption rules when harness files change. | `.agents/skills/pr-ready/SKILL.md` |
+| verify-change | Run check:fast while iterating and the full check ladder before a pull request; interpret gate failures and the two-strike stop-hook rule from docs/agent-guard-hooks.md. | `.agents/skills/verify-change/SKILL.md` |
+| write-adr | Add an Architecture Decision Record under docs/adr using the README template and update the ADR index table. | `.agents/skills/write-adr/SKILL.md` |
+<!-- agents:skills:end -->
 
 Markdown link checking uses the org fork
 [`@osloer-industries/markdown-link-check`](https://github.com/osloer-industries/markdown-link-check)

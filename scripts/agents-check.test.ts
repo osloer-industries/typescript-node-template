@@ -161,7 +161,7 @@ describe("agents-check CLI", () => {
       cwd: repoRoot,
       encoding: "utf8",
     });
-    expect(output).toMatch(/Agent guidance paths and npm scripts OK/);
+    expect(output).toMatch(/Agent guidance, skills, and npm scripts OK/);
   });
 
   it("fails with broken path and unknown npm script findings", () => {

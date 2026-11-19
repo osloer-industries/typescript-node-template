@@ -7,7 +7,7 @@ export const GUARDRAIL_PATH_PREFIXES = [
   ".github/",
   "AGENTS.md",
   ".gitignore",
-  ".agents/skills/",
+  ".agents/",
   "CODEOWNERS",
   "scripts/check-guardrail-changes.ts",
   "scripts/agents-check.ts",

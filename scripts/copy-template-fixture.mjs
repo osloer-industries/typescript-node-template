@@ -24,6 +24,8 @@ const rootFiles = [
 
 const docDirectories = ["docs"];
 
+const agentsSkillsDir = ".agents/skills";
+
 const agentsCheckPathStubs = ["scripts/setup.test.ts", "scripts/check-fleet-adoption-doc.ts"];
 
 const agentsCheckSupportFiles = [
@@ -58,6 +60,7 @@ const pathGroups = [
     "scripts/check-no-claude-md.ts",
     "scripts/agents-check.ts",
     "scripts/agents-check-patterns.mjs",
+    "scripts/agents-index.ts",
     "scripts/check-guardrail-changes.ts",
     "scripts/git-list-changed-paths.mjs",
     "scripts/suppression-baseline.json",
@@ -107,6 +110,7 @@ export function copyTemplateFixture(repoRoot, targetDir) {
   for (const relativeDir of docDirectories) {
     cpSync(join(repoRoot, relativeDir), join(targetDir, relativeDir), { recursive: true });
   }
+  cpSync(join(repoRoot, agentsSkillsDir), join(targetDir, agentsSkillsDir), { recursive: true });
   cpSync(join(repoRoot, "scripts/agent-hooks"), join(targetDir, "scripts/agent-hooks"), {
     recursive: true,
   });

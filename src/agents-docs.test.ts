@@ -97,6 +97,12 @@ describe("agent documentation contract", () => {
     expect(agentsMd).toMatch(/Do not copy skills into\s+vendor-specific skill folders/);
   });
 
+  it("includes generated skills index markers in AGENTS.md", () => {
+    expect(agentsMd).toContain("<!-- agents:skills:begin -->");
+    expect(agentsMd).toContain("<!-- agents:skills:end -->");
+    expect(agentsMd).toMatch(/npm run agents:index/);
+  });
+
   it("includes agents:check in npm run check:fast", () => {
     const parsed: unknown = JSON.parse(packageJson);
     if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
