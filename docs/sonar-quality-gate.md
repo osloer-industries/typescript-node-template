@@ -8,7 +8,7 @@ This template uses **CI Sonar analysis plus a zero-open-issues gate**:
 | Check | Source | Typical behavior |
 | --- | --- | --- |
 | **CI / Analyze** | `.github/workflows/ci.yml` → org `sonarqube-cloud-node.yml` | Runs `npm run coverage:sonar` (nested `packages/eslint-sonarjs` install, then `test:coverage`), uploads analysis and **coverage** (`coverage/lcov.info`) via `sonar-project.properties`. Requires `SONAR_TOKEN`. |
-| **CI / SonarCloud zero open issues** | `.github/workflows/ci.yml` → org `sonarcloud-zero-issues.yml` | After CI analysis, polls SonarCloud and fails when open issues remain on the PR head commit. |
+| **CI / SonarCloud zero open issues** | `.github/workflows/ci.yml` → org `sonarcloud-zero-issues.yml` | **Pull requests only** (job `if:`). After CI analysis, polls SonarCloud and fails when open issues remain on the PR head commit. Pushes to `main` still upload analysis via **CI / Analyze**; the zero-issues job is skipped and **`ci-passed`** treats that skip as success (`scripts/ci-passed-gate.ts` org standard). |
 
 **Disable SonarCloud Automatic Analysis** on every repository generated from this template. Automatic Analysis
 and `SonarSource/sonarqube-scan-action` cannot run on the same project. Fix findings on the PR diff or adjust
@@ -32,8 +32,9 @@ bumps in that directory until typescript-eslint supports TypeScript 7.x (blocked
 programmatic API; see [typescript-eslint#12518](https://github.com/typescript-eslint/typescript-eslint/issues/12518)).
 The nested package is subject to
 the same gates as the rest of the template (Oxlint, `tsc`, Vitest coverage, Dependabot, and `npm audit`). It
-lints `src/`, `scripts/`, and `packages/*` using `eslint-plugin-sonarjs` **`recommended`** (every rule Sonar
-marks recommended is enabled at error severity).
+lints `src/`, `scripts/`, and `packages/*` using `eslint-plugin-sonarjs` **`recommended`** with every
+enabled rule at **error** severity, plus explicit SonarCloud parity rules (`no-await-in-loop` / S9382,
+`@typescript-eslint/require-await` / S7503, `sonarjs/no-duplicate-string`, and related shift-left rules).
 
 List enabled rules:
 
@@ -41,12 +42,13 @@ List enabled rules:
 npm run list-rules --prefix packages/eslint-sonarjs
 ```
 
-Pre-commit (after `npm run prepare`): Lefthook ([ADR 0009](adr/0009-tooling-and-quality-gate-stack.md)) runs Oxlint
-and SonarJS ESLint on staged `*.ts` / `*.mjs` files.
+Pre-commit (after `npm run prepare`): Lefthook ([ADR 0009](adr/0009-tooling-and-quality-gate-stack.md)) runs
+**`npm run precommit`** (Oxlint, suppression baseline, SonarJS ESLint, jscpd, typecheck, and Vitest).
+CI **Quality** runs the same command so `--no-verify` commits still fail in Actions.
 
 ## Before you push
 
-1. Run `npm run check` locally.
+1. Run `npm run precommit` before every push; run `npm run check` before opening a pull request.
 2. Avoid new **security** hotspots called out below (they often fail **Security Rating on New Code**).
 3. After pushing, open the SonarCloud PR link from the failed/successful check if you need line-level rules.
 

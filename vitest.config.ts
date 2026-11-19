@@ -3,6 +3,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
+    globalSetup: ["scripts/vitest-global-setup.mjs"],
     isolate: true,
     fileParallelism: false,
     include: [
@@ -20,12 +21,14 @@ export default defineConfig({
         "scripts/**/*.ts",
         "packages/eslint-sonarjs/run.mjs",
         "packages/eslint-sonarjs/list-enabled-rules.mjs",
+        "packages/eslint-sonarjs/sonarjs-rules.mjs",
       ],
       exclude: [
         "src/**/*.test.ts",
         "src/**/*.spec.ts",
         "scripts/**/*.test.ts",
         "scripts/**/*.test.mjs",
+        "scripts/vitest-global-setup.mjs",
         "packages/**/*.test.mjs",
       ],
       thresholds: { branches: 80, functions: 80, lines: 80, statements: 80 },
