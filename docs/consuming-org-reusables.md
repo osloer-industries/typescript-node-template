@@ -21,7 +21,7 @@ on that repository.
    aggregate job already fails when any upstream job fails or is cancelled.
 
 Pin every org reusable to the same `.github` release tag commit SHA (for example
-`d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3 # v0.1.2`); use the tag in the `#` comment, not `main`, so
+`348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6`); use the tag in the `#` comment, not `main`, so
 zizmor ref-version-mismatch stays green when org `main` advances. Bump via Dependabot (`osloer-reusables`
 group) or template-sync when a new `.github` tag ships. Callers do not pass `reusables-ref`; reusable
 workflows resolve their scripts from
