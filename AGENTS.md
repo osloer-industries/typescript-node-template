@@ -84,7 +84,7 @@ When touching `scripts/`, setup, or CI install steps, follow
 
 ## Continuous integration
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the main pipeline: workflow security, `npm run check`,
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the main pipeline: workflow security, `npm run precommit` in **Quality** (full `npm run check` before merge),
 setup smoke matrix, CodeQL, Sonar scan (`sonarqube-cloud-node.yml` with coverage upload), Sonar zero-open-issues,
 then org **`ci-passed`**. Repositories created from this template must keep **SonarCloud Automatic Analysis
 disabled** and use the CI scan instead ([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Branch
