@@ -43,6 +43,13 @@ prefer **`npm run check:fast`**: Oxlint, suppression baseline, typecheck, SonarJ
 (`test:fast` excludes `*.integration.test.ts` setup installs). CI and pre-merge verification still
 use the full ladder below.
 
+**`npm run precommit`** (Lefthook after `npm run prepare`, and CI **Quality**) runs Oxlint, the
+suppression baseline, SonarJS ESLint (including `no-await-in-loop` / S9382 and
+`@typescript-eslint/require-await` / S7503), jscpd, typecheck, and the full Vitest suite.
+Run **`npm run precommit` before every push**. Never commit with `git commit --no-verify`, and
+never set `HUSKY=0`, `LEFTHOOK=0`, or `SKIP` to bypass hooks. Never suppress Sonar-style rules
+(no new `eslint-disable`, `NOSONAR`, baseline increases, or Sonar exclusions).
+
 Run gates in this order when preparing a pull request:
 
 1. `npm run lint` (Oxlint — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
@@ -55,9 +62,10 @@ Run gates in this order when preparing a pull request:
 7. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 8. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 9. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
- runs after `build` so `package.json` dist entries resolve)
-10. `npm run check` (all of the above) before opening a pull request
-11. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+   runs after `build` so `package.json` dist entries resolve)
+10. `npm run precommit` (Lefthook `pre-commit`; steps 1–4, 6, and `npm run test`)
+11. `npm run check` (precommit plus no-`CLAUDE.md`, markdown, coverage, build, and knip) before opening a pull request
+12. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 
 `npm run test:mutation` runs Stryker on `src/` (see `stryker.config.mjs` for the TypeScript 7 workaround). It is a
 separate CI job, not part of `check`.
@@ -76,8 +84,9 @@ When touching `scripts/`, setup, or CI install steps, follow
 
 ## Continuous integration
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the main pipeline: workflow security, `npm run check`,
-setup smoke matrix, CodeQL, Sonar scan (`sonarqube-cloud-node.yml` with coverage upload), Sonar zero-open-issues,
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the main pipeline: workflow security;
+**Quality** runs `npm run precommit` (run full `npm run check` before merge), setup smoke matrix, CodeQL,
+Sonar scan (`sonarqube-cloud-node.yml` with coverage upload), Sonar zero-open-issues,
 then org **`ci-passed`**. Repositories created from this template must keep **SonarCloud Automatic Analysis
 disabled** and use the CI scan instead ([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Branch
 protection should require only the **`ci-passed`** check—not individual jobs ([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)).
@@ -140,11 +149,10 @@ Pull requests that change `.github/workflows/**` or `.github/actions/**` without
 - Use the Node.js 24 version declared by `.nvmrc` and `.node-version`.
 - Install reproducibly with `npm ci`. Use `npm install --save-exact` when a
   dependency intentionally changes, then commit `package-lock.json`.
-- Run `npm run check` before submitting a change. This runs Oxlint, SonarJS ESLint,
-  jscpd duplication checks (Markdown, workflow YAML, shell at 0%), Markdown lint/link checks, the TypeScript
-  compiler, coverage, production build, and knip (after build so `package.json` dist entries resolve).
-  SonarCloud owns TypeScript/JavaScript duplication (Sonar way fails above **3%** duplicated new lines) and the
-  org zero-open-issues check — see [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md).
+- Run `npm run precommit` before every push (Lefthook) and `npm run check` before submitting a change.
+  `check` adds no-`CLAUDE.md`, markdown, coverage, production build, and knip (after build so `package.json`
+  dist entries resolve). SonarCloud owns TypeScript/JavaScript duplication (Sonar way fails above **3%**
+  duplicated new lines) and the org zero-open-issues check — see [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md).
 - Run `npm audit --omit=dev` whenever dependencies or the lockfile change. For transitive
   production findings, follow [docs/npm-overrides.md](docs/npm-overrides.md) before adding
   npm `overrides`.

@@ -17,6 +17,7 @@ import {
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const gitExecutable = gitExecutableForTests("MUTATION_GIT_PATH");
+const srcIndexTs = "src/index.ts";
 
 function copyMutationScripts(tempDir: string): string {
   const scriptsDir = join(tempDir, "scripts");
@@ -29,7 +30,7 @@ function copyMutationScripts(tempDir: string): string {
 
 describe("isMutableSrcFile", () => {
   it("accepts production src files", () => {
-    expect(isMutableSrcFile("src/index.ts")).toBe(true);
+    expect(isMutableSrcFile(srcIndexTs)).toBe(true);
     expect(isMutableSrcFile("src/lib/foo.ts")).toBe(true);
   });
 
@@ -44,12 +45,12 @@ describe("findMutableSrcChanges", () => {
   it("keeps only mutable src files", () => {
     expect(
       findMutableSrcChanges([
-        "src/index.ts",
+        srcIndexTs,
         "src/index.test.ts",
         "scripts/run-mutation-changed.ts",
         "package.json",
       ]),
-    ).toEqual(["src/index.ts"]);
+    ).toEqual([srcIndexTs]);
   });
 });
 
@@ -87,8 +88,8 @@ describe("runMutationChangedCli", () => {
       writeFileSync(join(tempDir, "README.md"), "# base\n", "utf8");
       const base = gitCommitPaths(tempDir, "base", ["README.md"], gitExecutable);
       mkdirSync(join(tempDir, "src"), { recursive: true });
-      writeFileSync(join(tempDir, "src/index.ts"), "export {};\n", "utf8");
-      const head = gitCommitPaths(tempDir, "src", ["src/index.ts"], gitExecutable);
+      writeFileSync(join(tempDir, srcIndexTs), "export {};\n", "utf8");
+      const head = gitCommitPaths(tempDir, "src", [srcIndexTs], gitExecutable);
       const moduleUrl = copyMutationScripts(tempDir);
       mkdirSync(join(tempDir, "node_modules", ".bin"), { recursive: true });
       const strykerPath = join(tempDir, "node_modules", ".bin", "stryker");

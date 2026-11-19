@@ -2,13 +2,15 @@ import { describe, expect, it as vitestIt } from "vitest";
 import { fc, it } from "@fast-check/vitest";
 import { createGreeting } from "./index.js";
 
+const defaultGreeting = "Hello, world!";
+
 describe("createGreeting", () => {
   vitestIt("uses a default greeting when the name is omitted", () => {
-    expect(createGreeting()).toBe("Hello, world!");
+    expect(createGreeting()).toBe(defaultGreeting);
   });
 
   vitestIt("uses a default greeting when the name is blank", () => {
-    expect(createGreeting({ name: "   " })).toBe("Hello, world!");
+    expect(createGreeting({ name: "   " })).toBe(defaultGreeting);
   });
 
   vitestIt("trims whitespace around the name", () => {
@@ -19,7 +21,7 @@ describe("createGreeting", () => {
     "trims names and defaults when the name is missing or blank",
     (name) => {
       const trimmed = name?.trim() ?? "";
-      const expected = trimmed.length > 0 ? `Hello, ${trimmed}!` : "Hello, world!";
+      const expected = trimmed.length > 0 ? `Hello, ${trimmed}!` : defaultGreeting;
       const withOptions = createGreeting(name === undefined ? {} : { name }) === expected;
       if (name === undefined) {
         return withOptions && createGreeting() === expected;
