@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.4](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.3...v0.3.4) (2026-11-17)
+
+
+### Bug Fixes
+
+* clear npm audit findings in root and eslint-sonarjs ([#105](https://github.com/osloer-industries/typescript-node-template/issues/105)) ([4a97b8c](https://github.com/osloer-industries/typescript-node-template/commit/4a97b8c56bcc2b1b0aba73f4ff82fb4ad49275d6))
+
+## [0.3.3](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.2...v0.3.3) (2026-11-17)
+
+
+### Bug Fixes
+
+* **deps:** resolve eight Dependabot transitive security alerts ([#132](https://github.com/osloer-industries/typescript-node-template/issues/132)) ([d382902](https://github.com/osloer-industries/typescript-node-template/commit/d382902e47b54f3565cf83468d15c37715900fe4))
+
+## [0.3.2](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.1...v0.3.2) (2026-11-16)
+
+
+### Bug Fixes
+
+* run Sonar zero-issues gate only on pull requests ([#144](https://github.com/osloer-industries/typescript-node-template/issues/144)) ([89e560e](https://github.com/osloer-industries/typescript-node-template/commit/89e560ee84623e0be6e4e446237ea87bf109f86d))
+
 ## [0.3.1](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.0...v0.3.1) (2026-11-16)
 
 

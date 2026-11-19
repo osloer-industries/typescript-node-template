@@ -63,6 +63,7 @@ These rules apply to every agent (Cursor, Grok Bot, any other) working in this r
 | `packages/eslint-sonarjs/` | SonarJS `recommended` rules via ESLint (TypeScript 6 parser; root uses TS 7) ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `.github/workflows/` | CI and security automation ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)); shared jobs call [org reusables](docs/consuming-org-reusables.md) with pinned SHAs. |
 | `docs/consuming-org-reusables.md` | How callers pin `osloer-industries/.github` workflows; links the org contract doc. |
+| `docs/fleet-adoption.md` | Per-repo adoption of org reusables and template CI features ([ADR 0011](docs/adr/0011-fleet-adoption-table.md)). |
 | `lefthook.yml` | Pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `scripts/agent-hooks/` | Provider-neutral agent guard hook scripts ([docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)). |
 
@@ -118,6 +119,19 @@ then org **`ci-passed`**. Repositories created from this template must keep **So
 disabled** and use the CI scan instead ([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Branch
 protection should require only the **`ci-passed`** check—not individual jobs ([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)).
 
+`sonarcloud-zero-issues.yml` is **pull_request-only**; callers must not run it on `push`, and any job listed under
+`ci-passed` that is skipped on `push` must be treated as success by the aggregate gate ([docs/fleet-adoption.md](docs/fleet-adoption.md#sonar-zero-open-issues-and-ci-passed)).
+
+## Fleet adoption
+
+Every new or changed template harness feature, `.github/workflows/**` caller, or org reusable pin must:
+
+1. Update the matching row in [docs/fleet-adoption.md](docs/fleet-adoption.md) (state, pin, caveat, PR/issue links).
+2. Open or reference adoption work in each consuming repository and record the link in that table.
+
+Pull requests that change `.github/workflows/**` or `.github/actions/**` without updating
+`docs/fleet-adoption.md` fail CI (`scripts/check-fleet-adoption-doc.ts`).
+
 ## Change recipes
 
 | Change | Touch | Tests |
@@ -146,6 +160,10 @@ protection should require only the **`ci-passed`** check—not individual jobs (
 - Exception: shared skills live in `.agents/skills/<name>/SKILL.md` (Agent Skills standard). That
   path and `AGENTS.md` are the only agent paths committed by default. Do not copy skills into
   `.claude/skills/` or other vendor folders.
+- Claude Code (2.1.277+) reads `AGENTS.md` only when no `CLAUDE.md`, `.claude/CLAUDE.md` or
+  `CLAUDE.local.md` exists at or above the working directory. Do not create those files, even
+  locally: they silently switch this file off. For personal additions, set Project instructions
+  to `claude-md-and-agents-md` in Claude Code's `/config`.
 
 ## Priorities
 
