@@ -213,11 +213,11 @@ documented in `AGENTS.md` because Dependabot does not bump git-tag dependencies.
 
 <!-- devDependency: lefthook -->
 
-**Why chosen:** Git hooks runner for staged Oxlint, SonarJS, and markdownlint, plus full-repo
-`npm run lint:dup` when TypeScript, JavaScript, Markdown, or workflow YAML is staged (`lefthook.yml`,
-`npm run prepare`); CI uses
-`npm ci --ignore-scripts` so hooks never run in Actions
-([#32](https://github.com/osloer-industries/typescript-node-template/pull/32)).
+**Why chosen:** Git hooks runner for **`npm run precommit`** on every commit (`lefthook.yml`, `npm run
+prepare`); that script includes jscpd on TypeScript, JavaScript, Markdown, workflow YAML, and shell (see
+**jscpd** above). CI **Quality** runs the same script so `--no-verify` commits still fail in Actions; CI uses
+`npm ci --ignore-scripts` so hooks are not installed in Actions
+([#32](https://github.com/osloer-industries/typescript-node-template/pull/32), [#114](https://github.com/osloer-industries/typescript-node-template/pull/114)).
 
 **Alternatives considered:** Husky; no pre-commit hooks.
 
@@ -275,6 +275,18 @@ team already gates on in SonarCloud.
 **Alternatives considered:** Babel parser; untyped ESLint.
 
 **Why they lost:** SonarJS TS rules expect typed AST; untyped parsing misses many rules.
+
+### `packages/eslint-sonarjs` — `@typescript-eslint/eslint-plugin`
+
+<!-- devDependency: packages/eslint-sonarjs/@typescript-eslint/eslint-plugin -->
+
+**Why chosen:** Enforces SonarCloud rule **S7503** locally via `@typescript-eslint/require-await` in
+`packages/eslint-sonarjs/eslint.config.mjs` (paired with Oxlint `typescript/require-await`).
+
+**Alternatives considered:** SonarCloud-only async checks; untyped heuristics.
+
+**Why they lost:** Waiting for SonarCloud misses the agent workflow that already passed `npm run check`; the
+typed ESLint rule catches unneeded `async` before push.
 
 ### `packages/eslint-sonarjs` — `typescript`
 
@@ -352,7 +364,10 @@ issues on the PR head after the CI scan job completes.
 <!-- ci-tool: ci-passed -->
 
 **Why chosen:** Org `ci-passed.yml` is the **only** required branch protection check; it fails closed when any
-upstream job in `ci.yml` fails or is cancelled.
+upstream job in `ci.yml` fails or is cancelled. Caller or inlined [`scripts/ci-passed-gate.ts`](../scripts/ci-passed-gate.ts)
+implements the org skip rules: `sonar-zero-open-issues` may be **skipped** only off `pull_request`; on
+`pull_request` it must succeed. `harness-approval` may be **skipped** only when `guardrail-detect` outputs
+`guardrail_changed: false` (no widening to event-based allowlists).
 
 ### CI: zizmor
 

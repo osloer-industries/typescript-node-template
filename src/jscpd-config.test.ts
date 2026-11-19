@@ -37,9 +37,8 @@ describe(".jscpd.json contract", () => {
     );
   });
 
-  it("runs lint:dup from lefthook when jscpd-scoped files are staged", () => {
-    expect(lefthookYml).toContain("jscpd:");
-    expect(lefthookYml).toContain("npm run lint:dup");
-    expect(lefthookYml).toContain('glob: "*.{ts,tsx,mts,cts,js,mjs,cjs,md,yml,yaml}"');
+  it("runs npm run precommit from lefthook (includes lint:dup)", () => {
+    expect(lefthookYml).toContain("precommit:");
+    expect(lefthookYml).toContain("npm run precommit");
   });
 });

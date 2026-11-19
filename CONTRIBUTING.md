@@ -2,8 +2,8 @@
 
 1. Install Node.js 24.22.0.
 2. Run `npm ci` (or `npm ci --ignore-scripts` to match CI; then run `npm prepare` locally to install Git hooks).
-   Pre-commit hooks run Oxlint, SonarJS, and markdownlint on staged files, and `npm run lint:dup` (jscpd) when you
-   stage TypeScript, JavaScript, Markdown, or workflow YAML.
+   Pre-commit runs **`npm run precommit`** (Oxlint, SonarJS, jscpd on source/docs, typecheck, and unit tests — same
+   as CI **Quality**).
 3. Create a focused branch and add tests with the change.
 4. Run `npm run check` (Oxlint, SonarJS ESLint, jscpd on source/tests/docs/workflows, knip, markdownlint,
    markdown link checks, TypeScript,
@@ -34,6 +34,9 @@ root package (and align `package.json` `version` if you publish) so the first re
 Harness files listed in `CODEOWNERS` (lint config, workflows, `AGENTS.md`, and related scripts)
 should receive maintainer review. Replace `@osloer-industries/platform` in `CODEOWNERS` with your
 org team before enabling branch protection.
+
+Workflow or org-reusable changes must update [docs/fleet-adoption.md](docs/fleet-adoption.md) in the
+same pull request and link follow-up PRs or issues in consuming repositories (see [AGENTS.md](AGENTS.md)).
 
 Pull request titles are validated automatically. Squash merging uses the validated title as the commit
 subject on `main`, giving Release Please one reliable Conventional Commit per pull request. Dependabot

@@ -20,7 +20,7 @@ coverage enforcement, and GitHub security automation.
 - Provider-neutral [AGENTS.md](AGENTS.md) and [docs/architecture.md](docs/architecture.md) for contributors and coding agents
 - Local SonarJS rules (`npm run lint:sonarjs`), jscpd duplication checks (`src/`, `scripts/`, `packages/`, docs,
   workflows; **3%** threshold aligned with Sonar), knip unused-code detection, and Lefthook pre-commit hooks
-  (including jscpd when source or docs are staged); SonarCloud still runs on pull requests for org gates
+  (`npm run precommit` on every commit, including jscpd); SonarCloud still runs on pull requests for org gates
 
 ## Start a project
 

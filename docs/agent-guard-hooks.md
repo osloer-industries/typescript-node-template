@@ -76,10 +76,9 @@ Use it while iterating; run full `npm run check` before opening a pull request (
 
 ## Lefthook pre-commit
 
-`lefthook.yml` runs staged Oxlint, SonarJS, and markdownlint. When TypeScript, JavaScript, Markdown,
-or workflow YAML is staged, it also runs full-repo `npm run lint:dup` (jscpd). jscpd compares clones
-across the configured tree (`src/`, `scripts/`, `packages/`, docs, workflows), so staged-file-only
-scans are unreliable.
+`lefthook.yml` runs **`npm run precommit`** on every commit (Oxlint, SonarJS, jscpd on `src/`, `scripts/`,
+`packages/`, docs, and workflows, typecheck, and Vitest). jscpd scans the full configured tree in
+`lint:dup`, not staged files alone, so cross-file clones are detected reliably.
 
 ## Optional guardrail pre-commit hook
 

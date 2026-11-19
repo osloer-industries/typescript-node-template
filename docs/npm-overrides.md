@@ -5,13 +5,29 @@ Sometimes the fix exists only in a newer transitive version and upstream has not
 yet. npm **`overrides`** in `package.json` force a single resolved version for a package
 name across the tree.
 
-This template already uses a minimal example:
+This template already uses minimal examples for transitive dev-tooling gaps:
 
 ```json
 "overrides": {
-  "basic-ftp": "6.2.3"
+  "basic-ftp": "6.2.6",
+  "katex": "0.19.1",
+  "minimatch": "11.0.8",
+  "qs": "6.16.1",
+  "zod": "4.6.7"
 }
 ```
+
+Active root overrides and why (see `package.json`):
+
+| Package | Version | Reason |
+| --- | --- | --- |
+| `basic-ftp` | `6.2.6` | Transitive via `markdown-link-check` / `proxy-agent` ([GHSA-5pm8-86m8-9m6r](https://github.com/advisories/GHSA-5pm8-86m8-9m6r)). |
+| `qs` | `6.16.1` | `@stryker-mutator/core@10.1.1` pins `typed-rest-client@~2.3.0`, which resolves `qs@6.15.1`. |
+| `minimatch` | `11.0.8` | `@stryker-mutator/core@10.1.1` and other tooling depend on a vulnerable `minimatch` range ([GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249)). |
+| `katex` | `0.19.1` | `micromark-extension-math` via `markdownlint` ([GHSA-238p-pmpm-9mq7](https://github.com/advisories/GHSA-238p-pmpm-9mq7)). |
+| `zod` | `4.6.7` | Transitive via `@modelcontextprotocol/sdk` ([GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)). |
+
+`packages/eslint-sonarjs` also overrides `minimatch@11.0.8` in its own lockfile (ESLint / typescript-eslint tree).
 
 ## When an override is acceptable
 
