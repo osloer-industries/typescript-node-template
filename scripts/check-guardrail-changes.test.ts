@@ -18,13 +18,16 @@ import {
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const gitExecutable = gitExecutableForTests("GUARDRAIL_GIT_PATH");
+const srcIndexPath = "src/index.ts";
+const agentsMdPath = "AGENTS.md";
+const guardrailCheckRelativePath = "scripts/check-guardrail-changes.ts";
 
 function initTwoCommitRepo(tempDir: string): { base: string; head: string } {
   initGitRepo(tempDir, gitExecutable);
   writeFileSync(join(tempDir, "README.md"), "# base\n", "utf8");
   const base = gitCommitPaths(tempDir, "base", ["README.md"], gitExecutable);
-  writeFileSync(join(tempDir, "AGENTS.md"), "# agents\n", "utf8");
-  const head = gitCommitPaths(tempDir, "guardrail", ["AGENTS.md"], gitExecutable);
+  writeFileSync(join(tempDir, agentsMdPath), "# agents\n", "utf8");
+  const head = gitCommitPaths(tempDir, "guardrail", [agentsMdPath], gitExecutable);
   return { base, head };
 }
 
@@ -33,8 +36,8 @@ function initSrcOnlyDiffRepo(tempDir: string): { base: string; head: string } {
   writeFileSync(join(tempDir, "README.md"), "# base\n", "utf8");
   const base = gitCommitPaths(tempDir, "base", ["README.md"], gitExecutable);
   mkdirSync(join(tempDir, "src"), { recursive: true });
-  writeFileSync(join(tempDir, "src/index.ts"), "export {};\n", "utf8");
-  const head = gitCommitPaths(tempDir, "src only", ["src/index.ts"], gitExecutable);
+  writeFileSync(join(tempDir, srcIndexPath), "export {};\n", "utf8");
+  const head = gitCommitPaths(tempDir, "src only", [srcIndexPath], gitExecutable);
   return { base, head };
 }
 
@@ -58,8 +61,8 @@ describe("isGuardrailPath", () => {
 
 describe("findGuardrailChanges", () => {
   it("filters guardrail paths from a diff list", () => {
-    const changed = ["src/index.ts", "AGENTS.md", "README.md", ".github/dependabot.yml"];
-    expect(findGuardrailChanges(changed)).toEqual(["AGENTS.md", ".github/dependabot.yml"]);
+    const changed = [srcIndexPath, agentsMdPath, "README.md", ".github/dependabot.yml"];
+    expect(findGuardrailChanges(changed)).toEqual([agentsMdPath, ".github/dependabot.yml"]);
   });
 });
 
@@ -69,7 +72,7 @@ describe("listChangedPaths", () => {
     try {
       const { base, head } = initTwoCommitRepo(tempDir);
       const changed = listChangedPaths(base, head, tempDir);
-      expect(changed).toContain("AGENTS.md");
+      expect(changed).toContain(agentsMdPath);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
@@ -86,7 +89,7 @@ describe("runGuardrailCheckCli", () => {
     try {
       const { base, head } = initSrcOnlyDiffRepo(tempDir);
       cpGuardrailScript(tempDir);
-      const moduleUrl = new URL(`file://${join(tempDir, "scripts/check-guardrail-changes.ts")}`).href;
+      const moduleUrl = new URL(`file://${join(tempDir, guardrailCheckRelativePath)}`).href;
       let output = "";
       const stdout = vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
         output += String(chunk);
@@ -107,7 +110,7 @@ describe("check-guardrail-changes CLI", () => {
     try {
       const { base, head } = initTwoCommitRepo(tempDir);
       cpGuardrailScript(tempDir);
-      const output = execFileSync(process.execPath, ["scripts/check-guardrail-changes.ts"], {
+      const output = execFileSync(process.execPath, [guardrailCheckRelativePath], {
         cwd: tempDir,
         encoding: "utf8",
         env: { ...process.env, GUARDRAIL_BASE_REF: base, GUARDRAIL_HEAD_REF: head },

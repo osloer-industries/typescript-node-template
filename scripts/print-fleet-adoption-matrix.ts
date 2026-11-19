@@ -32,7 +32,7 @@ const REPO_COLUMNS = [
   "coast-fire-visualizer",
   "markdown-link-check",
   "osloer-industries/.github",
-  "tn819/expat-finance-hub",
+  "expat-finance-hub",
 ] as const;
 
 const header = ["Feature", ...REPO_COLUMNS].join(" | ");
