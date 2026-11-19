@@ -21,7 +21,7 @@ on that repository.
    aggregate job already fails when any upstream job fails or is cancelled.
 
 Pin every org reusable to the same `.github` release tag commit SHA (for example
-`348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6`); use the tag in the `#` comment, not `main`, so
+`a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7`); use the tag in the `#` comment, not `main`, so
 zizmor ref-version-mismatch stays green when org `main` advances. Bump via Dependabot (`osloer-reusables`
 group) or template-sync when a new `.github` tag ships. Callers do not pass `reusables-ref`; reusable
 workflows resolve their scripts from
@@ -37,7 +37,7 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`workflow-security` job) | `workflow-security.yml` | actionlint + zizmor; **job**-level `actions: read` on the calling job (zizmor online audits); default empty `min-severity` / `min-confidence` (strictest). |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`codeql` job) | `codeql-javascript-typescript.yml` | Public repo: default Code Scanning upload. Private repos without GHAS: set `code-scanning-upload: false` and keep `fail-on-sarif-level: error` (see org doc). |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-analyze` job) | `sonarqube-cloud-node.yml` | `npm run coverage:sonar` (`run-sonar-coverage.mjs` installs nested `packages/eslint-sonarjs` via `ci-npm-workspace.mjs` after the reusable’s root `npm ci`, then `test:coverage`); requires `SONAR_TOKEN`. |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`quality` job) | `node-npm-quality.yml` | `check` via org package-manager; `fetch-depth: 0`; `pr-pre-check-script: scripts/check-guardrail-changes.ts`; `npm-prefixes-json` for `packages/eslint-sonarjs`. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`quality` job) | `node-npm-quality.yml` | `precommit` via org package-manager ([#114](https://github.com/osloer-industries/typescript-node-template/pull/114)); `fetch-depth: 0`; `pr-pre-check-script: scripts/check-guardrail-changes.ts`; `npm-prefixes-json` for `packages/eslint-sonarjs`. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`mutation` job) | `mutation-changed.yml` | Org `run-mutation-changed.ts` at reusables pin. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`setup-smoke` job) | `node-setup-smoke.yml` | Default four-scenario matrix. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-zero-open-issues` job) | `sonarcloud-zero-issues.yml` | Pull requests only (`if: github.event_name == 'pull_request'`); `ce-task-id` from `sonar-analyze`. |
