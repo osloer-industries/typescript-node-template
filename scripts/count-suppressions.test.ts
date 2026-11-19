@@ -6,7 +6,10 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const nodeArgs = ["scripts/count-suppressions.ts"];
+const countSuppressionsRelativePath = "scripts/count-suppressions.ts";
+const nodeArgs = [countSuppressionsRelativePath];
+const utf8 = "utf8";
+const cleanSourceSample = "export const ok = 1;\n";
 
 function createSuppressionFixtureTree(
   prefix: string,
@@ -16,13 +19,13 @@ function createSuppressionFixtureTree(
   const tempDir = mkdtempSync(join(tmpdir(), prefix));
   mkdirSync(join(tempDir, "scripts"), { recursive: true });
   mkdirSync(join(tempDir, "src"), { recursive: true });
-  cpSync(join(repoRoot, "scripts/count-suppressions.ts"), join(tempDir, "scripts/count-suppressions.ts"));
+  cpSync(join(repoRoot, countSuppressionsRelativePath), join(tempDir, countSuppressionsRelativePath));
   writeFileSync(
     join(tempDir, "scripts/suppression-baseline.json"),
     `${JSON.stringify({ version: 1, total: baselineTotal })}\n`,
-    "utf8",
+    utf8,
   );
-  writeFileSync(join(tempDir, "src", srcFile.path), srcFile.content, "utf8");
+  writeFileSync(join(tempDir, "src", srcFile.path), srcFile.content, utf8);
   return tempDir;
 }
 
@@ -44,7 +47,7 @@ const x = 1;
 
   it("returns zero for clean source", async () => {
     const { countSuppressionsInText } = await loadModule();
-    expect(countSuppressionsInText("export const ok = 1;\n")).toBe(0);
+    expect(countSuppressionsInText(cleanSourceSample)).toBe(0);
   });
 });
 
@@ -67,7 +70,7 @@ describe("countSuppressions", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "suppression-missing-root-"));
     try {
       mkdirSync(join(tempDir, "src"), { recursive: true });
-      writeFileSync(join(tempDir, "src/clean.ts"), "export const ok = 1;\n", "utf8");
+      writeFileSync(join(tempDir, "src/clean.ts"), cleanSourceSample, utf8);
       expect(countSuppressions(tempDir)).toBe(0);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -79,8 +82,8 @@ describe("countSuppressions", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "suppression-count-"));
     try {
       mkdirSync(join(tempDir, "src"), { recursive: true });
-      writeFileSync(join(tempDir, "src/bad.ts"), "export const ok = 1;\n", "utf8");
-      writeFileSync(join(tempDir, "src/hidden.ts"), "// @ts-ignore\nexport {};\n", "utf8");
+      writeFileSync(join(tempDir, "src/bad.ts"), cleanSourceSample, utf8);
+      writeFileSync(join(tempDir, "src/hidden.ts"), "// @ts-ignore\nexport {};\n", utf8);
       expect(countSuppressions(tempDir)).toBe(1);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -92,7 +95,7 @@ describe("countSuppressions", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "suppression-packages-"));
     try {
       mkdirSync(join(tempDir, "packages", "demo"), { recursive: true });
-      writeFileSync(join(tempDir, "packages", "demo", "lib.ts"), "// oxlint-disable-line\nexport {};\n", "utf8");
+      writeFileSync(join(tempDir, "packages", "demo", "lib.ts"), "// oxlint-disable-line\nexport {};\n", utf8);
       expect(countSuppressions(tempDir)).toBe(1);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -118,11 +121,11 @@ describe("baseline IO", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "suppression-baseline-bad-"));
     const baselinePath = join(tempDir, "baseline.json");
     try {
-      writeFileSync(baselinePath, '{"version":2,"total":1}\n', "utf8");
+      writeFileSync(baselinePath, '{"version":2,"total":1}\n', utf8);
       expect(() => loadBaseline(baselinePath)).toThrow(/Invalid suppression baseline/);
-      writeFileSync(baselinePath, '{"version":1,"total":-1}\n', "utf8");
+      writeFileSync(baselinePath, '{"version":1,"total":-1}\n', utf8);
       expect(() => loadBaseline(baselinePath)).toThrow(/Invalid suppression baseline shape/);
-      writeFileSync(baselinePath, '"not-an-object"\n', "utf8");
+      writeFileSync(baselinePath, '"not-an-object"\n', utf8);
       expect(() => loadBaseline(baselinePath)).toThrow(/Invalid suppression baseline JSON/);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -135,10 +138,10 @@ describe("runCountSuppressionsCli", () => {
     const { runCountSuppressionsCli } = await loadModule();
     const tempDir = createSuppressionFixtureTree("suppression-cli-run-", 0, {
       path: "clean.ts",
-      content: "export const ok = 1;\n",
+      content: cleanSourceSample,
     });
     try {
-      const moduleUrl = new URL(`file://${join(tempDir, "scripts/count-suppressions.ts")}`).href;
+      const moduleUrl = new URL(`file://${join(tempDir, countSuppressionsRelativePath)}`).href;
       let output = "";
       const stdout = vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
         output += String(chunk);
@@ -157,7 +160,7 @@ describe("count-suppressions CLI", () => {
   it("passes on the template baseline", () => {
     const output = execFileSync(process.execPath, nodeArgs, {
       cwd: repoRoot,
-      encoding: "utf8",
+      encoding: utf8,
     });
     expect(output).toMatch(/shrink-only OK/);
   });
@@ -170,9 +173,9 @@ describe("count-suppressions CLI", () => {
     try {
       let failed = false;
       try {
-        execFileSync(process.execPath, ["scripts/count-suppressions.ts"], {
+        execFileSync(process.execPath, nodeArgs, {
           cwd: tempDir,
-          encoding: "utf8",
+          encoding: utf8,
         });
       } catch {
         failed = true;
@@ -186,15 +189,15 @@ describe("count-suppressions CLI", () => {
   it("writes baseline in a fixture tree", () => {
     const tempDir = createSuppressionFixtureTree("suppression-cli-", 0, {
       path: "clean.ts",
-      content: "export const ok = 1;\n",
+      content: cleanSourceSample,
     });
     try {
-      execFileSync(process.execPath, ["scripts/count-suppressions.ts", "--write-baseline"], {
+      execFileSync(process.execPath, [...nodeArgs, "--write-baseline"], {
         cwd: tempDir,
-        encoding: "utf8",
+        encoding: utf8,
       });
       const parsed: unknown = JSON.parse(
-        readFileSync(join(tempDir, "scripts/suppression-baseline.json"), "utf8"),
+        readFileSync(join(tempDir, "scripts/suppression-baseline.json"), utf8),
       );
       const total =
         typeof parsed === "object" && parsed !== null
