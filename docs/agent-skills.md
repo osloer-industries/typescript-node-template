@@ -43,3 +43,12 @@ Skills are instructions agents execute with repository and tool access. Treat th
 - No executable files inside skill directories until an explicit policy allows them.
 
 See also [docs/agent-guard-hooks.md](agent-guard-hooks.md) for in-loop guard hooks on guardrail paths.
+
+## Platform references
+
+Portable format and conventions for skills in this repo:
+
+- [Agent Skills specification](https://agentskills.io/specification) (frontmatter `name` / `description`)
+- [Cursor skills](https://cursor.com/docs/skills) (reads `.agents/skills/` directly)
+- [Claude Code skills](https://code.claude.com/docs/en/skills) (project skills; this template uses
+  vakt’s local bridge per the table above — do not commit `.claude/skills/` copies)

@@ -41,7 +41,7 @@ Regenerate this index with `npm run agents:index` after adding or editing a skil
 <!-- agents:skills:begin -->
 | Skill | Description | Path |
 | --- | --- | --- |
-| pr-ready | Confirm a branch is ready for review using Lefthook pre-commit, local npm run check, green ci-passed on the PR head, and the pull request template checklist. | `.agents/skills/pr-ready/SKILL.md` |
+| pr-ready | Before review — use Lefthook pre-commit without bypass, run npm run check, keep ci-passed green on the PR head, and follow the pull request template. | `.agents/skills/pr-ready/SKILL.md` |
 | verify-change | Run check:fast while iterating and the full check ladder before a pull request; interpret gate failures and the two-strike stop-hook rule from docs/agent-guard-hooks.md. | `.agents/skills/verify-change/SKILL.md` |
 | write-adr | Add an Architecture Decision Record under docs/adr using the README template and update the ADR index table. | `.agents/skills/write-adr/SKILL.md` |
 <!-- agents:skills:end -->
