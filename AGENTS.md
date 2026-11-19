@@ -123,6 +123,10 @@ Pull requests that change `.github/workflows/**` or `.github/actions/**` without
 - Exception: shared skills live in `.agents/skills/<name>/SKILL.md` (Agent Skills standard). That
   path and `AGENTS.md` are the only agent paths committed by default. Do not copy skills into
   `.claude/skills/` or other vendor folders.
+- Claude Code (2.1.277+) reads `AGENTS.md` only when no `CLAUDE.md`, `.claude/CLAUDE.md` or
+  `CLAUDE.local.md` exists at or above the working directory. Do not create those files, even
+  locally: they silently switch this file off. For personal additions, set Project instructions
+  to `claude-md-and-agents-md` in Claude Code's `/config`.
 
 ## Priorities
 
