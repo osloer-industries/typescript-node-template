@@ -41,6 +41,8 @@ export const ALLOWLISTED_NPM_SCRIPTS = [
 
 export type ReferenceKind = "path" | "npm-script";
 
+const NPM_SCRIPT_REFERENCE_KIND = "npm-script" satisfies ReferenceKind;
+
 export interface GuidanceReference {
   readonly kind: ReferenceKind;
   readonly token: string;
@@ -221,7 +223,7 @@ function extractBacktickReferences(
     if (isPathLikeBacktickToken(normalized)) {
       pushReference({ kind: "path", line: lineNumber, token: normalized });
     }
-    collectPatterns(inner, NPM_RUN_PATTERN, lineNumber, "npm-script", pushReference);
+    collectPatterns(inner, NPM_RUN_PATTERN, lineNumber, NPM_SCRIPT_REFERENCE_KIND, pushReference);
     collectPatterns(inner, NODE_CMD_PATTERN, lineNumber, "path", pushReference);
   }
 }
@@ -235,7 +237,7 @@ function extractReferencesFromLine(
   extractMarkdownLinks(rawLine, lineNumber, pushReference);
   extractBacktickReferences(rawLine, lineNumber, pushReference);
   if (inFence) {
-    collectPatterns(rawLine, NPM_RUN_PATTERN, lineNumber, "npm-script", pushReference);
+    collectPatterns(rawLine, NPM_RUN_PATTERN, lineNumber, NPM_SCRIPT_REFERENCE_KIND, pushReference);
     collectPatterns(rawLine, NODE_CMD_PATTERN, lineNumber, "path", pushReference);
   }
 }
@@ -451,7 +453,7 @@ export function validateReference(
     return null;
   }
 
-  if (reference.kind === "npm-script") {
+  if (reference.kind === NPM_SCRIPT_REFERENCE_KIND) {
     if (isAllowlistedNpmScript(reference.token)) {
       return null;
     }
@@ -459,7 +461,7 @@ export function validateReference(
       return {
         file: guidanceRelativePath,
         line: reference.line,
-        kind: "npm-script",
+        kind: NPM_SCRIPT_REFERENCE_KIND,
         token: reference.token,
       };
     }

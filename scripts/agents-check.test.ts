@@ -7,7 +7,25 @@ import { describe, expect, it, vi } from "vitest";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const fixturesRoot = join(repoRoot, "scripts/__fixtures__/agents-check");
-const nodeArgs = ["scripts/agents-check.ts"];
+const AGENTS_CHECK_SCRIPT = "scripts/agents-check.ts";
+const NPM_SCRIPT_KIND = "npm-script";
+const nodeArgs = [AGENTS_CHECK_SCRIPT];
+
+function readExecFailureOutput(error: unknown): string {
+  if (error === null || typeof error !== "object") {
+    return "";
+  }
+  let combined = "";
+  const stdout = Reflect.get(error, "stdout");
+  const stderr = Reflect.get(error, "stderr");
+  if (typeof stdout === "string") {
+    combined += stdout;
+  }
+  if (typeof stderr === "string") {
+    combined += stderr;
+  }
+  return combined;
+}
 
 async function loadModule() {
   return import("./agents-check.js");
@@ -60,7 +78,7 @@ describe("extractGuidanceReferences", () => {
     expect(refs.some((entry) => entry.kind === "path" && entry.token === "docs/readme.md")).toBe(true);
     expect(refs.some((entry) => entry.kind === "path" && entry.token === "scripts/a.mjs")).toBe(true);
     expect(refs.some((entry) => entry.kind === "path" && entry.token === "scripts/run.ts")).toBe(true);
-    expect(refs.some((entry) => entry.kind === "npm-script" && entry.token === "build")).toBe(true);
+    expect(refs.some((entry) => entry.kind === NPM_SCRIPT_KIND && entry.token === "build")).toBe(true);
   });
 
   it("accepts CRLF line endings", async () => {
@@ -74,14 +92,14 @@ describe("extractGuidanceReferences", () => {
 describe("path resolution", () => {
   it("accepts repo-relative and guidance-file-relative targets", async () => {
     const { pathExistsInRepo, candidatePathResolutions } = await loadModule();
-    expect(candidatePathResolutions("docs/agent-guard-hooks.md", "../scripts/agents-check.ts")).toEqual([
-      "../scripts/agents-check.ts",
-      "scripts/agents-check.ts",
+    expect(candidatePathResolutions("docs/agent-guard-hooks.md", `../${AGENTS_CHECK_SCRIPT}`)).toEqual([
+      `../${AGENTS_CHECK_SCRIPT}`,
+      AGENTS_CHECK_SCRIPT,
     ]);
     expect(
       pathExistsInRepo(repoRoot, ".github/pull_request_template.md", "../AGENTS.md"),
     ).toBe(true);
-    expect(pathExistsInRepo(repoRoot, "AGENTS.md", "scripts/agents-check.ts")).toBe(true);
+    expect(pathExistsInRepo(repoRoot, "AGENTS.md", AGENTS_CHECK_SCRIPT)).toBe(true);
   });
 });
 
@@ -96,7 +114,7 @@ describe("allowlist", () => {
     const allowed = validateReference(
       repoRoot,
       "AGENTS.md",
-      { kind: "npm-script", line: 1, token: "test:mcp" },
+      { kind: NPM_SCRIPT_KIND, line: 1, token: "test:mcp" },
       new Set(["lint"]),
     );
     expect(allowed).toBeNull();
@@ -124,7 +142,7 @@ describe("collectGuidanceFindings", () => {
       expect(findings.some((entry) => entry.kind === "path" && entry.token.includes("missing"))).toBe(
         true,
       );
-      expect(findings.some((entry) => entry.kind === "npm-script" && entry.token === "does-not-exist"))
+      expect(findings.some((entry) => entry.kind === NPM_SCRIPT_KIND && entry.token === "does-not-exist"))
         .toBe(true);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -175,12 +193,7 @@ describe("agents-check CLI", () => {
         execFileSync(process.execPath, nodeArgs, { cwd: tempDir, encoding: "utf8" });
       } catch (error) {
         failed = true;
-        if (error !== null && typeof error === "object") {
-          const stdout = Reflect.get(error, "stdout");
-          const stderr = Reflect.get(error, "stderr");
-          if (typeof stdout === "string") combined += stdout;
-          if (typeof stderr === "string") combined += stderr;
-        }
+        combined = readExecFailureOutput(error);
       }
       expect(failed, "expected non-zero exit for broken fixture").toBe(true);
       expect(combined).toMatch(/broken path/);
@@ -243,10 +256,10 @@ describe("expandDotdirGuidanceGlob", () => {
 describe("formatFinding and CLI helpers", () => {
   it("formats npm script findings and direct execution detection", async () => {
     const { formatFinding, isDirectExecution } = await loadModule();
-    expect(formatFinding({ file: "AGENTS.md", line: 2, kind: "npm-script", token: "lint" })).toBe(
+    expect(formatFinding({ file: "AGENTS.md", line: 2, kind: NPM_SCRIPT_KIND, token: "lint" })).toBe(
       "AGENTS.md:2: unknown npm script: lint",
     );
-    const modulePath = join(repoRoot, "scripts/agents-check.ts");
+    const modulePath = join(repoRoot, AGENTS_CHECK_SCRIPT);
     const moduleUrl = pathToFileURL(modulePath).href;
     expect(isDirectExecution(moduleUrl, modulePath)).toBe(true);
     expect(isDirectExecution(moduleUrl, undefined)).toBe(false);
@@ -262,7 +275,7 @@ describe("formatFinding and CLI helpers", () => {
     });
     try {
       copyAgentsCheckScript(tempDir);
-      const moduleUrl = pathToFileURL(join(tempDir, "scripts/agents-check.ts")).href;
+      const moduleUrl = pathToFileURL(join(tempDir, AGENTS_CHECK_SCRIPT)).href;
       expect(runAgentsCheckCliEntry(moduleUrl)).toBe(1);
       expect(stderr).toMatch(/package\.json/);
     } finally {
@@ -287,7 +300,7 @@ describe("runAgentsCheckCliEntry", () => {
   it("returns 0 for clean trees and 1 when findings exist", async () => {
     const { runAgentsCheckCliEntry } = await loadModule();
     const tempDir = mkdtempSync(join(tmpdir(), "agents-check-entry-"));
-    const modulePath = join(tempDir, "scripts/agents-check.ts");
+    const modulePath = join(tempDir, AGENTS_CHECK_SCRIPT);
     try {
       copyFixtureTree("clean", tempDir);
       copyAgentsCheckScript(tempDir);

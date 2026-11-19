@@ -24,9 +24,11 @@ const toolingAdrMd = readFileSync(
   "utf8",
 );
 
+const INVALID_PACKAGE_JSON = "Invalid package.json";
+
 function readDevDependencyNames(packageJsonText: string): string[] {
   const parsed: unknown = JSON.parse(packageJsonText);
-  if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
+  if (typeof parsed !== "object" || parsed === null) throw new Error(INVALID_PACKAGE_JSON);
   const devDependencies = Reflect.get(parsed, "devDependencies");
   if (typeof devDependencies !== "object" || devDependencies === null) {
     throw new Error("Missing devDependencies");
@@ -99,7 +101,7 @@ describe("agent documentation contract", () => {
 
   it("includes agents:check in npm run check:fast", () => {
     const parsed: unknown = JSON.parse(packageJson);
-    if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
+    if (typeof parsed !== "object" || parsed === null) throw new Error(INVALID_PACKAGE_JSON);
     const scripts = Reflect.get(parsed, "scripts");
     if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
     const checkFast = Reflect.get(scripts, "check:fast");
@@ -109,7 +111,7 @@ describe("agent documentation contract", () => {
 
   it("includes SonarJS, duplication, and knip gates in npm run check", () => {
     const parsed: unknown = JSON.parse(packageJson);
-    if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
+    if (typeof parsed !== "object" || parsed === null) throw new Error(INVALID_PACKAGE_JSON);
     const scripts = Reflect.get(parsed, "scripts");
     if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
     const check = Reflect.get(scripts, "check");
