@@ -9,7 +9,7 @@ and template harness features across consuming repositories.
 
 | Repository | Org `.github` pin (comment) | Notes |
 | --- | --- | --- |
-| typescript-node-template | `d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3` (`# v0.1.2`) | Template reference |
+| typescript-node-template | `348b254ef112f4f8e239a41e7adb3f3e2dac3944` (`# v0.1.6`) | Template reference |
 | lunch-money | migrating via [lunch-money#23](https://github.com/osloer-industries/lunch-money/pull/23) (bun repo) — `d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3` (`# v0.1.2`) on PR branch | No `.github/` on `main`. [#23](https://github.com/osloer-industries/lunch-money/pull/23) (pushed, CI pending). After merge, [#13](https://github.com/osloer-industries/lunch-money/pull/13) should merge `main` only |
 | lunch-money-de-invest-sync | `a081e1b87b5309ff2b3999e8d6804d8ebec5c518` (`# v0.1.1`) | |
 | vakt | `d1fd7700ad30c0bafbe1d0e4b1eac1fbbb4137b3` (`# v0.1.2`) | Partial caller set |

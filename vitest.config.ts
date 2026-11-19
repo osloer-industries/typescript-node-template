@@ -3,6 +3,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
+    globalSetup: ["scripts/vitest-global-setup.mjs"],
     isolate: true,
     fileParallelism: false,
     include: [
@@ -26,6 +27,7 @@ export default defineConfig({
         "src/**/*.spec.ts",
         "scripts/**/*.test.ts",
         "scripts/**/*.test.mjs",
+        "scripts/vitest-global-setup.mjs",
         "packages/**/*.test.mjs",
       ],
       thresholds: { branches: 80, functions: 80, lines: 80, statements: 80 },
