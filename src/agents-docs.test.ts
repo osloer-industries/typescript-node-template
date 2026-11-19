@@ -24,9 +24,19 @@ const toolingAdrMd = readFileSync(
   "utf8",
 );
 
+const invalidPackageJsonMessage = "Invalid package.json";
+
+function parsePackageJsonScripts(packageJsonText: string): Record<string, unknown> {
+  const parsed: unknown = JSON.parse(packageJsonText);
+  if (typeof parsed !== "object" || parsed === null) throw new Error(invalidPackageJsonMessage);
+  const scripts = Reflect.get(parsed, "scripts");
+  if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
+  return scripts;
+}
+
 function readDevDependencyNames(packageJsonText: string): string[] {
   const parsed: unknown = JSON.parse(packageJsonText);
-  if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
+  if (typeof parsed !== "object" || parsed === null) throw new Error(invalidPackageJsonMessage);
   const devDependencies = Reflect.get(parsed, "devDependencies");
   if (typeof devDependencies !== "object" || devDependencies === null) {
     throw new Error("Missing devDependencies");
@@ -104,27 +114,24 @@ describe("agent documentation contract", () => {
   });
 
   it("includes agents:check in npm run check:fast", () => {
-    const parsed: unknown = JSON.parse(packageJson);
-    if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
-    const scripts = Reflect.get(parsed, "scripts");
-    if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
+    const scripts = parsePackageJsonScripts(packageJson);
     const checkFast = Reflect.get(scripts, "check:fast");
     expect(typeof checkFast).toBe("string");
     expect(checkFast).toContain("agents:check");
   });
 
   it("includes SonarJS, duplication, and knip gates in npm run check", () => {
-    const parsed: unknown = JSON.parse(packageJson);
-    if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
-    const scripts = Reflect.get(parsed, "scripts");
-    if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
+    const scripts = parsePackageJsonScripts(packageJson);
     const check = Reflect.get(scripts, "check");
+    const precommit = Reflect.get(scripts, "precommit");
     expect(typeof check).toBe("string");
-    expect(check).toContain("lint:suppressions");
+    expect(typeof precommit).toBe("string");
+    expect(precommit).toContain("lint:suppressions");
+    expect(precommit).toContain("lint:sonarjs");
+    expect(precommit).toContain("lint:dup");
     expect(check).toContain("check:no-claude-md");
-    expect(check).toContain("agents:check");
-    expect(check).toContain("lint:sonarjs");
-    expect(check).toContain("lint:dup");
+    expect(check).toContain("npm run precommit");
+    expect(precommit).toContain("agents:check");
     expect(check).toContain("lint:knip");
     expect(check).toMatch(/build && npm run lint:knip/);
   });

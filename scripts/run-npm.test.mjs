@@ -18,6 +18,7 @@ vi.mock("node:fs", async (importOriginal) => {
 const { execFileSync } = await import("node:child_process");
 const { existsSync } = await import("node:fs");
 const { npmExecutablePath, runNpm } = await import("./run-npm.mjs");
+const sampleNpmCliPath = "/usr/local/lib/node_modules/npm/bin/npm-cli.js";
 
 describe("npmExecutablePath", () => {
   afterEach(() => {
@@ -26,9 +27,9 @@ describe("npmExecutablePath", () => {
   });
 
   it("prefers npm_execpath when it exists", () => {
-    vi.stubEnv("npm_execpath", "/usr/local/lib/node_modules/npm/bin/npm-cli.js");
-    vi.mocked(existsSync).mockImplementation((path) => path === "/usr/local/lib/node_modules/npm/bin/npm-cli.js");
-    expect(npmExecutablePath()).toBe("/usr/local/lib/node_modules/npm/bin/npm-cli.js");
+    vi.stubEnv("npm_execpath", sampleNpmCliPath);
+    vi.mocked(existsSync).mockImplementation((path) => path === sampleNpmCliPath);
+    expect(npmExecutablePath()).toBe(sampleNpmCliPath);
   });
 
   it("falls back to npm next to node", () => {

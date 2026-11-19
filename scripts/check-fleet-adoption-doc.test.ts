@@ -17,10 +17,14 @@ import {
 } from "./test-git-fixture.js";
 
 const gitExecutable = gitExecutableForTests("FLEET_ADOPTION_GIT_PATH");
+const ciWorkflowPath = ".github/workflows/ci.yml";
+const fleetAdoptionCheckSource = "./check-fleet-adoption-doc.ts";
+const gitListChangedSource = "./git-list-changed-paths.mjs";
+const fleetAdoptionCheckBasename = "scripts/check-fleet-adoption-doc.ts";
 
 describe("isWorkflowHarnessChange", () => {
   it("matches workflow and composite action paths", () => {
-    expect(isWorkflowHarnessChange(".github/workflows/ci.yml")).toBe(true);
+    expect(isWorkflowHarnessChange(ciWorkflowPath)).toBe(true);
     expect(isWorkflowHarnessChange(".github/actions/foo/action.yml")).toBe(true);
     expect(isWorkflowHarnessChange("docs/fleet-adoption.md")).toBe(false);
     expect(isWorkflowHarnessChange("src/index.ts")).toBe(false);
@@ -35,9 +39,9 @@ describe("evaluateFleetAdoptionDocSync", () => {
   });
 
   it("requires fleet adoption doc when workflows change", () => {
-    const result = evaluateFleetAdoptionDocSync([".github/workflows/ci.yml"]);
+    const result = evaluateFleetAdoptionDocSync([ciWorkflowPath]);
     expect(result.ok).toBe(false);
-    expect(result.workflowChanges).toEqual([".github/workflows/ci.yml"]);
+    expect(result.workflowChanges).toEqual([ciWorkflowPath]);
   });
 
   it("passes when workflow and fleet doc change together", () => {
@@ -61,17 +65,17 @@ describe("runFleetAdoptionDocCheckCli", () => {
       writeFileSync(join(tempDir, "README.md"), "# base\n", "utf8");
       const base = gitCommitPaths(tempDir, "base", ["README.md"], gitExecutable);
       mkdirSync(join(tempDir, ".github/workflows"), { recursive: true });
-      writeFileSync(join(tempDir, ".github/workflows/ci.yml"), "name: CI\n", "utf8");
-      const head = gitCommitPaths(tempDir, "workflow", [".github/workflows/ci.yml"], gitExecutable);
+      writeFileSync(join(tempDir, ciWorkflowPath), "name: CI\n", "utf8");
+      const head = gitCommitPaths(tempDir, "workflow", [ciWorkflowPath], gitExecutable);
       cpSync(
-        resolve(fileURLToPath(new URL("./check-fleet-adoption-doc.ts", import.meta.url))),
-        join(tempDir, "scripts/check-fleet-adoption-doc.ts"),
+        resolve(fileURLToPath(new URL(fleetAdoptionCheckSource, import.meta.url))),
+        join(tempDir, fleetAdoptionCheckBasename),
       );
       cpSync(
-        resolve(fileURLToPath(new URL("./git-list-changed-paths.mjs", import.meta.url))),
+        resolve(fileURLToPath(new URL(gitListChangedSource, import.meta.url))),
         join(tempDir, "scripts/git-list-changed-paths.mjs"),
       );
-      const moduleUrl = new URL(`file://${join(tempDir, "scripts/check-fleet-adoption-doc.ts")}`).href;
+      const moduleUrl = new URL(`file://${join(tempDir, fleetAdoptionCheckBasename)}`).href;
       const code = runFleetAdoptionDocCheckCli(moduleUrl, [base, head]);
       expect(code).toBe(1);
     } finally {
@@ -87,23 +91,23 @@ describe("runFleetAdoptionDocCheckCli", () => {
       const base = gitCommitPaths(tempDir, "base", ["README.md"], gitExecutable);
       mkdirSync(join(tempDir, ".github/workflows"), { recursive: true });
       mkdirSync(join(tempDir, "docs"), { recursive: true });
-      writeFileSync(join(tempDir, ".github/workflows/ci.yml"), "name: CI\n", "utf8");
+      writeFileSync(join(tempDir, ciWorkflowPath), "name: CI\n", "utf8");
       writeFileSync(join(tempDir, FLEET_ADOPTION_DOC_PATH), "# Fleet\n", "utf8");
       const head = gitCommitPaths(
         tempDir,
         "fleet",
-        [".github/workflows/ci.yml", FLEET_ADOPTION_DOC_PATH],
+        [ciWorkflowPath, FLEET_ADOPTION_DOC_PATH],
         gitExecutable,
       );
       cpSync(
-        resolve(fileURLToPath(new URL("./check-fleet-adoption-doc.ts", import.meta.url))),
-        join(tempDir, "scripts/check-fleet-adoption-doc.ts"),
+        resolve(fileURLToPath(new URL(fleetAdoptionCheckSource, import.meta.url))),
+        join(tempDir, fleetAdoptionCheckBasename),
       );
       cpSync(
-        resolve(fileURLToPath(new URL("./git-list-changed-paths.mjs", import.meta.url))),
+        resolve(fileURLToPath(new URL(gitListChangedSource, import.meta.url))),
         join(tempDir, "scripts/git-list-changed-paths.mjs"),
       );
-      const moduleUrl = new URL(`file://${join(tempDir, "scripts/check-fleet-adoption-doc.ts")}`).href;
+      const moduleUrl = new URL(`file://${join(tempDir, fleetAdoptionCheckBasename)}`).href;
       const code = runFleetAdoptionDocCheckCli(moduleUrl, [base, head]);
       expect(code).toBe(0);
     } finally {

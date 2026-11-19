@@ -41,6 +41,9 @@ export const ALLOWLISTED_NPM_SCRIPTS = [
 
 export type ReferenceKind = "path" | "npm-script";
 
+const PATH_REFERENCE_KIND: ReferenceKind = "path";
+const NPM_SCRIPT_REFERENCE_KIND: ReferenceKind = "npm-script";
+
 export interface GuidanceReference {
   readonly kind: ReferenceKind;
   readonly token: string;
@@ -188,7 +191,7 @@ function extractMarkdownLinks(
 ): void {
   for (const target of markdownLinkTargets(rawLine)) {
     if (!shouldSkipLinkTarget(target)) {
-      pushReference({ kind: "path", line: lineNumber, token: normalizeSlashes(target) });
+      pushReference({ kind: PATH_REFERENCE_KIND, line: lineNumber, token: normalizeSlashes(target) });
     }
   }
 }
@@ -219,10 +222,10 @@ function extractBacktickReferences(
   for (const inner of backtickSegments(rawLine)) {
     const normalized = normalizeSlashes(inner);
     if (isPathLikeBacktickToken(normalized)) {
-      pushReference({ kind: "path", line: lineNumber, token: normalized });
+      pushReference({ kind: PATH_REFERENCE_KIND, line: lineNumber, token: normalized });
     }
-    collectPatterns(inner, NPM_RUN_PATTERN, lineNumber, "npm-script", pushReference);
-    collectPatterns(inner, NODE_CMD_PATTERN, lineNumber, "path", pushReference);
+    collectPatterns(inner, NPM_RUN_PATTERN, lineNumber, NPM_SCRIPT_REFERENCE_KIND, pushReference);
+    collectPatterns(inner, NODE_CMD_PATTERN, lineNumber, PATH_REFERENCE_KIND, pushReference);
   }
 }
 
@@ -235,8 +238,8 @@ function extractReferencesFromLine(
   extractMarkdownLinks(rawLine, lineNumber, pushReference);
   extractBacktickReferences(rawLine, lineNumber, pushReference);
   if (inFence) {
-    collectPatterns(rawLine, NPM_RUN_PATTERN, lineNumber, "npm-script", pushReference);
-    collectPatterns(rawLine, NODE_CMD_PATTERN, lineNumber, "path", pushReference);
+    collectPatterns(rawLine, NPM_RUN_PATTERN, lineNumber, NPM_SCRIPT_REFERENCE_KIND, pushReference);
+    collectPatterns(rawLine, NODE_CMD_PATTERN, lineNumber, PATH_REFERENCE_KIND, pushReference);
   }
 }
 
@@ -451,7 +454,7 @@ export function validateReference(
     return null;
   }
 
-  if (reference.kind === "npm-script") {
+  if (reference.kind === NPM_SCRIPT_REFERENCE_KIND) {
     if (isAllowlistedNpmScript(reference.token)) {
       return null;
     }
@@ -459,7 +462,7 @@ export function validateReference(
       return {
         file: guidanceRelativePath,
         line: reference.line,
-        kind: "npm-script",
+        kind: NPM_SCRIPT_REFERENCE_KIND,
         token: reference.token,
       };
     }
@@ -474,7 +477,7 @@ export function validateReference(
     return {
       file: guidanceRelativePath,
       line: reference.line,
-      kind: "path",
+      kind: PATH_REFERENCE_KIND,
       token: reference.token,
     };
   }

@@ -18,6 +18,13 @@ import {
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const nodeArgs = ["scripts/agents-check.ts", "index"];
+const verifyChangeSkill = "verify-change";
+const skillsIndexBegin = "<!-- agents:skills:begin -->";
+const skillsIndexEnd = "<!-- agents:skills:end -->";
+
+function agentsMdWithSkillsIndex(inner: string): string {
+  return ["# A", skillsIndexBegin, inner, skillsIndexEnd].join("\n");
+}
 
 function copyHarnessScripts(targetRoot: string): void {
   const scriptsDir = join(targetRoot, "scripts");
@@ -29,7 +36,7 @@ function copyHarnessScripts(targetRoot: string): void {
 
 describe("skill frontmatter validation", () => {
   it("accepts a valid skill name", () => {
-    expect(isValidSkillName("verify-change", "verify-change")).toBe(true);
+    expect(isValidSkillName(verifyChangeSkill, verifyChangeSkill)).toBe(true);
     expect(isValidSkillName("Bad-Name", "Bad-Name")).toBe(false);
     expect(isValidSkillName("bad--name", "bad--name")).toBe(false);
   });
@@ -76,12 +83,7 @@ describe("collectSkillFindings", () => {
       );
       writeFileSync(
         join(tempDir, "AGENTS.md"),
-        [
-          "# A",
-          "<!-- agents:skills:begin -->",
-          renderSkillsIndexInner([]),
-          "<!-- agents:skills:end -->",
-        ].join("\n"),
+        agentsMdWithSkillsIndex(renderSkillsIndexInner([])),
         "utf8",
       );
       const findings = collectSkillFindings(tempDir);
@@ -127,13 +129,7 @@ describe("collectSkillFindings", () => {
       cpSync(join(repoRoot, ".agents"), join(tempDir, ".agents"), { recursive: true });
       writeFileSync(
         join(tempDir, "AGENTS.md"),
-        [
-          "# A",
-          "<!-- agents:skills:begin -->",
-          "| Skill | Description | Path |",
-          "| --- | --- | --- |",
-          "<!-- agents:skills:end -->",
-        ].join("\n"),
+        agentsMdWithSkillsIndex(["| Skill | Description | Path |", "| --- | --- | --- |"].join("\n")),
         "utf8",
       );
       const findings = collectSkillFindings(tempDir);
@@ -178,14 +174,11 @@ describe("collectSkillFindings", () => {
       chmodSync(scriptPath, 0o755);
       writeFileSync(
         join(tempDir, "AGENTS.md"),
-        [
-          "# A",
-          "<!-- agents:skills:begin -->",
+        agentsMdWithSkillsIndex(
           renderSkillsIndexInner([
             { name: "with-bin", description: "Demo skill.", skillPath: ".agents/skills/with-bin/SKILL.md" },
           ]),
-          "<!-- agents:skills:end -->",
-        ].join("\n"),
+        ),
         "utf8",
       );
       const findings = collectSkillFindings(tempDir);
@@ -248,21 +241,16 @@ describe("agents:index CLI", () => {
       cpSync(join(repoRoot, ".agents"), join(tempDir, ".agents"), { recursive: true });
       writeFileSync(
         join(tempDir, "AGENTS.md"),
-        [
-          "# A",
-          "<!-- agents:skills:begin -->",
-          "| Skill | Description | Path |",
-          "| --- | --- | --- |",
-          "| stale | x | `y` |",
-          "<!-- agents:skills:end -->",
-        ].join("\n"),
+        agentsMdWithSkillsIndex(
+          ["| Skill | Description | Path |", "| --- | --- | --- |", "| stale | x | `y` |"].join("\n"),
+        ),
         "utf8",
       );
       writeFileSync(join(tempDir, "package.json"), '{"scripts":{}}', "utf8");
       copyHarnessScripts(tempDir);
       execFileSync(process.execPath, nodeArgs, { cwd: tempDir, encoding: "utf8" });
       const updated = readFileSync(join(tempDir, "AGENTS.md"), "utf8");
-      expect(updated).toContain("verify-change");
+      expect(updated).toContain(verifyChangeSkill);
       expect(collectSkillFindings(tempDir)).toEqual([]);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
