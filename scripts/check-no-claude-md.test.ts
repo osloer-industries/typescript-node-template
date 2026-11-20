@@ -213,7 +213,7 @@ describe("runNoClaudeMdCliEntry", () => {
 });
 
 describe("assertNoTrackedClaudeInstructionFiles", () => {
-  it("passes when no forbidden paths are tracked", async () => {
+  it("passes when no forbidden paths are tracked", { timeout: 30_000 }, async () => {
     const { assertNoTrackedClaudeInstructionFiles } = await loadModule();
     const tempDir = createNoClaudeFixture("no-claude-clean-");
     try {

@@ -97,6 +97,37 @@ export function applyHarnessDevDependencies(pkg, scenario) {
   }
 }
 
+const jsAllowlistRelativePath = "quality/js-allowlist.json";
+
+/**
+ * @param {string} baseDir
+ * @param {readonly string[]} relativePaths
+ */
+export function appendJsAllowlistPaths(baseDir, relativePaths) {
+  const allowlistPath = join(baseDir, jsAllowlistRelativePath);
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(allowlistPath, "utf8"));
+  } catch {
+    return;
+  }
+  if (typeof parsed !== "object" || parsed === null || !Array.isArray(parsed.paths)) {
+    return;
+  }
+  const merged = new Set(
+    parsed.paths.filter((entry) => typeof entry === "string").map((entry) => entry.replaceAll("\\", "/")),
+  );
+  for (const entry of relativePaths) {
+    merged.add(entry.replaceAll("\\", "/"));
+  }
+  const paths = [...merged].toSorted((a, b) => a.localeCompare(b));
+  writeFileSync(
+    allowlistPath,
+    `${JSON.stringify({ version: 1, paths }, null, 2)}\n`,
+    "utf8",
+  );
+}
+
 export const generatedTestMcpScript = `import { runGeneratedTestMcpCli } from "./mcp-stdio-smoke.mjs";
 
 await runGeneratedTestMcpCli(import.meta.url, process.argv[1], import.meta.dirname);
@@ -119,6 +150,11 @@ export function writeMcpSmokeScripts(baseDir) {
   if (resolve(testMcpTestSource) !== resolve(testMcpTestDest)) {
     cpSync(testMcpTestSource, testMcpTestDest);
   }
+  appendJsAllowlistPaths(baseDir, [
+    "scripts/mcp-stdio-smoke.mjs",
+    "scripts/test-mcp.mjs",
+    "scripts/test-mcp.test.mjs",
+  ]);
 }
 
 export const profiles = {

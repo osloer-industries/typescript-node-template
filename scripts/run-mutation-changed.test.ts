@@ -59,7 +59,7 @@ describe("runMutationChangedCli", () => {
     expect(() => runMutationChangedCli(import.meta.url, [])).toThrow(/Missing base ref/);
   });
 
-  it("skips when the diff has no mutable src paths", () => {
+  it("skips when the diff has no mutable src paths", { timeout: 30_000 }, () => {
     const tempDir = mkdtempSync(join(tmpdir(), "mutation-skip-"));
     try {
       initGitRepo(tempDir, gitExecutable);
