@@ -16,12 +16,14 @@ on that repository.
    reusable workflow SHAs together.
 5. In SonarCloud, **disable Automatic Analysis** for the project and rely on the CI `sonarqube-cloud-node.yml`
    job instead ([docs/sonar-quality-gate.md](sonar-quality-gate.md)). Enable organization secret **`SONAR_TOKEN`**.
-6. After the first green runs, require a **single** branch protection check: **`ci-passed`** (job on
-   [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)). Do not list individual scanner jobs as required—the
-   aggregate job already fails when any upstream job fails or is cancelled.
+6. After the first green runs, consuming repos should register a **single** required status check: **`ci-passed`**
+   (org reusable called from [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)). Do not list individual
+   scanner jobs as required—the aggregate job already fails when any upstream job fails or is cancelled. This
+   template repo’s org ruleset on `main` currently enforces PR review rules only (no required status checks in
+   ruleset config); fleet callers still adopt the **`ci-passed`** gate per org doc.
 
 Pin every org reusable to the same `.github` release tag commit SHA (for example
-`348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6`); use the tag in the `#` comment, not `main`, so
+`a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7`); use the tag in the `#` comment, not `main`, so
 zizmor ref-version-mismatch stays green when org `main` advances. Bump via Dependabot (`osloer-reusables`
 group) or template-sync when a new `.github` tag ships. Callers do not pass `reusables-ref`; reusable
 workflows resolve their scripts from
@@ -37,13 +39,17 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`workflow-security` job) | `workflow-security.yml` | actionlint + zizmor; **job**-level `actions: read` on the calling job (zizmor online audits); default empty `min-severity` / `min-confidence` (strictest). |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`codeql` job) | `codeql-javascript-typescript.yml` | Public repo: default Code Scanning upload. Private repos without GHAS: set `code-scanning-upload: false` and keep `fail-on-sarif-level: error` (see org doc). |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-analyze` job) | `sonarqube-cloud-node.yml` | `npm run coverage:sonar` (`run-sonar-coverage.mjs` installs nested `packages/eslint-sonarjs` via `ci-npm-workspace.mjs` after the reusable’s root `npm ci`, then `test:coverage`); requires `SONAR_TOKEN`. |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-zero-open-issues` job) | `sonarcloud-zero-issues.yml` | Pull requests only (`if: github.event_name == 'pull_request'`); polls after `sonar-analyze`. Push to `main` still runs CI Sonar analysis for baseline/coverage. |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`journey-e2e` job) | *(in-repo)* | Black-box `npm run test:e2e` for the template setup journey; replace in generated repos. |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | In-repo `scripts/ci-passed-gate.ts` | **Org standard** aggregate gate ([`scripts/ci-passed-gate.ts`](../scripts/ci-passed-gate.ts), port to org `.github/scripts/`). `needs:` every upstream job including `journey-e2e` and `sonar-analyze`. Only tolerated skips: `sonar-zero-open-issues` **skipped** on non–`pull_request` events; `harness-approval` **skipped** when `guardrail-detect` outputs `guardrail_changed: false`. All other skip/cancel/failure/missing results fail closed; on `pull_request`, `sonar-zero-open-issues` must be present and **success**. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`quality` job) | `node-npm-quality.yml` | `precommit` via org package-manager ([#114](https://github.com/osloer-industries/typescript-node-template/pull/114)); `fetch-depth: 0`; `pr-pre-check-script: scripts/check-guardrail-changes.ts`; `npm-prefixes-json` for `packages/eslint-sonarjs`. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`mutation` job) | `mutation-changed.yml` | Thin caller; script runs from org pin at `job.workflow_sha`. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`setup-smoke` job) | `node-setup-smoke.yml` | Default four-scenario matrix. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`journey-e2e` job) | *(in-repo)* | Black-box `npm run test:e2e` for the template setup journey ([#129](https://github.com/osloer-industries/typescript-node-template/pull/129)); replace in generated repos. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-zero-open-issues` job) | `sonarcloud-zero-issues.yml` | Pull requests only (`if: github.event_name == 'pull_request'`); `ce-task-id` from `sonar-analyze`. |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | `ci-passed.yml` | Org aggregate gate; `needs:` every upstream job including `journey-e2e`. Sonar zero-open **skipped** tolerated only off `pull_request`. Future `harness-approval` skip rules land in org gate via [#103](https://github.com/osloer-industries/typescript-node-template/pull/103). |
+| [`dependency-review.yml`](../.github/workflows/dependency-review.yml) | `dependency-review.yml` | Job-level `contents` / `actions` / `pull-requests` read and `security-events: write` (nested OSV reusable). |
+| [`pr-title.yml`](../.github/workflows/pr-title.yml) | `semantic-pull-request.yml` | `pull_request` caller (not org doc `pull_request_target` — workflow-security zizmor rejects `pull_request_target` in this repo); job-level `pull-requests: read`. |
 | [`release.yml`](../.github/workflows/release.yml) | `release-please.yml` | Release GitHub App secrets (see org doc). |
 
-Other workflows (CI quality, setup smoke, dependency review, PR title) may still be inlined in this
-template until they are migrated; fleet-wide copies belong in org `.github` per
+Domain-only jobs remain in-repo (for example `fleet-adoption-doc`, future `harness-approval`) per
 [ADR 0005](adr/0005-placement-template-vs-org-github.md).
 
 ## Private repository CodeQL
