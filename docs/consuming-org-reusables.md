@@ -19,6 +19,28 @@ on that repository.
 6. After the first green runs, require a **single** branch protection check: **`ci-passed`** (job on
    [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)). Do not list individual scanner jobs as required—the
    aggregate job already fails when any upstream job fails or is cancelled.
+7. Enable **Allow auto-merge** on the repository (**Settings > General > Pull Requests**) and restrict
+   merge methods to **squash** only so Dependabot and Release Please squash commits match Conventional Commit
+   prefixes (`chore(deps):`, `ci(deps):`) enforced by the PR title workflow.
+8. Configure org **auto-merge** credentials: repository (or organization) secret **`RELEASE_APP_PRIVATE_KEY`**
+   (PEM for the osloer-reviewer GitHub App) and repository variable **`OSLOER_RELEASE_APP_ID`** = **`5745328`**.
+   Mirror **`RELEASE_APP_PRIVATE_KEY`** into **Dependabot secrets** so workflows on `dependabot/*` branches can
+   mint the installation token. Copy [`.github/workflows/auto-merge.yml`](../.github/workflows/auto-merge.yml)
+   from this template (org reusable pin **`# v0.1.7`**).
+
+### Auto-merge behavior (org reusable)
+
+The org [`auto-merge.yml`](https://github.com/osloer-industries/.github/blob/v0.1.7/.github/workflows/auto-merge.yml)
+approves and enables **`gh pr merge --auto`** (merge completes only after required checks pass). It does **not**
+use `pull_request_target` and does not check out pull request code.
+
+| Source | Auto-merges when | Never auto-merges |
+| --- | --- | --- |
+| **Dependabot** | `version-update:semver-patch` or `version-update:semver-minor` (including grouped `osloer-reusables` patch/minor bumps) | **semver-major** dependency updates |
+| **Release Please** (`release-please--*` branches, osloer-reviewer) | Manifest diff is patch/minor only, allowlisted files, no `BREAKING CHANGE` / `⚠ BREAKING CHANGES` in PR body or changelog | Major manifest bumps, breaking markers, or unparseable manifest (fail closed). Pre-1.0 breaking changes bump **minor** and stay manual |
+
+Auto-merge waits for branch protection required checks. Register only **`ci-passed`** as required—not individual
+scanner jobs—so Dependabot and release PRs merge once the aggregate pipeline is green.
 
 Pin every org reusable to the same `.github` release tag commit SHA (for example
 `348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6`); use the tag in the `#` comment, not `main`, so
@@ -41,6 +63,7 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`journey-e2e` job) | *(in-repo)* | Black-box `npm run test:e2e` for the template setup journey; replace in generated repos. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | In-repo `scripts/ci-passed-gate.ts` | **Org standard** aggregate gate ([`scripts/ci-passed-gate.ts`](../scripts/ci-passed-gate.ts), port to org `.github/scripts/`). `needs:` every upstream job including `journey-e2e` and `sonar-analyze`. Only tolerated skips: `sonar-zero-open-issues` **skipped** on non–`pull_request` events; `harness-approval` **skipped** when `guardrail-detect` outputs `guardrail_changed: false`. All other skip/cancel/failure/missing results fail closed; on `pull_request`, `sonar-zero-open-issues` must be present and **success**. |
 | [`release.yml`](../.github/workflows/release.yml) | `release-please.yml` | Release GitHub App secrets (see org doc). |
+| [`.github/workflows/auto-merge.yml`](../.github/workflows/auto-merge.yml) | `auto-merge.yml` (`# v0.1.7`) | `RELEASE_APP_PRIVATE_KEY`, `vars.OSLOER_RELEASE_APP_ID` (`5745328` in this org); squash merge; `allow-dependabot` + `allow-release-prs`. |
 
 Other workflows (CI quality, setup smoke, dependency review, PR title) may still be inlined in this
 template until they are migrated; fleet-wide copies belong in org `.github` per
