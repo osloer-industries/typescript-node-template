@@ -28,6 +28,27 @@ describe("parseHooksManifestJson", () => {
       ),
     ).toThrow(/must point under scripts\/agent-hooks/);
   });
+
+  it("rejects non-string, empty, or non-.ts script paths", () => {
+    const stop = "scripts/agent-hooks/pre-stop-fast-check.ts";
+    expect(() =>
+      parseHooksManifestJson(`{"preEdit":42,"stop":"${stop}"}`),
+    ).toThrow(/must be a non-empty script path/);
+    expect(() => parseHooksManifestJson(`{"preEdit":"   ","stop":"${stop}"}`)).toThrow(
+      /must be a non-empty script path/,
+    );
+    expect(() =>
+      parseHooksManifestJson(
+        `{"preEdit":"scripts/agent-hooks/block-guardrail-edits.mjs","stop":"${stop}"}`,
+      ),
+    ).toThrow(/must reference a TypeScript script/);
+  });
+
+  it("rejects empty, malformed, or non-object JSON", () => {
+    expect(() => parseHooksManifestJson("")).toThrow(/must not be empty/);
+    expect(() => parseHooksManifestJson("{")).toThrow(/must be valid JSON/);
+    expect(() => parseHooksManifestJson("null")).toThrow(/must be a JSON object/);
+  });
 });
 
 describe("committed hooks.json", () => {
@@ -39,5 +60,16 @@ describe("committed hooks.json", () => {
       stop: "scripts/agent-hooks/pre-stop-fast-check.ts",
     });
     validateHooksManifestOnDisk(repoRoot, manifest);
+  });
+});
+
+describe("validateHooksManifestOnDisk", () => {
+  it("rejects manifests that reference missing scripts", () => {
+    expect(() =>
+      validateHooksManifestOnDisk(repoRoot, {
+        preEdit: "scripts/agent-hooks/does-not-exist.ts",
+        stop: "scripts/agent-hooks/pre-stop-fast-check.ts",
+      }),
+    ).toThrow(/preEdit.*script not found/);
   });
 });
