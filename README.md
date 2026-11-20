@@ -18,9 +18,13 @@ coverage enforcement, and GitHub security automation.
 - Full commit SHA pins, minimal permissions, timeouts, and concurrency cancellation
 - Secret-safe ignores, issue forms, and pull request guidance
 - Provider-neutral [AGENTS.md](AGENTS.md) and [docs/architecture.md](docs/architecture.md) for contributors and coding agents
+- Shared [Agent Skills](https://agentskills.io) under [`.agents/skills/`](.agents/skills/) (see
+  [docs/agent-skills.md](docs/agent-skills.md); regenerate the `AGENTS.md` table with
+  `npm run agents:index`)
 - Local SonarJS rules (`npm run lint:sonarjs`), jscpd duplication checks (`src/`, `scripts/`, `packages/`, docs,
-  workflows; **3%** threshold aligned with Sonar), knip unused-code detection, and Lefthook pre-commit hooks
-  (`npm run precommit` on every commit, including jscpd); SonarCloud still runs on pull requests for org gates
+  workflows; **3%** threshold aligned with Sonar), `agents:check`, knip unused-code detection, and Lefthook
+  pre-commit hooks (`npm run precommit` on every commit, including jscpd); SonarCloud still runs on pull requests
+  for org gates
 
 ## Start a project
 
@@ -70,6 +74,8 @@ Further patterns (provider-neutral):
 | `npm run test:coverage` | Test and enforce coverage thresholds |
 | `npm run test:mutation` | Stryker mutation testing on `src/` (80% break threshold; separate from `check`) |
 | `npm run build` | Compile to `dist/` |
+| `npm run agents:check` | Validate agent guidance paths, npm scripts, and shared skills |
+| `npm run agents:index` | Regenerate the Skills table in `AGENTS.md` |
 | `npm run check` | Run all local quality gates |
 | `npm audit --omit=dev` | Audit production dependencies |
 
@@ -132,7 +138,8 @@ Branch protection is intentionally not automated. After the first successful run
 - Up-to-date branches when parallel development makes it useful
 - Force pushes and branch deletion blocked
 - Rules applied to administrators unless an emergency process exists
-- Signed commits and linear history when the contributor workflow supports them
+- Signed commits when the contributor workflow supports them (avoid requiring linear history that implies
+  rebasing shared branches; merge `main` into pull request branches instead — see [AGENTS.md](AGENTS.md))
 - Squash merging only, with the pull request title used as the squash commit title
 
 Do not require Sonar until SonarCloud and `SONAR_TOKEN` are configured.

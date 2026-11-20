@@ -44,7 +44,8 @@ npm run list-rules --prefix packages/eslint-sonarjs
 
 Pre-commit (after `npm run prepare`): Lefthook ([ADR 0009](adr/0009-tooling-and-quality-gate-stack.md)) runs
 **`npm run precommit`** (Oxlint, suppression baseline, SonarJS ESLint, jscpd on TypeScript/JavaScript and
-docs at 3%, typecheck, and Vitest).
+docs at 3%, typecheck, and Vitest). Run **`npm run agents:check`** as part of full **`npm run check`** (and in
+**`npm run check:fast`** while iterating).
 CI **Quality** runs the same command so `--no-verify` commits still fail in Actions.
 
 ## Before you push

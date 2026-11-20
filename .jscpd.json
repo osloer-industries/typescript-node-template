@@ -16,6 +16,7 @@
     "scripts",
     "packages",
     "docs",
+    ".agents",
     "AGENTS.md",
     "README.md",
     "CONTRIBUTING.md",

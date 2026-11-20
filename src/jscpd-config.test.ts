@@ -17,6 +17,7 @@ describe(".jscpd.json contract", () => {
         "scripts",
         "packages",
         "docs",
+        ".agents",
         ".github/workflows",
         "AGENTS.md",
         "README.md",

@@ -6,6 +6,7 @@
     "CONTRIBUTING.md",
     "SECURITY.md",
     "docs/**/*.md",
+    ".agents/**/*.md",
     "packages/eslint-sonarjs/README.md",
     ".github/**/*.md"
   ]

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.0](https://github.com/osloer-industries/typescript-node-template/compare/v0.4.0...v0.5.0) (2026-11-20)
+
+
+### Features
+
+* **agents:** add agents:check for cited paths and npm scripts ([#156](https://github.com/osloer-industries/typescript-node-template/issues/156)) ([7b776c6](https://github.com/osloer-industries/typescript-node-template/commit/7b776c69c6a7dce62ca05de907c4f1982395407e))
+* **agents:** seed shared skills with validated AGENTS.md index ([#157](https://github.com/osloer-industries/typescript-node-template/issues/157)) ([1b5094d](https://github.com/osloer-industries/typescript-node-template/commit/1b5094d4876d2c33379be82edfac54c830b0f0cb))
+
+## [0.4.0](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.4...v0.4.0) (2026-11-19)
+
+
+### Features
+
+* SonarJS precommit gate aligned with CI ([#114](https://github.com/osloer-industries/typescript-node-template/issues/114)) ([db1464c](https://github.com/osloer-industries/typescript-node-template/commit/db1464c30a1c96cfb0311737354406f59bc0acd2))
+
 ## [0.3.4](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.3...v0.3.4) (2026-11-17)
 
 

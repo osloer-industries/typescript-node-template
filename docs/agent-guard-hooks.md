@@ -2,8 +2,9 @@
 
 Phase 2 hardening ([issue #60](https://github.com/osloer-industries/typescript-node-template/issues/60))
 ships **TypeScript hook scripts** under `scripts/agent-hooks/` that agents or Git hooks can
-invoke without vendor-specific policy files. Provider wiring (for example `.claude/settings.json`)
-is tracked separately ([#47](https://github.com/osloer-industries/typescript-node-template/issues/47))
+invoke without vendor-specific policy files. Provider wiring (for example Claude Code settings
+under a local .claude directory) is tracked separately
+ ([#47](https://github.com/osloer-industries/typescript-node-template/issues/47))
 and is not part of the template until owners decide.
 
 Tooling context: [ADR 0003](adr/0003-typescript-scripts-on-node-24.md),
@@ -71,7 +72,7 @@ node scripts/agent-hooks/pre-stop-fast-check.ts --fast-check-strike 0
 ## Fast verification lane
 
 `npm run check:fast` is the subset used by the stop hook: Oxlint, suppression baseline,
-typecheck, SonarJS, and Vitest **excluding** `*.integration.test.ts` (setup scenario installs).
+`agents:check`, typecheck, SonarJS, and Vitest **excluding** `*.integration.test.ts` (setup scenario installs).
 Use it while iterating; run full `npm run check` before opening a pull request (see `AGENTS.md`).
 
 ## Lefthook pre-commit
