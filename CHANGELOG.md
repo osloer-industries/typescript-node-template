@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.4...v0.4.0) (2026-11-19)
+
+
+### Features
+
+* SonarJS precommit gate aligned with CI ([#114](https://github.com/osloer-industries/typescript-node-template/issues/114)) ([db1464c](https://github.com/osloer-industries/typescript-node-template/commit/db1464c30a1c96cfb0311737354406f59bc0acd2))
+
 ## [0.3.4](https://github.com/osloer-industries/typescript-node-template/compare/v0.3.3...v0.3.4) (2026-11-17)
 
 
