@@ -16,6 +16,7 @@ const gitExecutable = gitExecutableForTests("TS_ONLY_GIT_PATH");
 const newMjsPath = "scripts/new.mjs";
 const newTsPath = "scripts/new.ts";
 const sampleMjsPath = "scripts/a.mjs";
+const scriptsBMjs = "scripts/b.mjs";
 const seedMjsPath = "scripts/seed.mjs";
 const emptyMjsExport = "export {};\n";
 const shrinkOnlyOkPattern = /shrink-only OK/;
@@ -89,17 +90,95 @@ describe("loadJsAllowlist", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "js-allowlist-bad-"));
     const allowlistPath = join(tempDir, "allowlist.json");
     try {
+      writeFileSync(allowlistPath, "null\n", utf8);
+      expect(() => loadJsAllowlist(allowlistPath)).toThrow(/Invalid JS allowlist JSON/);
       writeFileSync(allowlistPath, '{"version":2,"paths":[]}\n', utf8);
       expect(() => loadJsAllowlist(allowlistPath)).toThrow(/Invalid JS allowlist/);
       writeFileSync(allowlistPath, '{"version":1,"paths":["a.mjs","a.mjs"]}\n', utf8);
       expect(() => loadJsAllowlist(allowlistPath)).toThrow(/duplicate/);
+      writeFileSync(allowlistPath, '{"version":1,"paths":["  "]}\n', utf8);
+      expect(() => loadJsAllowlist(allowlistPath)).toThrow(/Invalid JS allowlist path entry/);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
   });
 });
 
+describe("writeJsAllowlist", () => {
+  it("persists sorted normalized paths", async () => {
+    const { loadJsAllowlist, writeJsAllowlist } = await loadModule();
+    const tempDir = mkdtempSync(join(tmpdir(), "js-allowlist-write-"));
+    const allowlistPath = join(tempDir, "allowlist.json");
+    try {
+      writeJsAllowlist(allowlistPath, [scriptsBMjs, sampleMjsPath]);
+      expect(loadJsAllowlist(allowlistPath).paths).toEqual([sampleMjsPath, scriptsBMjs]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("resolveJsPathsForGate", () => {
+  it("falls back to disk listing when the tree is not a git repository", async () => {
+    const { resolveJsPathsForGate } = await loadModule();
+    const tempDir = mkdtempSync(join(tmpdir(), "ts-only-no-git-"));
+    try {
+      mkdirSync(join(tempDir, "scripts"), { recursive: true });
+      writeFileSync(join(tempDir, "scripts", "only.mjs"), emptyMjsExport, utf8);
+      expect(resolveJsPathsForGate(tempDir)).toEqual(["scripts/only.mjs"]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("rethrows unexpected git failures", async () => {
+    const { resolveJsPathsForGate } = await loadModule();
+    const tempDir = mkdtempSync(join(tmpdir(), "ts-only-git-err-"));
+    initGitRepo(tempDir, gitExecutable);
+    const previous = process.env.TS_ONLY_GIT_PATH;
+    process.env.TS_ONLY_GIT_PATH = "/definitely-missing-git-binary";
+    try {
+      expect(() => resolveJsPathsForGate(tempDir)).toThrow(/ENOENT|not found/i);
+    } finally {
+      if (previous === undefined) {
+        Reflect.deleteProperty(process.env, "TS_ONLY_GIT_PATH");
+      } else {
+        process.env.TS_ONLY_GIT_PATH = previous;
+      }
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
 describe("runCheckTsOnlyCli", () => {
+  it("writes a shrunk allowlist in write mode", async () => {
+    const { runCheckTsOnlyCli } = await loadModule();
+    const paths = [sampleMjsPath, scriptsBMjs];
+    const tempDir = initGateFixture("ts-only-cli-write-", paths, [
+      { path: sampleMjsPath, content: emptyMjsExport },
+      { path: scriptsBMjs, content: emptyMjsExport },
+    ]);
+    try {
+      execFileSync(gitExecutable, ["rm", scriptsBMjs], { cwd: tempDir, stdio: "pipe" });
+      execFileSync(gitExecutable, ["commit", "-m", "drop b"], { cwd: tempDir, stdio: "pipe" });
+      const moduleUrl = new URL(`file://${join(tempDir, checkTsOnlyRelativePath)}`).href;
+      let output = "";
+      const stdout = vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
+        output += String(chunk);
+        return true;
+      });
+      runCheckTsOnlyCli(moduleUrl, ["--write-allowlist"]);
+      stdout.mockRestore();
+      expect(output).toMatch(/Wrote JS allowlist/);
+      const parsed: unknown = JSON.parse(readFileSync(join(tempDir, allowlistRelativePath), utf8));
+      const allowPaths =
+        typeof parsed === "object" && parsed !== null ? Reflect.get(parsed, "paths") : undefined;
+      expect(allowPaths).toEqual([sampleMjsPath]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
   it("passes when tracked JS matches the allowlist", async () => {
     const { runCheckTsOnlyCli } = await loadModule();
     const paths = [sampleMjsPath];
@@ -200,14 +279,13 @@ describe("check-ts-only CLI", () => {
   });
 
   it("writes a shrunk allowlist after conversion", { timeout: 30_000 }, () => {
-    const secondaryMjs = "scripts/b.mjs";
-    const paths = [sampleMjsPath, secondaryMjs];
+    const paths = [sampleMjsPath, scriptsBMjs];
     const tempDir = initGateFixture("ts-only-write-", paths, [
       { path: sampleMjsPath, content: emptyMjsExport },
-      { path: secondaryMjs, content: emptyMjsExport },
+      { path: scriptsBMjs, content: emptyMjsExport },
     ]);
     try {
-      execFileSync(gitExecutable, ["rm", secondaryMjs], { cwd: tempDir, stdio: "pipe" });
+      execFileSync(gitExecutable, ["rm", scriptsBMjs], { cwd: tempDir, stdio: "pipe" });
       execFileSync(gitExecutable, ["commit", "-m", "drop b"], { cwd: tempDir, stdio: "pipe" });
       execFileSync(process.execPath, [...nodeArgs, "--write-allowlist"], {
         cwd: tempDir,
