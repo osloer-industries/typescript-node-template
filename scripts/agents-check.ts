@@ -1,5 +1,5 @@
-import { readFileSync, readdirSync, realpathSync, statSync } from "node:fs";
-import { dirname, join, resolve, sep } from "node:path";
+import { readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { NODE_CMD_PATTERN, NPM_RUN_PATTERN } from "./agents-check-patterns.mjs";
 
@@ -11,8 +11,8 @@ export const FIXED_GUIDANCE_FILES = [
   "docs/agent-guard-hooks.md",
 ] as const;
 
-/** Dot-directory guidance globs (repo-relative). Issue #135 adds the skills SKILL.md glob. */
-export const DOTDIR_GUIDANCE_GLOBS: readonly string[] = [];
+/** Dot-directory guidance globs (repo-relative). */
+export const DOTDIR_GUIDANCE_GLOBS: readonly string[] = [".agents/skills/**/SKILL.md"];
 
 const NESTED_WALK_SKIP_DIRS = new Set(["node_modules", "dist", "coverage", "reusables-pm"]);
 const PLACEHOLDER_PATTERN = /[*{}[\]<>?]/u;
@@ -35,7 +35,8 @@ export const ALLOWLISTED_NPM_SCRIPTS = [
 
 export type ReferenceKind = "path" | "npm-script";
 
-const NPM_SCRIPT_REFERENCE_KIND = "npm-script" satisfies ReferenceKind;
+const PATH_REFERENCE_KIND: ReferenceKind = "path";
+const NPM_SCRIPT_REFERENCE_KIND: ReferenceKind = "npm-script";
 
 export interface GuidanceReference {
   readonly kind: ReferenceKind;
@@ -184,7 +185,7 @@ function extractMarkdownLinks(
 ): void {
   for (const target of markdownLinkTargets(rawLine)) {
     if (!shouldSkipLinkTarget(target)) {
-      pushReference({ kind: "path", line: lineNumber, token: normalizeSlashes(target) });
+      pushReference({ kind: PATH_REFERENCE_KIND, line: lineNumber, token: normalizeSlashes(target) });
     }
   }
 }
@@ -215,10 +216,10 @@ function extractBacktickReferences(
   for (const inner of backtickSegments(rawLine)) {
     const normalized = normalizeSlashes(inner);
     if (isPathLikeBacktickToken(normalized)) {
-      pushReference({ kind: "path", line: lineNumber, token: normalized });
+      pushReference({ kind: PATH_REFERENCE_KIND, line: lineNumber, token: normalized });
     }
     collectPatterns(inner, NPM_RUN_PATTERN, lineNumber, NPM_SCRIPT_REFERENCE_KIND, pushReference);
-    collectPatterns(inner, NODE_CMD_PATTERN, lineNumber, "path", pushReference);
+    collectPatterns(inner, NODE_CMD_PATTERN, lineNumber, PATH_REFERENCE_KIND, pushReference);
   }
 }
 
@@ -232,7 +233,7 @@ function extractReferencesFromLine(
   extractBacktickReferences(rawLine, lineNumber, pushReference);
   if (inFence) {
     collectPatterns(rawLine, NPM_RUN_PATTERN, lineNumber, NPM_SCRIPT_REFERENCE_KIND, pushReference);
-    collectPatterns(rawLine, NODE_CMD_PATTERN, lineNumber, "path", pushReference);
+    collectPatterns(rawLine, NODE_CMD_PATTERN, lineNumber, PATH_REFERENCE_KIND, pushReference);
   }
 }
 
@@ -470,7 +471,7 @@ export function validateReference(
     return {
       file: guidanceRelativePath,
       line: reference.line,
-      kind: "path",
+      kind: PATH_REFERENCE_KIND,
       token: reference.token,
     };
   }
@@ -509,21 +510,359 @@ export function formatFinding(finding: GuidanceFinding): string {
   return finding.file + ":" + finding.line + ": " + label + ": " + finding.token;
 }
 
+export const SKILLS_INDEX_BEGIN = "<!-- agents:skills:begin -->";
+export const SKILLS_INDEX_END = "<!-- agents:skills:end -->";
+
+const SKILL_DIR = ".agents/skills";
+
+/** Agent Skills `name` field (agentskills.io). */
+export const SKILL_NAME_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/u;
+
+export interface SkillRecord {
+  readonly name: string;
+  readonly description: string;
+  readonly skillPath: string;
+}
+
+export interface SkillFinding {
+  readonly file: string;
+  readonly line: number;
+  readonly issue: string;
+}
+
+export function isValidSkillName(name: string, directoryName: string): boolean {
+  if (name !== directoryName) {
+    return false;
+  }
+  if (name.length < 1 || name.length > 64) {
+    return false;
+  }
+  if (!SKILL_NAME_PATTERN.test(name)) {
+    return false;
+  }
+  if (name.includes("--")) {
+    return false;
+  }
+  return true;
+}
+
+function splitFrontmatter(text: string): { frontmatter: string; bodyStartLine: number } | null {
+  const trimmed = text.startsWith("\uFEFF") ? text.slice(1) : text;
+  if (!trimmed.startsWith("---\n") && !trimmed.startsWith("---\r\n")) {
+    return null;
+  }
+  const newline = trimmed.startsWith("---\r\n") ? "\r\n" : "\n";
+  const closeMarker = newline + "---" + newline;
+  const closeIndex = trimmed.indexOf(closeMarker, 4);
+  if (closeIndex === -1) {
+    return null;
+  }
+  const frontmatter = trimmed.slice(4, closeIndex);
+  const linesBeforeBody = trimmed.slice(0, closeIndex + closeMarker.length).split(/\r?\n/u).length;
+  return { frontmatter, bodyStartLine: linesBeforeBody + 1 };
+}
+
+function readScalarField(frontmatter: string, field: string): string | undefined {
+  const lines = frontmatter.split(/\r?\n/u);
+  const prefix = field + ":";
+  for (const line of lines) {
+    const trimmed = line.trimStart();
+    if (!trimmed.startsWith(prefix)) {
+      continue;
+    }
+    const value = trimmed.slice(prefix.length).trim();
+    if (value.length === 0) {
+      return "";
+    }
+    return value;
+  }
+  return undefined;
+}
+
+export function parseSkillFrontmatter(text: string): {
+  readonly name: string | undefined;
+  readonly description: string | undefined;
+  readonly bodyStartLine: number;
+} {
+  const parsed = splitFrontmatter(text);
+  if (parsed === null) {
+    return { name: undefined, description: undefined, bodyStartLine: 1 };
+  }
+  return {
+    name: readScalarField(parsed.frontmatter, "name"),
+    description: readScalarField(parsed.frontmatter, "description"),
+    bodyStartLine: parsed.bodyStartLine,
+  };
+}
+
+export function listSkillRecords(rootDir: string): SkillRecord[] {
+  const skillsRoot = join(rootDir, SKILL_DIR);
+  let entries: string[];
+  try {
+    entries = readdirSync(skillsRoot);
+  } catch {
+    return [];
+  }
+  const records: SkillRecord[] = [];
+  for (const entry of entries) {
+    const skillPath = `${SKILL_DIR}/${entry}/SKILL.md`;
+    const absolute = join(rootDir, skillPath);
+    let text: string;
+    try {
+      text = readFileSync(absolute, "utf8");
+    } catch {
+      continue;
+    }
+    const { name, description } = parseSkillFrontmatter(text);
+    if (typeof name !== "string" || typeof description !== "string") {
+      continue;
+    }
+    records.push({ name, description, skillPath });
+  }
+  return records.toSorted((a, b) => a.name.localeCompare(b.name));
+}
+
+function escapeTableCell(value: string): string {
+  return value.replaceAll("|", String.raw`\|`).replaceAll("\n", " ").trim();
+}
+
+export function renderSkillsIndexInner(records: readonly SkillRecord[]): string {
+  const header = "| Skill | Description | Path |\n| --- | --- | --- |";
+  if (records.length === 0) {
+    return header;
+  }
+  const rows = records.map((record) => {
+    const desc = escapeTableCell(record.description);
+    const pathCell = `\`${record.skillPath}\``;
+    return `| ${record.name} | ${desc} | ${pathCell} |`;
+  });
+  return [header, ...rows].join("\n");
+}
+
+export function extractSkillsIndexInner(agentsMd: string): string | null {
+  const begin = agentsMd.indexOf(SKILLS_INDEX_BEGIN);
+  const end = agentsMd.indexOf(SKILLS_INDEX_END);
+  if (begin === -1 || end === -1 || end <= begin) {
+    return null;
+  }
+  const sliceStart = begin + SKILLS_INDEX_BEGIN.length;
+  let inner = agentsMd.slice(sliceStart, end);
+  if (inner.startsWith("\n")) {
+    inner = inner.slice(1);
+  }
+  if (inner.endsWith("\n")) {
+    inner = inner.slice(0, -1);
+  }
+  return inner;
+}
+
+export function replaceSkillsIndexInner(agentsMd: string, inner: string): string {
+  const begin = agentsMd.indexOf(SKILLS_INDEX_BEGIN);
+  const end = agentsMd.indexOf(SKILLS_INDEX_END);
+  if (begin === -1 || end === -1 || end <= begin) {
+    throw new Error(`Missing skills index markers in AGENTS.md (${SKILLS_INDEX_BEGIN}).`);
+  }
+  const before = agentsMd.slice(0, begin + SKILLS_INDEX_BEGIN.length);
+  const after = agentsMd.slice(end);
+  return `${before}\n${inner}\n${after}`;
+}
+
+export function validateSkillFrontmatter(
+  skillRelativePath: string,
+  directoryName: string,
+  text: string,
+): SkillFinding[] {
+  const findings: SkillFinding[] = [];
+  const { name, description, bodyStartLine } = parseSkillFrontmatter(text);
+  const line = bodyStartLine > 1 ? 2 : 1;
+
+  if (name === undefined) {
+    findings.push({
+      file: skillRelativePath,
+      line,
+      issue: "skill frontmatter missing name",
+    });
+    return findings;
+  }
+
+  if (!isValidSkillName(name, directoryName)) {
+    findings.push({
+      file: skillRelativePath,
+      line,
+      issue: `skill name must match directory "${directoryName}" (lowercase, digits, hyphens, ≤ 64 chars)`,
+    });
+  }
+
+  if (description === undefined || description.trim().length === 0) {
+    findings.push({
+      file: skillRelativePath,
+      line,
+      issue: "skill description must be non-empty (≤ 1024 characters)",
+    });
+  } else if (description.length > 1024) {
+    findings.push({
+      file: skillRelativePath,
+      line,
+      issue: "skill description exceeds 1024 characters",
+    });
+  }
+
+  return findings;
+}
+
+function isExecutableFile(absolutePath: string): boolean {
+  const stats = statSync(absolutePath);
+  if (!stats.isFile()) {
+    return false;
+  }
+  const mode = stats.mode;
+  return (mode & 0o111) !== 0;
+}
+
+function walkSkillFiles(skillDirAbsolute: string, skillDirRelative: string): string[] {
+  const files: string[] = [];
+  const walk = (relative: string): void => {
+    const absolute = join(skillDirAbsolute, relative);
+    for (const entry of readdirSync(absolute)) {
+      const childRelative = relative.length === 0 ? entry : `${relative}/${entry}`;
+      const childAbsolute = join(skillDirAbsolute, childRelative);
+      const stats = statSync(childAbsolute);
+      if (stats.isDirectory()) {
+        walk(childRelative);
+        continue;
+      }
+      files.push(`${skillDirRelative}/${childRelative}`);
+    }
+  };
+  walk("");
+  return files;
+}
+
+export function findExecutableSkillFiles(rootDir: string, skillDirName: string): string[] {
+  const skillDirRelative = `${SKILL_DIR}/${skillDirName}`;
+  const skillDirAbsolute = join(rootDir, skillDirRelative);
+  const executables: string[] = [];
+  let files: string[];
+  try {
+    files = walkSkillFiles(skillDirAbsolute, skillDirRelative);
+  } catch {
+    return executables;
+  }
+  for (const relativePath of files) {
+    if (isExecutableFile(join(rootDir, relativePath))) {
+      executables.push(relativePath);
+    }
+  }
+  return executables;
+}
+
+export function collectSkillFindings(rootDir: string): SkillFinding[] {
+  const findings: SkillFinding[] = [];
+  const skillsRoot = join(rootDir, SKILL_DIR);
+  let skillDirs: string[];
+  try {
+    skillDirs = readdirSync(skillsRoot);
+  } catch {
+    return findings;
+  }
+
+  for (const dirName of skillDirs) {
+    const skillRelativePath = `${SKILL_DIR}/${dirName}/SKILL.md`;
+    const skillAbsolute = join(rootDir, skillRelativePath);
+    let text: string;
+    try {
+      text = readFileSync(skillAbsolute, "utf8");
+    } catch {
+      findings.push({
+        file: `${SKILL_DIR}/${dirName}/`,
+        line: 1,
+        issue: "skill directory missing SKILL.md",
+      });
+      continue;
+    }
+    findings.push(...validateSkillFrontmatter(skillRelativePath, dirName, text));
+    for (const executable of findExecutableSkillFiles(rootDir, dirName)) {
+      findings.push({
+        file: executable,
+        line: 1,
+        issue: "executable file not allowed inside skills (instruction-only policy)",
+      });
+    }
+  }
+
+  const agentsPath = join(rootDir, "AGENTS.md");
+  let agentsMd: string;
+  try {
+    agentsMd = readFileSync(agentsPath, "utf8");
+  } catch {
+    findings.push({ file: "AGENTS.md", line: 1, issue: "missing AGENTS.md for skills index" });
+    return findings;
+  }
+
+  const expectedInner = renderSkillsIndexInner(listSkillRecords(rootDir));
+  const actualInner = extractSkillsIndexInner(agentsMd);
+  if (actualInner === null) {
+    findings.push({
+      file: "AGENTS.md",
+      line: 1,
+      issue: `missing skills index markers (${SKILLS_INDEX_BEGIN})`,
+    });
+  } else if (actualInner !== expectedInner) {
+    findings.push({
+      file: "AGENTS.md",
+      line: 1,
+      issue: "stale skills index; run npm run agents:index",
+    });
+  }
+
+  return findings.toSorted((a, b) => {
+    const fileCmp = a.file.localeCompare(b.file);
+    if (fileCmp !== 0) {
+      return fileCmp;
+    }
+    if (a.line !== b.line) {
+      return a.line - b.line;
+    }
+    return a.issue.localeCompare(b.issue);
+  });
+}
+
+export function formatSkillFinding(finding: SkillFinding): string {
+  return `${finding.file}:${finding.line}: ${finding.issue}`;
+}
+
+export function writeSkillsIndex(rootDir: string): { changed: boolean; path: string } {
+  const agentsPath = join(rootDir, "AGENTS.md");
+  const agentsMd = readFileSync(agentsPath, "utf8");
+  const inner = renderSkillsIndexInner(listSkillRecords(rootDir));
+  const next = replaceSkillsIndexInner(agentsMd, inner);
+  const changed = next !== agentsMd;
+  if (changed) {
+    writeFileSync(agentsPath, next, "utf8");
+  }
+  return { changed, path: basename(agentsPath) };
+}
+
 function repoRootFromModuleUrl(moduleUrl: string): string {
   return resolve(dirname(fileURLToPath(moduleUrl)), "..");
 }
 
 export function runAgentsCheckCli(moduleUrl: string): void {
   const rootDir = repoRootFromModuleUrl(moduleUrl);
-  const findings = collectGuidanceFindings(rootDir);
-  if (findings.length === 0) {
-    process.stdout.write("Agent guidance paths and npm scripts OK.\n");
+  const guidanceFindings = collectGuidanceFindings(rootDir);
+  const skillFindings = collectSkillFindings(rootDir);
+  const total = guidanceFindings.length + skillFindings.length;
+  if (total === 0) {
+    process.stdout.write("Agent guidance, skills, and npm scripts OK.\n");
     return;
   }
-  for (const finding of findings) {
+  for (const finding of guidanceFindings) {
     process.stderr.write(formatFinding(finding) + "\n");
   }
-  throw new Error("agents:check failed with " + findings.length + " finding(s).");
+  for (const finding of skillFindings) {
+    process.stderr.write(formatSkillFinding(finding) + "\n");
+  }
+  throw new Error("agents:check failed with " + total + " finding(s).");
 }
 
 export function isDirectExecution(moduleUrl: string, argvEntry: string | undefined): boolean {
@@ -547,6 +886,21 @@ export function runAgentsCheckCliEntry(moduleUrl: string): number {
   }
 }
 
+export function runAgentsIndexCli(moduleUrl: string): number {
+  const rootDir = repoRootFromModuleUrl(moduleUrl);
+  const { changed, path } = writeSkillsIndex(rootDir);
+  if (changed) {
+    process.stdout.write(`Updated skills index in ${path}.\n`);
+  } else {
+    process.stdout.write("Skills index already up to date.\n");
+  }
+  return 0;
+}
+
 if (isDirectExecution(import.meta.url, process.argv[1])) {
-  process.exitCode = runAgentsCheckCliEntry(import.meta.url);
+  if (process.argv[2] === "index") {
+    process.exitCode = runAgentsIndexCli(import.meta.url);
+  } else {
+    process.exitCode = runAgentsCheckCliEntry(import.meta.url);
+  }
 }

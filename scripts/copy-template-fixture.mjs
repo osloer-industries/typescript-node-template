@@ -25,6 +25,7 @@ const rootFiles = [
 
 const docDirectories = ["docs"];
 
+const agentsSkillsDir = ".agents/skills";
 const agentsCheckPathStubs = [
   "scripts/setup.test.ts",
   "scripts/check-fleet-adoption-doc.ts",
@@ -115,6 +116,7 @@ export function copyTemplateFixture(repoRoot, targetDir) {
   for (const relativeDir of docDirectories) {
     cpSync(join(repoRoot, relativeDir), join(targetDir, relativeDir), { recursive: true });
   }
+  cpSync(join(repoRoot, agentsSkillsDir), join(targetDir, agentsSkillsDir), { recursive: true });
   cpSync(join(repoRoot, "scripts/agent-hooks"), join(targetDir, "scripts/agent-hooks"), {
     recursive: true,
   });

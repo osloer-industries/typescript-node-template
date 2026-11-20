@@ -25,6 +25,7 @@
     "precommit": "npm run lint && npm run lint:suppressions && npm run lint:sonarjs && npm run lint:dup && npm run typecheck && npm run test",
     "check:fast": "npm run lint && npm run lint:suppressions && npm run agents:check && npm run typecheck && npm run lint:sonarjs && npm run test:fast",
     "agents:check": "node scripts/agents-check.ts",
+    "agents:index": "node scripts/agents-check.ts index",
     "check:no-claude-md": "node scripts/check-no-claude-md.ts",
     "lint": "oxlint -c .oxlintrc.json src scripts packages",
     "lint:suppressions": "node scripts/count-suppressions.ts",

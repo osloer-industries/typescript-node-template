@@ -25,6 +25,15 @@ const toolingAdrMd = readFileSync(
 );
 
 const INVALID_PACKAGE_JSON = "Invalid package.json";
+const AGENTS_CHECK_SCRIPT = "agents:check";
+
+function parsePackageJsonScripts(packageJsonText: string): Record<string, unknown> {
+  const parsed: unknown = JSON.parse(packageJsonText);
+  if (typeof parsed !== "object" || parsed === null) throw new Error(INVALID_PACKAGE_JSON);
+  const scripts = Reflect.get(parsed, "scripts");
+  if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
+  return scripts;
+}
 
 function readDevDependencyNames(packageJsonText: string): string[] {
   const parsed: unknown = JSON.parse(packageJsonText);
@@ -101,21 +110,21 @@ describe("agent documentation contract", () => {
     expect(agentsMd).toMatch(/Do not copy skills into\s+vendor-specific skill folders/);
   });
 
+  it("includes generated skills index markers in AGENTS.md", () => {
+    expect(agentsMd).toContain("<!-- agents:skills:begin -->");
+    expect(agentsMd).toContain("<!-- agents:skills:end -->");
+    expect(agentsMd).toMatch(/npm run agents:index/);
+  });
+
   it("includes agents:check in npm run check:fast", () => {
-    const parsed: unknown = JSON.parse(packageJson);
-    if (typeof parsed !== "object" || parsed === null) throw new Error(INVALID_PACKAGE_JSON);
-    const scripts = Reflect.get(parsed, "scripts");
-    if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
+    const scripts = parsePackageJsonScripts(packageJson);
     const checkFast = Reflect.get(scripts, "check:fast");
     expect(typeof checkFast).toBe("string");
-    expect(checkFast).toContain("agents:check");
+    expect(checkFast).toContain(AGENTS_CHECK_SCRIPT);
   });
 
   it("includes SonarJS, duplication, and knip gates in npm run check", () => {
-    const parsed: unknown = JSON.parse(packageJson);
-    if (typeof parsed !== "object" || parsed === null) throw new Error(INVALID_PACKAGE_JSON);
-    const scripts = Reflect.get(parsed, "scripts");
-    if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
+    const scripts = parsePackageJsonScripts(packageJson);
     const check = Reflect.get(scripts, "check");
     const precommit = Reflect.get(scripts, "precommit");
     expect(typeof check).toBe("string");
@@ -124,8 +133,9 @@ describe("agent documentation contract", () => {
     expect(precommit).toContain("lint:sonarjs");
     expect(precommit).toContain("lint:dup");
     expect(check).toContain("check:no-claude-md");
-    expect(check).toContain("agents:check");
+    expect(check).toContain(AGENTS_CHECK_SCRIPT);
     expect(check).toContain("npm run precommit");
+    expect(precommit).not.toContain(AGENTS_CHECK_SCRIPT);
     expect(check).toContain("lint:knip");
     expect(check).toMatch(/build && npm run lint:knip/);
   });

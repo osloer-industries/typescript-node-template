@@ -7,7 +7,10 @@ import { describe, expect, it, vi } from "vitest";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const AGENTS_CHECK_SCRIPT = "scripts/agents-check.ts";
+const AGENTS_CHECK_OK_MESSAGE = /Agent guidance, skills, and npm scripts OK/;
 const NPM_SCRIPT_KIND = "npm-script";
+const PACKAGE_JSON_RELATIVE = "package.json";
+const MINIMAL_PACKAGE_JSON = '{"scripts":{}}\n';
 const nodeArgs = [AGENTS_CHECK_SCRIPT];
 
 const CLEAN_FIXTURE_AGENTS = [
@@ -75,7 +78,7 @@ function writeAgentsCheckFixture(destination: string, variant: keyof typeof FIXT
   const agentsMd = variant === "clean" ? CLEAN_FIXTURE_AGENTS : BROKEN_FIXTURE_AGENTS;
   writeFileSync(join(destination, "AGENTS.md"), `${agentsMd}\n`, "utf8");
   writeFileSync(
-    join(destination, "package.json"),
+    join(destination, PACKAGE_JSON_RELATIVE),
     `${JSON.stringify(FIXTURE_PACKAGE_JSON[variant], null, 2)}\n`,
     "utf8",
   );
@@ -229,7 +232,7 @@ describe("agents-check CLI", () => {
       cwd: repoRoot,
       encoding: "utf8",
     });
-    expect(output).toMatch(/Agent guidance paths and npm scripts OK/);
+    expect(output).toMatch(AGENTS_CHECK_OK_MESSAGE);
   });
 
   it("fails with broken path and unknown npm script findings", () => {
@@ -276,7 +279,7 @@ describe("discoverGuidanceFiles", () => {
     try {
       mkdirSync(join(tempDir, "packages", "nested"), { recursive: true });
       writeFileSync(join(tempDir, "packages/nested/AGENTS.md"), "# nested\n", "utf8");
-      writeFileSync(join(tempDir, "package.json"), '{"scripts":{}}', "utf8");
+      writeFileSync(join(tempDir, PACKAGE_JSON_RELATIVE), MINIMAL_PACKAGE_JSON, "utf8");
       const files = discoverGuidanceFiles(tempDir);
       expect(files).toContain("packages/nested/AGENTS.md");
       expect(files).not.toContain("CONTRIBUTING.md");
@@ -346,6 +349,80 @@ describe("reference validation edges", () => {
   });
 });
 
+describe("runAgentsCheckCli", () => {
+  it("writes success output when guidance and skills are clean", async () => {
+    const { runAgentsCheckCli } = await loadModule();
+    const moduleUrl = pathToFileURL(join(repoRoot, AGENTS_CHECK_SCRIPT)).href;
+    let stdout = "";
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
+      stdout += String(chunk);
+      return true;
+    });
+    try {
+      runAgentsCheckCli(moduleUrl);
+      expect(stdout).toMatch(AGENTS_CHECK_OK_MESSAGE);
+    } finally {
+      stdoutSpy.mockRestore();
+    }
+  });
+
+  it("throws after emitting guidance and skill findings", async () => {
+    const { runAgentsCheckCli } = await loadModule();
+    const tempDir = mkdtempSync(join(tmpdir(), "agents-check-run-cli-"));
+    try {
+      writeAgentsCheckFixture(tempDir, "broken");
+      copyAgentsCheckScript(tempDir);
+      const skillDir = join(tempDir, ".agents/skills/wrong-name");
+      mkdirSync(skillDir, { recursive: true });
+      writeFileSync(
+        join(skillDir, "SKILL.md"),
+        "---\nname: not-dir\ndescription: mismatch\n---\n",
+        "utf8",
+      );
+      const moduleUrl = pathToFileURL(join(tempDir, AGENTS_CHECK_SCRIPT)).href;
+      let stderr = "";
+      const stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation((chunk) => {
+        stderr += String(chunk);
+        return true;
+      });
+      expect(() => runAgentsCheckCli(moduleUrl)).toThrow(/agents:check failed/);
+      stderrSpy.mockRestore();
+      expect(stderr).toMatch(/broken path/);
+      expect(stderr).toMatch(/must match directory/);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("runAgentsIndexCli", () => {
+  it("writes Updated when the skills index was stale", async () => {
+    const { runAgentsIndexCli } = await loadModule();
+    const tempDir = mkdtempSync(join(tmpdir(), "agents-index-run-cli-"));
+    try {
+      cpSync(join(repoRoot, ".agents"), join(tempDir, ".agents"), { recursive: true });
+      writeFileSync(
+        join(tempDir, "AGENTS.md"),
+        ["# A", "<!-- agents:skills:begin -->", "| stale |", "<!-- agents:skills:end -->"].join("\n"),
+        "utf8",
+      );
+      writeFileSync(join(tempDir, PACKAGE_JSON_RELATIVE), MINIMAL_PACKAGE_JSON, "utf8");
+      copyAgentsCheckScript(tempDir);
+      const moduleUrl = pathToFileURL(join(tempDir, AGENTS_CHECK_SCRIPT)).href;
+      let stdout = "";
+      const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
+        stdout += String(chunk);
+        return true;
+      });
+      expect(runAgentsIndexCli(moduleUrl)).toBe(0);
+      stdoutSpy.mockRestore();
+      expect(stdout).toMatch(/Updated skills index/);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
 describe("runAgentsCheckCliEntry", () => {
   it("returns 0 for clean trees and 1 when findings exist", async () => {
     const { runAgentsCheckCliEntry } = await loadModule();
@@ -368,6 +445,7 @@ describe("runAgentsCheckCliEntry", () => {
       expect(runAgentsCheckCliEntry(moduleUrl)).toBe(1);
       stderrSpy.mockRestore();
       expect(stderr).toMatch(/broken path/);
+      expect(stderr).not.toMatch(/agents:check failed with/);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }

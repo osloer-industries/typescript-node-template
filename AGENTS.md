@@ -71,6 +71,22 @@ These rules apply to every agent (Cursor, Grok Bot, any other) working in this r
 | `docs/fleet-adoption.md` | Per-repo adoption of org reusables and template CI features ([ADR 0011](docs/adr/0011-fleet-adoption-table.md)). |
 | `lefthook.yml` | Pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `scripts/agent-hooks/` | Provider-neutral agent guard hook scripts ([docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)). |
+| `.agents/skills/` | Shared Agent Skills (`SKILL.md` per skill); index and rules in [docs/agent-skills.md](docs/agent-skills.md). |
+| `scripts/agents-check.ts` | `agents:check` gate; `index` subcommand regenerates the Skills table (`npm run agents:index`). |
+
+## Skills
+
+Shared skills use the [Agent Skills](https://agentskills.io) layout under `.agents/skills/<name>/SKILL.md`.
+Regenerate this index with `npm run agents:index` after adding or editing a skill. See
+[docs/agent-skills.md](docs/agent-skills.md).
+
+<!-- agents:skills:begin -->
+| Skill | Description | Path |
+| --- | --- | --- |
+| pr-ready | Before review — use Lefthook pre-commit without bypass, run npm run check, keep ci-passed green on the PR head, and follow the pull request template. | `.agents/skills/pr-ready/SKILL.md` |
+| verify-change | Run check:fast while iterating and the full check ladder before a pull request; interpret gate failures and the two-strike stop-hook rule from docs/agent-guard-hooks.md. | `.agents/skills/verify-change/SKILL.md` |
+| write-adr | Add an Architecture Decision Record under docs/adr using the README template and update the ADR index table. | `.agents/skills/write-adr/SKILL.md` |
+<!-- agents:skills:end -->
 
 Markdown link checking uses the org fork
 [`@osloer-industries/markdown-link-check`](https://github.com/osloer-industries/markdown-link-check)
@@ -104,7 +120,7 @@ Run gates in this order when preparing a pull request:
 7. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 8. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 9. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-10. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md));
+10. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
    runs after `build` so `package.json` dist entries resolve)
 11. `npm run precommit` (Lefthook `pre-commit`; steps 1–4, 6, and `npm run test`)
 12. `npm run check` (precommit plus no-`CLAUDE.md`, `agents:check`, markdown, coverage, build, and knip)
