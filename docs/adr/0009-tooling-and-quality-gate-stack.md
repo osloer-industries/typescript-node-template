@@ -209,6 +209,30 @@ documented in `AGENTS.md` because Dependabot does not bump git-tag dependencies.
 
 **Why they lost:** Fork carries org-specific fixes/tags; no link check allows dead links in harness docs.
 
+### `agents:check` (npm script)
+
+**Why chosen:** `scripts/agents-check.ts` validates repository paths and `package.json` script names cited
+in agent guidance (`AGENTS.md`, `CONTRIBUTING.md`, PR template, and `docs/agent-guard-hooks.md`). It runs in
+`npm run check` and `npm run check:fast` so path and command rot is caught offline before agents act on stale
+instructions ([#134](https://github.com/osloer-industries/typescript-node-template/issues/134)).
+
+**Alternatives considered:** Rely on markdown link checking only; Langfuse-style check in postinstall.
+
+**Why they lost:** Link checks do not validate backticked paths or `npm run` commands; postinstall would slow
+`npm ci` and fight CI `--ignore-scripts`.
+
+### `agents:index` (npm script)
+
+**Why chosen:** `node scripts/agents-check.ts index` (`npm run agents:index`) regenerates the Skills table in
+`AGENTS.md` from `.agents/skills/*/SKILL.md` frontmatter
+([#135](https://github.com/osloer-industries/typescript-node-template/issues/135)).
+`agents:check` fails when the committed index is stale.
+
+**Alternatives considered:** Hand-edited index tables; generating the whole `AGENTS.md` file.
+
+**Why they lost:** Manual tables drift; full-file generation would fight human-edited sections outside the
+marker block.
+
 ### `lefthook`
 
 <!-- devDependency: lefthook -->
@@ -362,12 +386,13 @@ issues on the PR head after the CI scan job completes.
 
 <!-- ci-tool: ci-passed -->
 
-**Why chosen:** Org `ci-passed.yml` is the **only** required branch protection check; it fails closed when any
-upstream job in `ci.yml` fails or is cancelled. Skip rules: `sonar-zero-open-issues` may be **skipped** only off
-`pull_request`; on `pull_request` it must succeed. Future `harness-approval` tolerance when
-`guardrail-detect` outputs `guardrail_changed: false` is documented and tested in
-[`scripts/ci-passed-gate.ts`](../scripts/ci-passed-gate.ts) until org `ci-passed-gate.ts` ports the same logic
-([#103](https://github.com/osloer-industries/typescript-node-template/pull/103)).
+**Why chosen:** Org `ci-passed.yml` on `.github/workflows/ci.yml` aggregates every upstream CI job and fails closed
+when any needed job fails or is cancelled. Skip rules: `sonar-zero-open-issues` may be **skipped** only off
+`pull_request`; on `pull_request` it must succeed. Consuming repos should register **`ci-passed`** as the sole
+required status check; this template repo’s org ruleset on `main` currently lists PR review rules only (no required
+status checks configured yet). Future `harness-approval` tolerance when `guardrail-detect` outputs
+`guardrail_changed: false` is tracked for org `ci-passed-gate.ts` in
+[#103](https://github.com/osloer-industries/typescript-node-template/pull/103).
 
 ### CI: zizmor
 

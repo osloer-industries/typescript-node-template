@@ -8,7 +8,7 @@ This template uses **CI Sonar analysis plus a zero-open-issues gate**:
 | Check | Source | Typical behavior |
 | --- | --- | --- |
 | **CI / Analyze** | `.github/workflows/ci.yml` → org `sonarqube-cloud-node.yml` | Runs `npm run coverage:sonar` (nested `packages/eslint-sonarjs` install, then `test:coverage`), uploads analysis and **coverage** (`coverage/lcov.info`) via `sonar-project.properties`. Requires `SONAR_TOKEN`. |
-| **CI / SonarCloud zero open issues** | `.github/workflows/ci.yml` → org `sonarcloud-zero-issues.yml` | **Pull requests only** (job `if:`). After CI analysis, polls SonarCloud and fails when open issues remain on the PR head commit. Pushes to `main` still upload analysis via **CI / Analyze**; the zero-issues job is skipped and **`ci-passed`** treats that skip as success (`scripts/ci-passed-gate.ts` org standard). |
+| **CI / SonarCloud zero open issues** | `.github/workflows/ci.yml` → org `sonarcloud-zero-issues.yml` | **Pull requests only** (job `if:`). After CI analysis, polls SonarCloud and fails when open issues remain on the PR head commit. Pushes to `main` still upload analysis via **CI / Analyze**; the zero-issues job is skipped and org **`ci-passed.yml`** treats that skip as success on non–`pull_request` events. |
 
 **Disable SonarCloud Automatic Analysis** on every repository generated from this template. Automatic Analysis
 and `SonarSource/sonarqube-scan-action` cannot run on the same project. Fix findings on the PR diff or adjust
@@ -43,7 +43,8 @@ npm run list-rules --prefix packages/eslint-sonarjs
 ```
 
 Pre-commit (after `npm run prepare`): Lefthook ([ADR 0009](adr/0009-tooling-and-quality-gate-stack.md)) runs
-**`npm run precommit`** (Oxlint, suppression baseline, SonarJS ESLint, jscpd, typecheck, and Vitest).
+**`npm run precommit`** (Oxlint, suppression baseline, SonarJS ESLint, jscpd, typecheck, and Vitest). Run
+**`npm run agents:check`** as part of full **`npm run check`** (and in **`npm run check:fast`** while iterating).
 CI **Quality** runs the same command so `--no-verify` commits still fail in Actions.
 
 ## Before you push
