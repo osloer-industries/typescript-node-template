@@ -1,11 +1,11 @@
 # Provider-neutral agent guard hooks
 
 Phase 2 hardening ([issue #60](https://github.com/osloer-industries/typescript-node-template/issues/60))
-ships **TypeScript hook scripts** under `scripts/agent-hooks/` that agents or Git hooks can
-invoke without vendor-specific policy files. Provider wiring (for example Claude Code settings
-under a local .claude directory) is tracked separately
- ([#47](https://github.com/osloer-industries/typescript-node-template/issues/47))
-and is not part of the template until owners decide.
+ships **TypeScript hook scripts** under `scripts/agent-hooks/` plus a committed neutral manifest
+(`scripts/agent-hooks/hooks.json`). Per-tool hook wiring under vendor state directories is
+**never committed** ([ADR 0010](adr/0010-agent-and-local-files-not-committed.md),
+[issue #47](https://github.com/osloer-industries/typescript-node-template/issues/47)); vakt renders
+it locally from the manifest.
 
 Tooling context: [ADR 0003](adr/0003-typescript-scripts-on-node-24.md),
 [ADR 0009](adr/0009-tooling-and-quality-gate-stack.md).
@@ -43,6 +43,30 @@ Example stdin for a Stop hook after a failed fast check (second attempt):
 ```json
 { "fastCheckStrike": 1 }
 ```
+
+## Neutral manifest (`hooks.json`)
+
+The manifest maps neutral events to repo scripts (no duplicated policy text):
+
+| Event | Script | Role |
+| --- | --- | --- |
+| `preEdit` | `block-guardrail-edits.ts` | Block writes to harness/guardrail paths |
+| `stop` | `pre-stop-fast-check.ts` | Run `npm run check:fast` before the agent ends a turn |
+
+vakt reads this file during project sync, maps each provider’s native hook events onto these
+neutral names, and writes **gitignored** wiring plus stdin adapters (see
+[osloer-industries/vakt#144](https://github.com/osloer-industries/vakt/issues/144)).
+
+### Opt-in: `vakt sync --project`
+
+From the repository root, after [vakt](https://github.com/osloer-industries/vakt) is installed:
+
+```bash
+vakt sync --project
+```
+
+This generates local provider hook configuration that invokes the scripts above. Re-run after
+pulling manifest changes. CI and CODEOWNERS remain the backstop when hooks are not installed.
 
 ## Scripts
 
