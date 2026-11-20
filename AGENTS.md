@@ -295,9 +295,9 @@ Browser automation dependencies (for example Playwright) must follow
   `main` is Release Please's release input.
 - Do not edit generated Release Please versions or changelogs outside its
   release pull request unless correcting release metadata deliberately.
-- Pre-1.0 versioning uses `bump-minor-pre-major` in `release-please-config.json`; cut `1.0.0` only via
-  `Release-As: 1.0.0`. New repos from the template should reset `.release-please-manifest.json` to `0.0.0`
-  (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+- Pre-1.0 versioning uses `bump-minor-pre-major` and `initial-version` `0.1.0` in `release-please-config.json`;
+  cut `1.0.0` only via `Release-As: 1.0.0`. New repos from the template should reset
+  `.release-please-manifest.json` to `0.0.0` (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 - Never bypass required reviews, checks, or organization rules.
 
 For system design and scenario behavior, read [docs/architecture.md](docs/architecture.md).
