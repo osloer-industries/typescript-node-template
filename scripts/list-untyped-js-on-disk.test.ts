@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { listJsPathsOnDisk } from "./list-untyped-js-on-disk.mjs";
 
 const emptyMjsExport = "export {};\n";
+const toolMjsPath = "scripts/tool.mjs";
 
 describe("listJsPathsOnDisk", () => {
   it("lists untyped JS paths and skips node_modules", () => {
@@ -17,7 +18,7 @@ describe("listJsPathsOnDisk", () => {
       writeFileSync(join(rootDir, "scripts", "tool.mjs"), emptyMjsExport, "utf8");
       writeFileSync(join(rootDir, "node_modules", "pkg", "hidden.mjs"), emptyMjsExport, "utf8");
       const paths = listJsPathsOnDisk(rootDir).toSorted((a, b) => a.localeCompare(b));
-      expect(paths).toEqual(["scripts/tool.mjs"]);
+      expect(paths).toEqual([toolMjsPath]);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
