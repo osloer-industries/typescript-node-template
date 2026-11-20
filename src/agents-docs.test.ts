@@ -24,9 +24,20 @@ const toolingAdrMd = readFileSync(
   "utf8",
 );
 
+const INVALID_PACKAGE_JSON = "Invalid package.json";
+const AGENTS_CHECK_SCRIPT = "agents:check";
+
+function parsePackageJsonScripts(packageJsonText: string): Record<string, unknown> {
+  const parsed: unknown = JSON.parse(packageJsonText);
+  if (typeof parsed !== "object" || parsed === null) throw new Error(INVALID_PACKAGE_JSON);
+  const scripts = Reflect.get(parsed, "scripts");
+  if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
+  return scripts;
+}
+
 function readDevDependencyNames(packageJsonText: string): string[] {
   const parsed: unknown = JSON.parse(packageJsonText);
-  if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
+  if (typeof parsed !== "object" || parsed === null) throw new Error(INVALID_PACKAGE_JSON);
   const devDependencies = Reflect.get(parsed, "devDependencies");
   if (typeof devDependencies !== "object" || devDependencies === null) {
     throw new Error("Missing devDependencies");
@@ -42,6 +53,8 @@ function expectToolingAdrSection(toolingAdr: string, marker: string): void {
 
 describe("agent documentation contract", () => {
   it("documents operational sections in AGENTS.md", () => {
+    expect(agentsMd).toMatch(/## Agent workflow/i);
+    expect(agentsMd).toMatch(/org-wide, keep identical across osloer-industries repos/i);
     expect(agentsMd).toMatch(/## Repository map/i);
     expect(agentsMd).toMatch(/## Verification/i);
     expect(agentsMd).toMatch(/## Change recipes/i);
@@ -95,14 +108,24 @@ describe("agent documentation contract", () => {
 
   it("documents .agents/skills as the only shared skills path (ADR 0010 exception)", () => {
     expect(agentsMd).toMatch(/`\.agents\/skills\/<name>\/SKILL\.md`/);
-    expect(agentsMd).toMatch(/Do not copy skills into\s+`\.claude\/skills\/`/);
+    expect(agentsMd).toMatch(/Do not copy skills into\s+vendor-specific skill folders/);
+  });
+
+  it("includes generated skills index markers in AGENTS.md", () => {
+    expect(agentsMd).toContain("<!-- agents:skills:begin -->");
+    expect(agentsMd).toContain("<!-- agents:skills:end -->");
+    expect(agentsMd).toMatch(/npm run agents:index/);
+  });
+
+  it("includes agents:check in npm run check:fast", () => {
+    const scripts = parsePackageJsonScripts(packageJson);
+    const checkFast = Reflect.get(scripts, "check:fast");
+    expect(typeof checkFast).toBe("string");
+    expect(checkFast).toContain(AGENTS_CHECK_SCRIPT);
   });
 
   it("includes SonarJS, duplication, and knip gates in npm run check", () => {
-    const parsed: unknown = JSON.parse(packageJson);
-    if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid package.json");
-    const scripts = Reflect.get(parsed, "scripts");
-    if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
+    const scripts = parsePackageJsonScripts(packageJson);
     const check = Reflect.get(scripts, "check");
     const precommit = Reflect.get(scripts, "precommit");
     expect(typeof check).toBe("string");
@@ -111,7 +134,9 @@ describe("agent documentation contract", () => {
     expect(precommit).toContain("lint:sonarjs");
     expect(precommit).toContain("lint:dup");
     expect(check).toContain("check:no-claude-md");
+    expect(check).toContain(AGENTS_CHECK_SCRIPT);
     expect(check).toContain("npm run precommit");
+    expect(precommit).not.toContain(AGENTS_CHECK_SCRIPT);
     expect(check).toContain("lint:knip");
     expect(check).toMatch(/build && npm run lint:knip/);
   });

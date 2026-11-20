@@ -1,7 +1,7 @@
 # Contributing
 
 1. Install Node.js 24.22.0.
-2. Run `npm ci` (or `npm ci --ignore-scripts` to match CI; then run `npm prepare` locally to install Git hooks).
+2. Run `npm ci` (or `npm ci --ignore-scripts` to match CI; then run `npm run prepare` locally to install Git hooks).
 3. Create a focused branch and add tests with the change.
 4. Run `npm run check` (Oxlint, SonarJS ESLint, jscpd on Markdown/workflow YAML/shell, knip, markdownlint,
    markdown link checks, TypeScript,
@@ -57,5 +57,5 @@ consistent:
 6. Individual Dependabot pull requests for other major version updates (GitHub Actions or npm dev dependencies).
 7. Single transitive lockfile bumps that Dependabot opens on their own.
 
-After each merge, refresh or rebase any later pull requests in the queue so they pick up the latest `main`
-before you merge them.
+After each merge, merge the latest `main` into any later pull requests in the queue so they stay current
+before you merge them (do not rebase or force-push).
