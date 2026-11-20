@@ -17,6 +17,7 @@
     "scripts/git-list-changed-paths.mjs",
     "scripts/lint-sonarjs.mjs",
     "scripts/lint-sonarjs.test.mjs",
+    "scripts/list-untyped-js-on-disk.mjs",
     "scripts/mcp-stdio-smoke.mjs",
     "scripts/mcp-stdio-smoke.test.mjs",
     "scripts/run-npm.d.mts",
