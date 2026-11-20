@@ -2,8 +2,49 @@
 
 These instructions apply to every human or automated contributor. Keep this file
 provider-neutral: the canonical map, verification ladder, and change recipes live
-here. Do not duplicate this content in vendor-specific instruction files (`CLAUDE.md`,
-`.cursorrules`, and similar).
+here.
+
+<!-- org-agent-workflow:start v0.1.4 -->
+
+## Agent workflow (org-wide, keep identical across osloer-industries repos)
+
+These rules apply to every agent (Cursor, Grok Bot, any other) working in this repo.
+
+### Quality
+
+- Never cut corners on quality or architecture. Fix root causes. No `continue-on-error`, `|| true`, skipped or
+  deleted tests, lowered thresholds, ignore or suppress comments, `NOSONAR`, exclusions, new lint/Sonar rule
+  exceptions or overrides, audit ignores, `--legacy-peer-deps`, or `--force`.
+- SonarCloud issues are resolved only by fixing code, never by marking them false positive or won't-fix.
+- Scripts are TypeScript, never Python; use the repo's runtime and package manager (`engines` / `packageManager`).
+- `AGENTS.md` is the only agent instruction file; never add `CLAUDE.md` or tool-specific rule files.
+
+### CI and workflows
+
+- Pin GitHub Actions by full commit SHA with an accurate version comment. Org reusables from
+  `osloer-industries/.github` are pinned `@<full sha> # v0.x.y` (a release tag, never `# main`).
+- Every CI job feeds the single `ci-passed` aggregate job, including Workflow security, CodeQL and the SonarCloud
+  zero-issues job. `ci-passed` is the only required status check.
+- Only Dependabot patch/minor bumps and patch/minor release PRs auto-merge. Majors (or pre-1.0 breaking changes)
+  never auto-merge; they wait for a human.
+- Run the repo's linters, tests and pre-commit checks locally before pushing. The pre-commit hook is never skipped
+  (`--no-verify` is not allowed).
+- Never poll CI from the shell. If your environment delivers CI notifications for the PR head, wait for them and fix
+  failures; otherwise push and stop.
+
+### Pull requests
+
+- Keep PRs focused and reviewable, link the issues they close, and prefer simplification (less code, fewer
+  dependencies, removed duplication).
+- Resolve conflicts by merging the base branch in. Never rebase a pushed branch, never force-push, never bypass
+  branch protection.
+- A PR is ready for review only when all of these hold: it has no conflicts and is up to date with `main`; every check
+  on the current head is green (pending is not ready); and it has no unresolved review threads, requested changes or
+  open SonarCloud issues. Fix anything short of that yourself. Ask a human only when a real decision or ambiguity
+  needs one.
+- Never touch secrets, permissions, repo settings or rulesets without explicit human approval.
+
+<!-- org-agent-workflow:end -->
 
 ## Repository map
 
@@ -22,6 +63,7 @@ here. Do not duplicate this content in vendor-specific instruction files (`CLAUD
 | `docs/npm-overrides.md` | When and how to use npm `overrides` for transitive audit fixes. |
 | `docs/sonar-quality-gate.md` | SonarCloud patterns and local SonarJS ESLint enforcement ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `knip.config.ts` | Unused files, exports, and dependencies ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `scripts/agents-check.ts` | Validates paths and `npm run` scripts cited in agent guidance (`npm run agents:check`). |
 | `.oxlintrc.json` | Oxlint rules ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `packages/eslint-sonarjs/` | SonarJS `recommended` rules via ESLint (TypeScript 6 parser; root uses TS 7) ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `.github/workflows/` | CI and security automation ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)); shared jobs call [org reusables](docs/consuming-org-reusables.md) with pinned SHAs. |
@@ -29,6 +71,22 @@ here. Do not duplicate this content in vendor-specific instruction files (`CLAUD
 | `docs/fleet-adoption.md` | Per-repo adoption of org reusables and template CI features ([ADR 0011](docs/adr/0011-fleet-adoption-table.md)). |
 | `lefthook.yml` | Pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `scripts/agent-hooks/` | Provider-neutral agent guard hook scripts ([docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)). |
+| `.agents/skills/` | Shared Agent Skills (`SKILL.md` per skill); index and rules in [docs/agent-skills.md](docs/agent-skills.md). |
+| `scripts/agents-check.ts` | `agents:check` gate; `index` subcommand regenerates the Skills table (`npm run agents:index`). |
+
+## Skills
+
+Shared skills use the [Agent Skills](https://agentskills.io) layout under `.agents/skills/<name>/SKILL.md`.
+Regenerate this index with `npm run agents:index` after adding or editing a skill. See
+[docs/agent-skills.md](docs/agent-skills.md).
+
+<!-- agents:skills:begin -->
+| Skill | Description | Path |
+| --- | --- | --- |
+| pr-ready | Before review — use Lefthook pre-commit without bypass, run npm run check, keep ci-passed green on the PR head, and follow the pull request template. | `.agents/skills/pr-ready/SKILL.md` |
+| verify-change | Run check:fast while iterating and the full check ladder before a pull request; interpret gate failures and the two-strike stop-hook rule from docs/agent-guard-hooks.md. | `.agents/skills/verify-change/SKILL.md` |
+| write-adr | Add an Architecture Decision Record under docs/adr using the README template and update the ADR index table. | `.agents/skills/write-adr/SKILL.md` |
+<!-- agents:skills:end -->
 
 Markdown link checking uses the org fork
 [`@osloer-industries/markdown-link-check`](https://github.com/osloer-industries/markdown-link-check)
@@ -39,7 +97,7 @@ dependencies; when the fork publishes a new annotated tag, update the `#v…` re
 ## Verification
 
 While iterating (including in-loop agent stop hooks — [docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)),
-prefer **`npm run check:fast`**: Oxlint, suppression baseline, typecheck, SonarJS, and unit tests
+prefer **`npm run check:fast`**: Oxlint, suppression baseline, `agents:check`, typecheck, SonarJS, and unit tests
 (`test:fast` excludes `*.integration.test.ts` setup installs). CI and pre-merge verification still
 use the full ladder below.
 
@@ -54,18 +112,20 @@ Run gates in this order when preparing a pull request:
 
 1. `npm run lint` (Oxlint — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 2. `npm run lint:suppressions` (shrink-only suppression baseline — [ADR 0006](docs/adr/0006-escape-hatch-lint-and-suppression-baseline.md))
-3. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-4. `npm run lint:dup` (jscpd on Markdown, workflow YAML, and shell under `.jscpd.json` paths — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
+3. `npm run agents:check` (paths and npm scripts cited in agent guidance — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+4. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+5. `npm run lint:dup` (jscpd on Markdown, workflow YAML, and shell under `.jscpd.json` paths — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
    TypeScript/JavaScript duplication is gated by SonarCloud on the pull request)
-5. `npm run lint:md` and `npm run lint:md-links` ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-6. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-7. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-8. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-9. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
+6. `npm run lint:md` and `npm run lint:md-links` ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+7. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+8. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+9. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+10. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
    runs after `build` so `package.json` dist entries resolve)
-10. `npm run precommit` (Lefthook `pre-commit`; steps 1–4, 6, and `npm run test`)
-11. `npm run check` (precommit plus no-`CLAUDE.md`, markdown, coverage, build, and knip) before opening a pull request
-12. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+11. `npm run precommit` (Lefthook `pre-commit`; steps 1–4, 6, and `npm run test`)
+12. `npm run check` (precommit plus no-`CLAUDE.md`, `agents:check`, markdown, coverage, build, and knip)
+   before opening a pull request
+13. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 
 `npm run test:mutation` runs Stryker on `src/` (see `stryker.config.mjs` for the TypeScript 7 workaround). It is a
 separate CI job, not part of `check`.
@@ -85,11 +145,17 @@ When touching `scripts/`, setup, or CI install steps, follow
 ## Continuous integration
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the main pipeline: workflow security;
-**Quality** runs `npm run precommit` (run full `npm run check` before merge), setup smoke matrix, CodeQL,
-Sonar scan (`sonarqube-cloud-node.yml` with coverage upload), Sonar zero-open-issues,
-then org **`ci-passed`**. Repositories created from this template must keep **SonarCloud Automatic Analysis
-disabled** and use the CI scan instead ([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Branch
-protection should require only the **`ci-passed`** check—not individual jobs ([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)).
+**Quality** runs `npm run precommit` (run full `npm run check` before merge), setup smoke matrix, mutation testing,
+**journey e2e** (`npm run test:e2e`), CodeQL, Sonar scan (`sonarqube-cloud-node.yml` with coverage upload),
+Sonar zero-open-issues, fleet adoption doc check, then **`ci-passed`** ([`scripts/ci-passed-gate.ts`](scripts/ci-passed-gate.ts)).
+Repositories created from this template must keep **SonarCloud Automatic Analysis disabled** and use the CI scan
+instead ([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Branch protection should require only the
+**`ci-passed`** check—not individual jobs ([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)).
+
+**End-to-end tests:** `scripts/journey.e2e.test.ts` exercises the README path (`npm ci` → setup CLI with `--yes`
+so verify runs `npm run check` and `npm pack --dry-run` → run the built entrypoint) without importing `setup-lib`.
+Replace `journey.e2e.test.ts` and the `journey-e2e` CI job with your product’s primary user journey after
+scaffolding; keep black-box coverage through public npm scripts and documented entry points.
 
 `sonarcloud-zero-issues.yml` is **pull_request-only**; callers must not run it on `push`, and any job listed under
 `ci-passed` that is skipped on `push` must be treated as success by the aggregate gate ([docs/fleet-adoption.md](docs/fleet-adoption.md#sonar-zero-open-issues-and-ci-passed)).
@@ -131,9 +197,10 @@ Pull requests that change `.github/workflows/**` or `.github/actions/**` without
   purpose, a maintainer adds the path to `.github/agent-files.allow` with a `# reason:` comment.
 - Exception: shared skills live in `.agents/skills/<name>/SKILL.md` (Agent Skills standard). That
   path and `AGENTS.md` are the only agent paths committed by default. Do not copy skills into
-  `.claude/skills/` or other vendor folders.
-- Claude Code (2.1.277+) reads `AGENTS.md` only when no `CLAUDE.md`, `.claude/CLAUDE.md` or
-  `CLAUDE.local.md` exists at or above the working directory. Do not create those files, even
+  vendor-specific skill folders (for example under `.claude/<name>/skills/`).
+- Claude Code (2.1.277+) reads `AGENTS.md` only when no `CLAUDE.md` or `CLAUDE.local.md`
+  exists at or above the working directory (including vendor paths such as .claude/CLAUDE.md).
+  Do not create those files, even
   locally: they silently switch this file off. For personal additions, set Project instructions
   to `claude-md-and-agents-md` in Claude Code's `/config`.
 
@@ -197,7 +264,7 @@ with `node scripts/count-suppressions.ts --write-baseline` after intentional cle
   disable comments unless the exception is narrowly scoped and explained.
 - Preserve all four setup scenarios: `plugin`, `mcp`, `npm-package`, and `cli`. Unattended
   setup (`--yes`) should keep running `npm run check` (and `npm pack --dry-run` when
-  publishable) unless `--no-verify` is passed.
+  publishable) unless `--no-verify` is passed on the setup CLI (not a git pre-commit bypass).
 
 ## Tests and security
 
@@ -209,8 +276,6 @@ with `node scripts/count-suppressions.ts --write-baseline` after intentional cle
   CI smoke jobs when direct unit coverage is impractical.
 - Treat external input, environment variables, file paths, and network results
   as untrusted. Validate before use and avoid logging sensitive values.
-- Keep GitHub Actions permissions minimal and pin third-party actions to full
-  commit SHAs.
 
 ## MCP servers with account data
 
@@ -225,7 +290,6 @@ Browser automation dependencies (for example Playwright) must follow
 
 ## Contributions and releases
 
-- Make focused changes and do not rewrite unrelated files.
 - Use a Conventional Commit pull request title such as `feat:`, `fix:`,
   `refactor:`, `test:`, `docs:`, `chore:`, or `ci:`. The squash commit title on
   `main` is Release Please's release input.

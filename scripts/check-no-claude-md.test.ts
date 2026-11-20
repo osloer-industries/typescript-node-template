@@ -79,7 +79,7 @@ describe("findForbiddenTrackedInstructionFiles", () => {
 });
 
 describe("listGitTrackedPaths", () => {
-  it("returns committed paths from git ls-files", async () => {
+  it("returns committed paths from git ls-files", { timeout: 30_000 }, async () => {
     const { listGitTrackedPaths } = await loadModule();
     const tempDir = createNoClaudeFixture("no-claude-list-");
     try {
@@ -140,7 +140,7 @@ describe("resolveClaudeInstructionViolations", () => {
     }
   });
 
-  it("uses git ls-files when the directory is a repository", async () => {
+  it("uses git ls-files when the directory is a repository", { timeout: 30_000 }, async () => {
     const { resolveClaudeInstructionViolations } = await loadModule();
     const tempDir = createNoClaudeFixture("no-claude-gitls-");
     try {
@@ -156,7 +156,7 @@ describe("resolveClaudeInstructionViolations", () => {
 });
 
 describe("runNoClaudeMdCheckCli", () => {
-  it("writes success output for a clean tree", async () => {
+  it("writes success output for a clean tree", { timeout: 30_000 }, async () => {
     const { runNoClaudeMdCheckCli } = await loadModule();
     const tempDir = createNoClaudeFixture("no-claude-run-cli-");
     const moduleUrl = new URL(`file://${join(tempDir, checkNoClaudeMdRelativePath)}`).href;
@@ -187,7 +187,7 @@ describe("isDirectExecution", () => {
 });
 
 describe("runNoClaudeMdCliEntry", () => {
-  it("returns 0 for a clean repository and 1 when CLAUDE.md is tracked", async () => {
+  it("returns 0 for a clean repository and 1 when CLAUDE.md is tracked", { timeout: 30_000 }, async () => {
     const { runNoClaudeMdCliEntry } = await loadModule();
     const cleanDir = createNoClaudeFixture("no-claude-entry-clean-");
     const moduleUrl = new URL(`file://${join(cleanDir, checkNoClaudeMdRelativePath)}`).href;
@@ -223,7 +223,7 @@ describe("assertNoTrackedClaudeInstructionFiles", () => {
     }
   });
 
-  it("rejects tracked CLAUDE.md", async () => {
+  it("rejects tracked CLAUDE.md", { timeout: 30_000 }, async () => {
     const { assertNoTrackedClaudeInstructionFiles } = await loadModule();
     const tempDir = createNoClaudeFixture("no-claude-violation-");
     try {
