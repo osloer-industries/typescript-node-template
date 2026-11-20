@@ -27,7 +27,11 @@ const docDirectories = ["docs"];
 
 const agentsSkillsDir = ".agents/skills";
 
-const agentsCheckPathStubs = ["scripts/setup.test.ts", "scripts/check-fleet-adoption-doc.ts"];
+const agentsCheckPathStubs = [
+  "scripts/setup.test.ts",
+  "scripts/check-fleet-adoption-doc.ts",
+  "scripts/journey.e2e.test.ts",
+];
 
 const agentsCheckSupportFiles = [
   ".github/dependabot.yml",
@@ -63,6 +67,7 @@ const pathGroups = [
     "scripts/agents-check-patterns.mjs",
     "scripts/check-guardrail-changes.ts",
     "scripts/git-list-changed-paths.mjs",
+    "scripts/ci-passed-gate.ts",
     "scripts/suppression-baseline.json",
     "scripts/fixture-vitest.config.ts",
   ],
@@ -119,10 +124,14 @@ export function copyTemplateFixture(repoRoot, targetDir) {
   for (const relativePath of agentsCheckPathStubs) {
     const destination = join(targetDir, relativePath);
     mkdirSync(dirname(destination), { recursive: true });
-    const stubBody =
-      relativePath === "scripts/setup.test.ts"
-        ? "import { describe, expect, it } from \"vitest\";\n\nexport function agentsCheckPathStub(): boolean {\n  return true;\n}\n\ndescribe(\"agents-check cited setup tests\", () => {\n  it(\"keeps the cited path present for consumer fixtures\", () => {\n    expect(agentsCheckPathStub()).toBe(true);\n  });\n});\n"
-        : "export function agentsCheckPathStub(): boolean {\n  return true;\n}\n";
+    let stubBody = "export function agentsCheckPathStub(): boolean {\n  return true;\n}\n";
+    if (relativePath === "scripts/setup.test.ts") {
+      stubBody =
+        "import { describe, expect, it } from \"vitest\";\n\nexport function agentsCheckPathStub(): boolean {\n  return true;\n}\n\ndescribe(\"agents-check cited setup tests\", () => {\n  it(\"keeps the cited path present for consumer fixtures\", () => {\n    expect(agentsCheckPathStub()).toBe(true);\n  });\n});\n";
+    } else if (relativePath === "scripts/journey.e2e.test.ts") {
+      stubBody =
+        "import { describe, expect, it } from \"vitest\";\n\nexport function agentsCheckJourneyStub(): boolean {\n  return true;\n}\n\ndescribe(\"agents-check cited journey e2e path\", () => {\n  it(\"keeps the cited path present for consumer fixtures\", () => {\n    expect(agentsCheckJourneyStub()).toBe(true);\n  });\n});\n";
+    }
     writeFileSync(destination, stubBody);
   }
   for (const relativePath of pathGroups.flat()) {
