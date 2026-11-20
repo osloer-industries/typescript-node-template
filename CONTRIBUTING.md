@@ -30,8 +30,16 @@ When you create a new repository from this template, reset `.release-please-mani
 root package (and align `package.json` `version` if you publish) so the first release is `0.1.0`.
 
 Harness files listed in `CODEOWNERS` (lint config, workflows, `AGENTS.md`, and related scripts)
-should receive maintainer review. Replace `@osloer-industries/platform` in `CODEOWNERS` with your
-org team before enabling branch protection.
+require maintainer review before merge. On pull requests, CI **`guardrail-detect`** runs
+`scripts/check-guardrail-changes.ts`, which sets **`guardrail_changed=true`** when those paths change.
+
+When harness paths change, the **`harness-approval`** job waits on the GitHub Environment of the same
+name until `@tn819` approves the deployment (**Review deployments** on the PR checks, then **Approve** —
+also available in GitHub mobile). The aggregate **`ci-passed`** check fails until that job succeeds; a new
+push needs a fresh approval. See [ADR 0012](docs/adr/0012-blocking-guardrail-change-check.md).
+
+**Dependabot** pull requests that update GitHub Actions under `.github/` should receive maintainer
+**approval** (you are not the author).
 
 Workflow or org-reusable changes must update [docs/fleet-adoption.md](docs/fleet-adoption.md) in the
 same pull request and link follow-up PRs or issues in consuming repositories (see [AGENTS.md](AGENTS.md)).

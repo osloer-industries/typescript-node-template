@@ -20,6 +20,41 @@ jobs:
       contents: read
       actions: read
 
+  guardrail-detect:
+    name: Guardrail detect
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      guardrail_changed: ${{ steps.guardrail.outputs.guardrail_changed || steps.guardrail-skip.outputs.guardrail_changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false, fetch-depth: 0 }
+      - id: guardrail-skip
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "guardrail_changed=false" >> "$GITHUB_OUTPUT"
+          echo "No guardrail path changes detected."
+      - id: guardrail
+        if: github.event_name == 'pull_request'
+        env:
+          GUARDRAIL_BASE_REF: ${{ github.event.pull_request.base.sha }}
+          GUARDRAIL_HEAD_REF: HEAD
+        run: node scripts/check-guardrail-changes.ts
+
+  harness-approval:
+    name: harness-approval
+    needs: guardrail-detect
+    if: >-
+      github.event_name == 'pull_request' &&
+      needs.guardrail-detect.outputs.guardrail_changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: harness-approval
+    permissions: {}
+    steps:
+      - name: Record approved commit
+        run: echo "Harness guardrail approval recorded for commit ${{ github.sha }}"
+
   quality:
     name: Quality
     runs-on: ubuntu-latest
@@ -35,11 +70,6 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: npm }
       - run: node scripts/ci-npm-workspace.mjs --install-eslint-sonarjs
-      - name: Guardrail path change notice
-        if: github.event_name == 'pull_request'
-        env:
-          GUARDRAIL_BASE_REF: ${{ github.event.pull_request.base.sha }}
-        run: node scripts/check-guardrail-changes.ts
       - run: npm audit --omit=dev --audit-level=high
       - run: npm audit --omit=dev --audit-level=high --prefix packages/eslint-sonarjs
       - run: npm run precommit
@@ -145,8 +175,12 @@ jobs:
 
   ci-passed:
     name: ci-passed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs:
       - workflow-security
+      - guardrail-detect
+      - harness-approval
       - quality
       - mutation
       - setup-smoke
@@ -156,8 +190,6 @@ jobs:
       - sonar-zero-open-issues
       - fleet-adoption-doc
     if: always()
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
     permissions:
       contents: read
     steps:

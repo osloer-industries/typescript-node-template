@@ -1,6 +1,6 @@
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -231,6 +231,88 @@ describe("gate self-tests (architecture boundaries)", () => {
       assertLintReportsRule(runOxlintOnFile(filePath), "no-restricted-imports");
     } finally {
       cleanup();
+    }
+  });
+});
+
+function initMinimalGuardrailRepo(): { tempDir: string; base: string; head: string } {
+  const git = process.env.GUARDRAIL_GIT_PATH ?? "/usr/bin/git";
+  const tempDir = mkdtempSync(join(tmpdir(), "gate-self-guardrail-"));
+  execFileSync(git, ["init"], { cwd: tempDir, stdio: "pipe" });
+  execFileSync(git, ["config", "user.email", "gate-self@example.com"], { cwd: tempDir, stdio: "pipe" });
+  execFileSync(git, ["config", "user.name", "gate-self"], { cwd: tempDir, stdio: "pipe" });
+  writeFileSync(join(tempDir, "README.md"), "# base\n", "utf8");
+  execFileSync(git, ["add", "README.md"], { cwd: tempDir, stdio: "pipe" });
+  execFileSync(git, ["commit", "-m", "base"], { cwd: tempDir, stdio: "pipe" });
+  const base = execFileSync(git, ["rev-parse", "HEAD"], { cwd: tempDir, encoding: "utf8" }).trim();
+  writeFileSync(join(tempDir, "AGENTS.md"), "# agents\n", "utf8");
+  execFileSync(git, ["add", "AGENTS.md"], { cwd: tempDir, stdio: "pipe" });
+  execFileSync(git, ["commit", "-m", "harness"], { cwd: tempDir, stdio: "pipe" });
+  const head = execFileSync(git, ["rev-parse", "HEAD"], { cwd: tempDir, encoding: "utf8" }).trim();
+  installGuardrailCheckScript(tempDir);
+  return { tempDir, base, head };
+}
+
+function installGuardrailCheckScript(tempDir: string): void {
+  const scriptsDir = join(tempDir, "scripts");
+  mkdirSync(scriptsDir, { recursive: true });
+  for (const fileName of ["check-guardrail-changes.ts", "git-list-changed-paths.mjs"]) {
+    writeFileSync(
+      join(scriptsDir, fileName),
+      readFileSync(join(repoRoot, "scripts", fileName), "utf8"),
+      "utf8",
+    );
+  }
+}
+
+describe("gate self-tests (guardrail detect)", () => {
+  it("exits 0 when guardrail paths change and reports harness-approval", { timeout: 30_000 }, () => {
+    const { tempDir, base, head } = initMinimalGuardrailRepo();
+    try {
+      const result = spawnSync(process.execPath, ["scripts/check-guardrail-changes.ts"], {
+        cwd: tempDir,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          GUARDRAIL_BASE_REF: base,
+          GUARDRAIL_HEAD_REF: head,
+        },
+      });
+      const output = `${result.stdout}${result.stderr}`;
+      expect(result.status, `expected exit 0\n${output}`).toBe(0);
+      expect(output).toMatch(/Guardrail paths changed/);
+      expect(output).toMatch(/harness-approval/);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("passes for non-guardrail diffs", { timeout: 30_000 }, () => {
+    const git = process.env.GUARDRAIL_GIT_PATH ?? "/usr/bin/git";
+    const tempDir = mkdtempSync(join(tmpdir(), "gate-self-guardrail-ok-"));
+    try {
+      execFileSync(git, ["init"], { cwd: tempDir, stdio: "pipe" });
+      execFileSync(git, ["config", "user.email", "gate-self@example.com"], { cwd: tempDir, stdio: "pipe" });
+      execFileSync(git, ["config", "user.name", "gate-self"], { cwd: tempDir, stdio: "pipe" });
+      writeFileSync(join(tempDir, "README.md"), "# base\n", "utf8");
+      execFileSync(git, ["add", "README.md"], { cwd: tempDir, stdio: "pipe" });
+      execFileSync(git, ["commit", "-m", "base"], { cwd: tempDir, stdio: "pipe" });
+      const base = execFileSync(git, ["rev-parse", "HEAD"], { cwd: tempDir, encoding: "utf8" }).trim();
+      mkdirSync(join(tempDir, "src"), { recursive: true });
+      writeFileSync(join(tempDir, "src/index.ts"), "export {};\n", "utf8");
+      execFileSync(git, ["add", "src/index.ts"], { cwd: tempDir, stdio: "pipe" });
+      execFileSync(git, ["commit", "-m", "src"], { cwd: tempDir, stdio: "pipe" });
+      const head = execFileSync(git, ["rev-parse", "HEAD"], { cwd: tempDir, encoding: "utf8" }).trim();
+      installGuardrailCheckScript(tempDir);
+      const result = spawnSync(process.execPath, ["scripts/check-guardrail-changes.ts"], {
+        cwd: tempDir,
+        encoding: "utf8",
+        env: { ...process.env, GUARDRAIL_BASE_REF: base, GUARDRAIL_HEAD_REF: head },
+      });
+      const output = `${result.stdout}${result.stderr}`;
+      expect(result.status, `expected exit 0\n${output}`).toBe(0);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
     }
   });
 });
