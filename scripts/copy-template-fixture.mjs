@@ -1,5 +1,51 @@
-import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+
+const JS_EXTENSIONS = [".mjs", ".cjs", ".js", ".jsx", ".d.mts"];
+const WALK_SKIP_DIR_NAMES = new Set(["node_modules", "dist", "coverage", ".git"]);
+
+/**
+ * @param {string} fileName
+ */
+function isJsExtension(fileName) {
+  return JS_EXTENSIONS.some((suffix) => fileName.endsWith(suffix));
+}
+
+/**
+ * @param {string} rootDir
+ * @param {string} relativeDir
+ * @param {string[]} collected
+ */
+function listJsPathsOnDisk(rootDir, relativeDir = "", collected = []) {
+  const absoluteDir = join(rootDir, relativeDir);
+  for (const entry of readdirSync(absoluteDir)) {
+    const relativePath = relativeDir.length > 0 ? `${relativeDir}/${entry}` : entry;
+    const absolutePath = join(rootDir, relativePath);
+    const stats = statSync(absolutePath);
+    if (stats.isDirectory()) {
+      if (WALK_SKIP_DIR_NAMES.has(entry)) continue;
+      listJsPathsOnDisk(rootDir, relativePath, collected);
+      continue;
+    }
+    if (isJsExtension(entry)) {
+      collected.push(relativePath.replaceAll("\\", "/"));
+    }
+  }
+  return collected;
+}
+
+/**
+ * @param {string} targetDir
+ */
+function writeFixtureJsAllowlist(targetDir) {
+  const paths = listJsPathsOnDisk(targetDir).toSorted((a, b) => a.localeCompare(b));
+  mkdirSync(join(targetDir, "quality"), { recursive: true });
+  writeFileSync(
+    join(targetDir, "quality/js-allowlist.json"),
+    `${JSON.stringify({ version: 1, paths }, null, 2)}\n`,
+    "utf8",
+  );
+}
 
 const rootFiles = [
   "package.json",
@@ -60,6 +106,9 @@ const pathGroups = [
     "scripts/run-sonar-coverage.mjs",
     "scripts/lint-sonarjs.mjs",
     "scripts/count-suppressions.ts",
+    "scripts/check-ts-only.ts",
+    "scripts/shrink-only-ratchet.ts",
+    "quality/js-allowlist.json",
     "scripts/oxlint-plugin-osloer.ts",
     "scripts/check-no-claude-md.ts",
     "scripts/agents-check.ts",
@@ -139,4 +188,5 @@ export function copyTemplateFixture(repoRoot, targetDir) {
     mkdirSync(dirname(destination), { recursive: true });
     cpSync(source, destination);
   }
+  writeFixtureJsAllowlist(targetDir);
 }
