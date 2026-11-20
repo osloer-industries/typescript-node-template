@@ -20,6 +20,7 @@ const rootFiles = [
   "CONTRIBUTING.md",
   "README.md",
   "SECURITY.md",
+  ".github/pull_request_template.md",
 ];
 
 const docFiles = ["docs/architecture.md", "docs/sonar-quality-gate.md"];
