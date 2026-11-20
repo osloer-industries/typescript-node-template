@@ -3,7 +3,7 @@
 
 /AGENTS.md @osloer-industries/platform
 /.gitignore @osloer-industries/platform
-/.agents/skills/ @osloer-industries/platform
+/.agents/ @osloer-industries/platform
 /CODEOWNERS @osloer-industries/platform
 /.github/ @osloer-industries/platform
 /.oxlintrc.json @osloer-industries/platform
@@ -12,6 +12,7 @@
 /scripts/count-suppressions.ts @osloer-industries/platform
 /scripts/oxlint-plugin-osloer.ts @osloer-industries/platform
 /scripts/check-guardrail-changes.ts @osloer-industries/platform
+/scripts/agents-check.ts @osloer-industries/platform
 /scripts/check-fleet-adoption-doc.ts @osloer-industries/platform
 /docs/fleet-adoption.md @osloer-industries/platform
 /scripts/agent-hooks/ @osloer-industries/platform

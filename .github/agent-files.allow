@@ -1,0 +1,2 @@
+# Explicit opt-ins for the org agent-files-guard reusable (see docs/adr/0010-agent-and-local-files-not-committed.md).
+# List one repository-relative glob per line with a trailing "# reason:" comment when opting in.
