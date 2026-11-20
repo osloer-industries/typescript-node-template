@@ -70,7 +70,7 @@ These rules apply to every agent (Cursor, Grok Bot, any other) working in this r
 | `docs/consuming-org-reusables.md` | How callers pin `osloer-industries/.github` workflows; links the org contract doc. |
 | `docs/fleet-adoption.md` | Per-repo adoption of org reusables and template CI features ([ADR 0011](docs/adr/0011-fleet-adoption-table.md)). |
 | `lefthook.yml` | Pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
-| `scripts/agent-hooks/` | Provider-neutral agent guard hook scripts ([docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)). |
+| `scripts/agent-hooks/` | Neutral guard scripts and `hooks.json` manifest; opt-in provider wiring via `vakt sync --project` ([docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)). |
 | `.agents/skills/` | Shared Agent Skills (`SKILL.md` per skill); index and rules in [docs/agent-skills.md](docs/agent-skills.md). |
 | `scripts/agents-check.ts` | `agents:check` gate; `index` subcommand regenerates the Skills table (`npm run agents:index`). |
 

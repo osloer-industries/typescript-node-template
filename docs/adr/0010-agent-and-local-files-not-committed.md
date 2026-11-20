@@ -44,7 +44,7 @@ Related: [issue #60](https://github.com/osloer-industries/typescript-node-templa
 - Local `CLAUDE.md`, `.claude/settings.local.json` and similar files keep working on a developer's
   machine. They just never reach the repository.
 - Provider hook wiring (issue #47) is not committed. vakt renders it locally for each tool from
-  the neutral `scripts/agent-hooks/` scripts. A repository that still wants committed wiring
+  the neutral `scripts/agent-hooks/hooks.json` manifest. A repository that still wants committed wiring
   must opt it in explicitly, with a reason that reviewers can see.
 - Shared skills are committed once under `.agents/skills/<name>/SKILL.md`, never duplicated into
   vendor skill directories.

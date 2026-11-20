@@ -1,0 +1,4 @@
+{
+  "preEdit": "scripts/agent-hooks/block-guardrail-edits.ts",
+  "stop": "scripts/agent-hooks/pre-stop-fast-check.ts"
+}
