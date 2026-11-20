@@ -61,10 +61,13 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+      pull-requests: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check out repository (quality)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false, fetch-depth: 0 }
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - name: Set up Node.js (quality)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: npm }
       - run: node scripts/ci-npm-workspace.mjs --install-eslint-sonarjs
       - run: npm audit --omit=dev --audit-level=high
@@ -75,10 +78,15 @@ jobs:
     name: Mutation
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check out repository (mutation)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false, fetch-depth: 0 }
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - name: Set up Node.js (mutation)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: npm }
       - run: node scripts/ci-npm-workspace.mjs
       - name: Mutation (changed src on pull request)
@@ -94,6 +102,8 @@ jobs:
     name: Setup smoke (${{ matrix.scenario }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -105,6 +115,20 @@ jobs:
         with: { node-version-file: .nvmrc, cache: npm }
       - run: node scripts/ci-npm-workspace.mjs
       - run: npm run setup -- --scenario ${{ matrix.scenario }} --name @smoke/${{ matrix.scenario }}-template --yes
+
+  journey-e2e:
+    name: Journey e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version-file: .nvmrc, cache: npm }
+      - run: node scripts/ci-npm-workspace.mjs --install-eslint-sonarjs
+      - run: npm run test:e2e
 
   codeql:
     uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6
@@ -135,6 +159,9 @@ jobs:
     name: Fleet adoption table sync
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false, fetch-depth: 0 }
@@ -157,6 +184,7 @@ jobs:
       - quality
       - mutation
       - setup-smoke
+      - journey-e2e
       - codeql
       - sonar-analyze
       - sonar-zero-open-issues

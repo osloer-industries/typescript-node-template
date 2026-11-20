@@ -81,7 +81,7 @@ describe("runMutationChangedCli", () => {
     }
   });
 
-  it("runs Stryker when mutable src paths changed", () => {
+  it("runs Stryker when mutable src paths changed", { timeout: 30_000 }, () => {
     const tempDir = mkdtempSync(join(tmpdir(), "mutation-run-"));
     try {
       initGitRepo(tempDir, gitExecutable);

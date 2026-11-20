@@ -430,6 +430,21 @@ function dropDevDependenciesDuplicatingProduction(pkg) {
 }
 
 /**
+ * Drops harness-only agent guidance lines that do not apply after consumer setup.
+ *
+ * @param {string} baseDir
+ */
+export function pruneConsumerAgentsGuidance(baseDir) {
+  const agentsPath = join(baseDir, "AGENTS.md");
+  const text = readFileSync(agentsPath, "utf8");
+  const pruned = text
+    .split(/\r?\n/u)
+    .filter((line) => !line.includes("test:mutation") && !line.includes("stryker.config.mjs"))
+    .join("\n");
+  writeFileSync(agentsPath, pruned.endsWith("\n") ? pruned : `${pruned}\n`);
+}
+
+/**
  * @param {{ scenario: SetupScenario, name: string, description: string, profile: (typeof profiles)[SetupScenario] }} selected
  * @param {{ runInstall?: boolean, baseDir?: string }} [options]
  */
@@ -439,6 +454,7 @@ export function applySetup(selected, options = {}) {
   configureHarnessDevDependencies(pkg, selected.scenario, baseDir);
   if (resolve(baseDir) !== templateRootDir) {
     delete pkg.scripts["test:mutation"];
+    pruneConsumerAgentsGuidance(baseDir);
   }
   pkg.name = selected.name;
   pkg.description = selected.description;
