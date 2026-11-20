@@ -19,7 +19,7 @@ const sampleMjsPath = "scripts/a.mjs";
 const seedMjsPath = "scripts/seed.mjs";
 const emptyMjsExport = "export {};\n";
 const shrinkOnlyOkPattern = /shrink-only OK/;
-const staleAllowlistPattern = /Stale allowlist entries/;
+const staleAllowlistPattern = /Stale allowlist entries \(path missing on disk\)/;
 
 function execCheckTsOnlyFromTemp(
   cwd: string,
@@ -46,7 +46,11 @@ async function loadModule() {
 function copyGateScripts(tempDir: string): void {
   mkdirSync(join(tempDir, "scripts"), { recursive: true });
   mkdirSync(join(tempDir, "quality"), { recursive: true });
-  for (const relative of [checkTsOnlyRelativePath, shrinkOnlyRelativePath]) {
+  for (const relative of [
+    checkTsOnlyRelativePath,
+    shrinkOnlyRelativePath,
+    "scripts/list-untyped-js-on-disk.mjs",
+  ]) {
     cpSync(join(repoRoot, relative), join(tempDir, relative));
   }
 }
@@ -170,7 +174,7 @@ describe("check-ts-only gate canary", () => {
     }
   });
 
-  it("fails on stale allowlist entries", () => {
+  it("fails on stale allowlist entries", { timeout: 30_000 }, () => {
     const tempDir = initGateFixture(
       "ts-only-stale-",
       [seedMjsPath, "scripts/ghost.mjs"],

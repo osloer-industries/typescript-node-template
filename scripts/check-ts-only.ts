@@ -1,7 +1,8 @@
 import { execFileSync } from "node:child_process";
-import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { listJsPathsOnDisk } from "./list-untyped-js-on-disk.mjs";
 import {
   assertAllowlistWriteShrinkOnly,
   assertTrackedPathsMatchAllowlist,
@@ -10,8 +11,6 @@ import {
 const ALLOWLIST_RELATIVE_PATH = "quality/js-allowlist.json";
 
 const JS_GIT_PATHSPECS = ["*.mjs", "*.cjs", "*.js", "*.jsx", "*.d.mts"] as const;
-const JS_EXTENSIONS = [".mjs", ".cjs", ".js", ".jsx", ".d.mts"] as const;
-const WALK_SKIP_DIR_NAMES = new Set(["node_modules", "dist", "coverage", ".git"]);
 
 export interface JsAllowlist {
   readonly version: 1;
@@ -32,28 +31,6 @@ function errorText(error: unknown): string {
 
 function isNotAGitRepositoryError(error: unknown): boolean {
   return errorText(error).includes("not a git repository");
-}
-
-function isJsExtension(fileName: string): boolean {
-  return JS_EXTENSIONS.some((suffix) => fileName.endsWith(suffix));
-}
-
-function listJsPathsOnDisk(rootDir: string, relativeDir = "", collected: string[] = []): string[] {
-  const absoluteDir = join(rootDir, relativeDir);
-  for (const entry of readdirSync(absoluteDir)) {
-    const relativePath = relativeDir.length > 0 ? `${relativeDir}/${entry}` : entry;
-    const absolutePath = join(rootDir, relativePath);
-    const stats = statSync(absolutePath);
-    if (stats.isDirectory()) {
-      if (WALK_SKIP_DIR_NAMES.has(entry)) continue;
-      listJsPathsOnDisk(rootDir, relativePath, collected);
-      continue;
-    }
-    if (isJsExtension(entry)) {
-      collected.push(relativePath.replaceAll("\\", "/"));
-    }
-  }
-  return collected;
 }
 
 export function listGitTrackedJsPaths(rootDir: string): string[] {
@@ -115,7 +92,7 @@ export function assertTsOnlyGate(rootDir: string): void {
   const allowlistPath = join(rootDir, ALLOWLIST_RELATIVE_PATH);
   const tracked = resolveJsPathsForGate(rootDir);
   const allowlist = loadJsAllowlist(allowlistPath);
-  assertTrackedPathsMatchAllowlist(tracked, allowlist.paths);
+  assertTrackedPathsMatchAllowlist(tracked, allowlist.paths, rootDir);
 }
 
 function repoRootFromModuleUrl(moduleUrl: string): string {
@@ -136,7 +113,7 @@ export function runCheckTsOnlyCli(moduleUrl: string, argv: readonly string[]): v
     return;
   }
 
-  assertTrackedPathsMatchAllowlist(tracked, allowlist.paths);
+  assertTrackedPathsMatchAllowlist(tracked, allowlist.paths, rootDir);
   process.stdout.write(
     `Tracked untyped JS ${tracked.length} (allowlist ${allowlist.paths.length}, shrink-only OK)\n`,
   );

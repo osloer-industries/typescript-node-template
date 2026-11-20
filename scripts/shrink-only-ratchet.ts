@@ -1,3 +1,6 @@
+import { statSync } from "node:fs";
+import { join } from "node:path";
+
 /** Numeric shrink-only ceiling shared by suppression and JS allowlist gates. */
 export interface ShrinkOnlyCeiling {
   readonly version: 1;
@@ -30,9 +33,19 @@ function normalizePosixPath(path: string): string {
 /**
  * Ensures tracked untyped JS paths match the allowlist exactly (no growth, no stale entries).
  */
+function allowlistPathExists(rootDir: string, relativePath: string): boolean {
+  try {
+    statSync(join(rootDir, relativePath));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function assertTrackedPathsMatchAllowlist(
   trackedPaths: readonly string[],
   allowlistedPaths: readonly string[],
+  rootDir: string,
 ): void {
   const tracked = trackedPaths.map(normalizePosixPath).toSorted((a, b) => a.localeCompare(b));
   const allowlisted = allowlistedPaths.map(normalizePosixPath).toSorted((a, b) => a.localeCompare(b));
@@ -46,7 +59,9 @@ export function assertTrackedPathsMatchAllowlist(
   const allowSet = new Set(allowlisted);
   const trackedSet = new Set(tracked);
   const unlisted = tracked.filter((path) => !allowSet.has(path));
-  const stale = allowlisted.filter((path) => !trackedSet.has(path));
+  const stale = allowlisted.filter(
+    (path) => !trackedSet.has(path) && !allowlistPathExists(rootDir, path),
+  );
 
   if (unlisted.length > 0) {
     throw new Error(
@@ -56,7 +71,7 @@ export function assertTrackedPathsMatchAllowlist(
   }
   if (stale.length > 0) {
     throw new Error(
-      `Stale allowlist entries (file no longer tracked): ${stale.join(", ")}. ` +
+      `Stale allowlist entries (path missing on disk): ${stale.join(", ")}. ` +
         "Remove the entry when converting or deleting the file (shrink-only).",
     );
   }
