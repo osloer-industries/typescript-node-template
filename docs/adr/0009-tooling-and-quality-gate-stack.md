@@ -155,16 +155,16 @@ custom Jest/Mocha adapter.
 
 <!-- devDependency: jscpd -->
 
-**Why chosen:** Local duplication detection with **0%** tolerated duplication in `.jscpd.json` on
-Markdown, workflow YAML, and shell (Bash) — artifacts SonarCloud does not fully cover in the same
-way ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27)).
+**Why chosen:** Local duplication detection with a **3%** `threshold` in `.jscpd.json` (aligned with
+SonarCloud duplicated-lines-on-new-code) on TypeScript, JavaScript, Markdown, workflow YAML, and shell (Bash)
+in `src/`, `scripts/`, `packages/`, tests, and docs ([#27](https://github.com/osloer-industries/typescript-node-template/pull/27),
+lunch-money [#22](https://github.com/osloer-industries/lunch-money/pull/22) motivation). Catches TS/JS copy-paste
+before commit and push; SonarCloud remains the PR gate and zero-open-issues owner.
 
-**Alternatives considered:** Sonar duplication only; scanning TypeScript/JavaScript locally with jscpd.
+**Alternatives considered:** Sonar duplication only (no local TS/JS jscpd); Markdown/workflow-only jscpd scope.
 
-**Why they lost:** SonarCloud already gates TypeScript/JavaScript duplication on pull requests (Sonar way
-fails above **3%** duplicated new lines) and the org zero-open-issues check. jscpd runs in `npm run check`
-so copy-pasted agent instructions, workflows, and shell glue fail before push without duplicating Sonar’s TS/JS
-signal.
+**Why they lost:** Sonar-only feedback arrives on the pull request, after duplicated TypeScript has already landed
+locally. Markdown-only jscpd missed the failure mode that prompted expanding scope.
 
 ### `knip`
 
@@ -238,8 +238,10 @@ marker block.
 <!-- devDependency: lefthook -->
 
 **Why chosen:** Git hooks runner for **`npm run precommit`** on every commit (`lefthook.yml`, `npm run
-prepare`); CI **Quality** runs the same script so `--no-verify` commits still fail in Actions
-([#32](https://github.com/osloer-industries/typescript-node-template/pull/32)).
+prepare`); that script includes jscpd on TypeScript, JavaScript, Markdown, workflow YAML, and shell (see
+**jscpd** above). CI **Quality** runs the same script so `--no-verify` commits still fail in Actions; CI uses
+`npm ci --ignore-scripts` so hooks are not installed in Actions
+([#32](https://github.com/osloer-industries/typescript-node-template/pull/32), [#114](https://github.com/osloer-industries/typescript-node-template/pull/114)).
 
 **Alternatives considered:** Husky; no pre-commit hooks.
 
