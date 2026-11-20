@@ -26,7 +26,7 @@ const sonarPlugins = {
 
 export default [
   {
-    ignores: ["dist/**", "coverage/**", "node_modules/**", "scripts/__fixtures__/**"],
+    ignores: ["dist/**", "coverage/**", "node_modules/**"],
   },
   {
     name: "sonarjs/shift-left-ts",

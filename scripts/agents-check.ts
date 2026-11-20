@@ -14,13 +14,7 @@ export const FIXED_GUIDANCE_FILES = [
 /** Dot-directory guidance globs (repo-relative). Issue #135 adds the skills SKILL.md glob. */
 export const DOTDIR_GUIDANCE_GLOBS: readonly string[] = [];
 
-const NESTED_WALK_SKIP_DIRS = new Set([
-  "node_modules",
-  "dist",
-  "coverage",
-  "__fixtures__",
-  "reusables-pm",
-]);
+const NESTED_WALK_SKIP_DIRS = new Set(["node_modules", "dist", "coverage", "reusables-pm"]);
 const PLACEHOLDER_PATTERN = /[*{}[\]<>?]/u;
 
 /** Scenario-generated paths not present in a fresh template clone (issue #134). */
