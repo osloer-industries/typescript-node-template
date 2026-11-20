@@ -2,18 +2,21 @@ import { execFileSync } from "node:child_process";
 import { chmodSync, cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { describe, expect, it, vi } from "vitest";
 import {
   collectGuidanceFindings,
   collectSkillFindings,
   extractSkillsIndexInner,
   formatSkillFinding,
   isValidSkillName,
+  listSkillRecords,
   parseSkillFrontmatter,
   renderSkillsIndexInner,
   replaceSkillsIndexInner,
+  runAgentsIndexCli,
   validateSkillFrontmatter,
+  writeSkillsIndex,
 } from "./agents-check.js";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -21,6 +24,12 @@ const nodeArgs = ["scripts/agents-check.ts", "index"];
 const verifyChangeSkill = "verify-change";
 const skillsIndexBegin = "<!-- agents:skills:begin -->";
 const skillsIndexEnd = "<!-- agents:skills:end -->";
+const skillsTableHeader = "| Skill | Description | Path |";
+const skillsTableSeparator = "| --- | --- | --- |";
+const emptyScriptsPackageJson = '{"scripts":{}}';
+const modulePackageJson = '{"type":"module","scripts":{}}';
+const fileUtf8 = "utf8";
+const fixturePackageJsonRelative = "package.json";
 
 function agentsMdWithSkillsIndex(inner: string): string {
   return ["# A", skillsIndexBegin, inner, skillsIndexEnd].join("\n");
@@ -79,12 +88,12 @@ describe("collectSkillFindings", () => {
       writeFileSync(
         join(skillDir, "SKILL.md"),
         "---\nname: not-dir\ndescription: x\n---\n",
-        "utf8",
+        fileUtf8,
       );
       writeFileSync(
         join(tempDir, "AGENTS.md"),
         agentsMdWithSkillsIndex(renderSkillsIndexInner([])),
-        "utf8",
+        fileUtf8,
       );
       const findings = collectSkillFindings(tempDir);
       expect(findings.some((entry) => entry.issue.includes("must match directory"))).toBe(true);
@@ -98,8 +107,8 @@ describe("collectSkillFindings", () => {
     try {
       const skillDir = join(tempDir, ".agents/skills/empty-desc");
       mkdirSync(skillDir, { recursive: true });
-      writeFileSync(join(skillDir, "SKILL.md"), "---\nname: empty-desc\ndescription:\n---\n", "utf8");
-      writeFileSync(join(tempDir, "AGENTS.md"), "# A\n", "utf8");
+      writeFileSync(join(skillDir, "SKILL.md"), "---\nname: empty-desc\ndescription:\n---\n", fileUtf8);
+      writeFileSync(join(tempDir, "AGENTS.md"), "# A\n", fileUtf8);
       const findings = collectSkillFindings(tempDir);
       expect(findings.some((entry) => entry.issue.includes("description must be non-empty"))).toBe(
         true,
@@ -113,7 +122,7 @@ describe("collectSkillFindings", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "agents-skill-no-markers-"));
     try {
       cpSync(join(repoRoot, ".agents"), join(tempDir, ".agents"), { recursive: true });
-      writeFileSync(join(tempDir, "AGENTS.md"), "# no markers\n", "utf8");
+      writeFileSync(join(tempDir, "AGENTS.md"), "# no markers\n", fileUtf8);
       const findings = collectSkillFindings(tempDir);
       expect(findings.some((entry) => entry.issue.includes("missing skills index markers"))).toBe(
         true,
@@ -129,8 +138,8 @@ describe("collectSkillFindings", () => {
       cpSync(join(repoRoot, ".agents"), join(tempDir, ".agents"), { recursive: true });
       writeFileSync(
         join(tempDir, "AGENTS.md"),
-        agentsMdWithSkillsIndex(["| Skill | Description | Path |", "| --- | --- | --- |"].join("\n")),
-        "utf8",
+        agentsMdWithSkillsIndex([skillsTableHeader, skillsTableSeparator].join("\n")),
+        fileUtf8,
       );
       const findings = collectSkillFindings(tempDir);
       expect(findings.some((entry) => entry.issue.includes("stale skills index"))).toBe(true);
@@ -147,12 +156,47 @@ describe("collectSkillFindings", () => {
       writeFileSync(
         join(skillDir, "SKILL.md"),
         "---\nname: broken-cite\ndescription: Broken cite demo.\n---\n\nSee `nowhere/missing.ts`.\n",
-        "utf8",
+        fileUtf8,
       );
-      writeFileSync(join(tempDir, "package.json"), '{"scripts":{}}', "utf8");
-      writeFileSync(join(tempDir, "AGENTS.md"), "# A\n", "utf8");
+      writeFileSync(join(tempDir, fixturePackageJsonRelative), emptyScriptsPackageJson, fileUtf8);
+      writeFileSync(join(tempDir, "AGENTS.md"), "# A\n", fileUtf8);
       const findings = collectGuidanceFindings(tempDir);
       expect(findings.some((entry) => entry.token === "nowhere/missing.ts")).toBe(true);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("reports when AGENTS.md is missing for skills validation", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "agents-skill-no-agents-"));
+    try {
+      const skillDir = join(tempDir, ".agents/skills/lonely");
+      mkdirSync(skillDir, { recursive: true });
+      writeFileSync(
+        join(skillDir, "SKILL.md"),
+        "---\nname: lonely\ndescription: Solo skill.\n---\n",
+        fileUtf8,
+      );
+      const findings = collectSkillFindings(tempDir);
+      expect(findings.some((entry) => entry.issue.includes("missing AGENTS.md for skills index"))).toBe(
+        true,
+      );
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("reports a skill directory without SKILL.md", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "agents-skill-no-skillmd-"));
+    try {
+      mkdirSync(join(tempDir, ".agents/skills/empty-dir"), { recursive: true });
+      writeFileSync(
+        join(tempDir, "AGENTS.md"),
+        agentsMdWithSkillsIndex(renderSkillsIndexInner([])),
+        fileUtf8,
+      );
+      const findings = collectSkillFindings(tempDir);
+      expect(findings.some((entry) => entry.issue.includes("missing SKILL.md"))).toBe(true);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
@@ -167,10 +211,10 @@ describe("collectSkillFindings", () => {
       writeFileSync(
         skillMd,
         "---\nname: with-bin\ndescription: Demo skill.\n---\n",
-        "utf8",
+        fileUtf8,
       );
       const scriptPath = join(skillDir, "run.sh");
-      writeFileSync(scriptPath, "#!/bin/sh\n", "utf8");
+      writeFileSync(scriptPath, "#!/bin/sh\n", fileUtf8);
       chmodSync(scriptPath, 0o755);
       writeFileSync(
         join(tempDir, "AGENTS.md"),
@@ -179,7 +223,7 @@ describe("collectSkillFindings", () => {
             { name: "with-bin", description: "Demo skill.", skillPath: ".agents/skills/with-bin/SKILL.md" },
           ]),
         ),
-        "utf8",
+        fileUtf8,
       );
       const findings = collectSkillFindings(tempDir);
       expect(
@@ -219,16 +263,93 @@ describe("skills index helpers", () => {
     expect(() => replaceSkillsIndexInner("# agents\n", "| x |")).toThrow(/Missing skills index/);
     expect(extractSkillsIndexInner("# agents\n")).toBeNull();
   });
+
+  it("lists only skills with complete frontmatter", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "agents-skill-list-records-"));
+    try {
+      const goodDir = join(tempDir, ".agents/skills/good");
+      const badDir = join(tempDir, ".agents/skills/incomplete");
+      mkdirSync(goodDir, { recursive: true });
+      mkdirSync(badDir, { recursive: true });
+      writeFileSync(
+        join(goodDir, "SKILL.md"),
+        "---\nname: good\ndescription: Complete.\n---\n",
+        fileUtf8,
+      );
+      writeFileSync(join(badDir, "SKILL.md"), "---\ndescription: No name.\n---\n", fileUtf8);
+      const records = listSkillRecords(tempDir);
+      expect(records.map((entry) => entry.name)).toEqual(["good"]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("writeSkillsIndex reports changed and unchanged", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "agents-skill-write-index-"));
+    try {
+      const skillDir = join(tempDir, ".agents/skills/indexed");
+      mkdirSync(skillDir, { recursive: true });
+      writeFileSync(
+        join(skillDir, "SKILL.md"),
+        "---\nname: indexed\ndescription: Indexed skill.\n---\n",
+        fileUtf8,
+      );
+      writeFileSync(
+        join(tempDir, "AGENTS.md"),
+        agentsMdWithSkillsIndex(
+          [skillsTableHeader, skillsTableSeparator, "| stale | x | `y` |"].join("\n"),
+        ),
+        fileUtf8,
+      );
+      const first = writeSkillsIndex(tempDir);
+      expect(first.changed).toBe(true);
+      const second = writeSkillsIndex(tempDir);
+      expect(second.changed).toBe(false);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("runAgentsIndexCli updates skills index in an isolated tree", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "agents-skill-run-index-"));
+    let stdout = "";
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation((chunk) => {
+      stdout += String(chunk);
+      return true;
+    });
+    try {
+      cpSync(join(repoRoot, ".agents"), join(tempDir, ".agents"), { recursive: true });
+      writeFileSync(
+        join(tempDir, "AGENTS.md"),
+        agentsMdWithSkillsIndex([skillsTableHeader, skillsTableSeparator].join("\n")),
+        fileUtf8,
+      );
+      writeFileSync(join(tempDir, fixturePackageJsonRelative), modulePackageJson, fileUtf8);
+      copyHarnessScripts(tempDir);
+      const moduleUrl = pathToFileURL(join(tempDir, "scripts/agents-check.ts")).href;
+      const code = runAgentsIndexCli(moduleUrl);
+      expect(code).toBe(0);
+      expect(stdout).toMatch(/Updated skills index/);
+      expect(collectSkillFindings(tempDir)).toEqual([]);
+      stdout = "";
+      const again = runAgentsIndexCli(moduleUrl);
+      expect(again).toBe(0);
+      expect(stdout).toMatch(/already up to date/);
+    } finally {
+      stdoutSpy.mockRestore();
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("agents:index CLI", () => {
   it("is idempotent on the template repository", () => {
     const agentsPath = join(repoRoot, "AGENTS.md");
-    const before = readFileSync(agentsPath, "utf8");
-    const first = execFileSync(process.execPath, nodeArgs, { cwd: repoRoot, encoding: "utf8" });
-    const mid = readFileSync(agentsPath, "utf8");
-    const second = execFileSync(process.execPath, nodeArgs, { cwd: repoRoot, encoding: "utf8" });
-    const after = readFileSync(agentsPath, "utf8");
+    const before = readFileSync(agentsPath, fileUtf8);
+    const first = execFileSync(process.execPath, nodeArgs, { cwd: repoRoot, encoding: fileUtf8 });
+    const mid = readFileSync(agentsPath, fileUtf8);
+    const second = execFileSync(process.execPath, nodeArgs, { cwd: repoRoot, encoding: fileUtf8 });
+    const after = readFileSync(agentsPath, fileUtf8);
     expect(first).toMatch(/up to date|Updated skills index/);
     expect(second).toMatch(/up to date/);
     expect(mid).toBe(after);
@@ -242,14 +363,14 @@ describe("agents:index CLI", () => {
       writeFileSync(
         join(tempDir, "AGENTS.md"),
         agentsMdWithSkillsIndex(
-          ["| Skill | Description | Path |", "| --- | --- | --- |", "| stale | x | `y` |"].join("\n"),
+          [skillsTableHeader, skillsTableSeparator, "| stale | x | `y` |"].join("\n"),
         ),
-        "utf8",
+        fileUtf8,
       );
-      writeFileSync(join(tempDir, "package.json"), '{"scripts":{}}', "utf8");
+      writeFileSync(join(tempDir, fixturePackageJsonRelative), emptyScriptsPackageJson, fileUtf8);
       copyHarnessScripts(tempDir);
-      execFileSync(process.execPath, nodeArgs, { cwd: tempDir, encoding: "utf8" });
-      const updated = readFileSync(join(tempDir, "AGENTS.md"), "utf8");
+      execFileSync(process.execPath, nodeArgs, { cwd: tempDir, encoding: fileUtf8 });
+      const updated = readFileSync(join(tempDir, "AGENTS.md"), fileUtf8);
       expect(updated).toContain(verifyChangeSkill);
       expect(collectSkillFindings(tempDir)).toEqual([]);
     } finally {
