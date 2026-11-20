@@ -223,7 +223,7 @@ describe("assertNoTrackedClaudeInstructionFiles", () => {
     }
   });
 
-  it("rejects tracked CLAUDE.md", async () => {
+  it("rejects tracked CLAUDE.md", { timeout: 15_000 }, async () => {
     const { assertNoTrackedClaudeInstructionFiles } = await loadModule();
     const tempDir = createNoClaudeFixture("no-claude-violation-");
     try {

@@ -26,7 +26,6 @@ const rootFiles = [
 const docDirectories = ["docs"];
 
 const agentsSkillsDir = ".agents/skills";
-
 const agentsCheckPathStubs = [
   "scripts/setup.test.ts",
   "scripts/check-fleet-adoption-doc.ts",

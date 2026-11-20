@@ -6,47 +6,59 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const agentsCheckRelative = "scripts/agents-check.ts";
-const nodeArgs = [agentsCheckRelative];
-const pathReferenceKind = "path";
-const npmScriptReferenceKind = "npm-script";
-const fixturePackageJsonRelative = "package.json";
-const fixtureAgentsMdRelative = "AGENTS.md";
-const fixtureSrcIndexRelative = "src/index.ts";
-const fileUtf8 = "utf8";
-const modulePackageType = "module";
+const AGENTS_CHECK_SCRIPT = "scripts/agents-check.ts";
+const AGENTS_CHECK_OK_MESSAGE = /Agent guidance, skills, and npm scripts OK/;
+const NPM_SCRIPT_KIND = "npm-script";
+const nodeArgs = [AGENTS_CHECK_SCRIPT];
 
-function writeAgentsCheckFixturePackage(root: string, packageName: string): void {
-  writeFileSync(
-    join(root, fixturePackageJsonRelative),
-    `${JSON.stringify(
-      {
-        name: packageName,
-        type: modulePackageType,
-        private: true,
-        scripts: { lint: "echo lint" },
-      },
-      null,
-      2,
-    )}\n`,
-    fileUtf8,
-  );
-}
+const CLEAN_FIXTURE_AGENTS = [
+  "# Clean fixture",
+  "",
+  "Run `npm run lint` and edit `src/index.ts`.",
+  "",
+  "See [src/index.ts](src/index.ts).",
+].join("\n");
 
-function hasPathReference(
-  refs: Array<{ kind: string; token: string }>,
-  token: string,
-): boolean {
-  return refs.some((entry) => entry.kind === pathReferenceKind && entry.token === token);
-}
+const BROKEN_FIXTURE_AGENTS = [
+  "# Broken fixture",
+  "",
+  "Missing file `missing/broken.ts` and script `npm run does-not-exist`.",
+  "",
+  "```sh",
+  "node scripts/missing-runner.ts",
+  "npm run does-not-exist",
+  "```",
+].join("\n");
 
-function execFailureOutput(error: unknown): string {
+const FIXTURE_PACKAGE_JSON = {
+  clean: {
+    name: "agents-check-clean-fixture",
+    type: "module",
+    private: true,
+    scripts: { lint: "echo lint" },
+  },
+  broken: {
+    name: "agents-check-broken-fixture",
+    type: "module",
+    private: true,
+    scripts: { lint: "echo lint" },
+  },
+} as const;
+
+const CLEAN_FIXTURE_SRC = [
+  "export function agentsCheckFixture(): boolean {",
+  "  return true;",
+  "}",
+  "",
+].join("\n");
+
+function readExecFailureOutput(error: unknown): string {
   if (error === null || typeof error !== "object") {
     return "";
   }
+  let combined = "";
   const stdout = Reflect.get(error, "stdout");
   const stderr = Reflect.get(error, "stderr");
-  let combined = "";
   if (typeof stdout === "string") {
     combined += stdout;
   }
@@ -60,44 +72,18 @@ async function loadModule() {
   return import("./agents-check.js");
 }
 
-function writeCleanAgentsCheckFixture(root: string): void {
-  mkdirSync(join(root, "src"), { recursive: true });
+function writeAgentsCheckFixture(destination: string, variant: keyof typeof FIXTURE_PACKAGE_JSON): void {
+  const agentsMd = variant === "clean" ? CLEAN_FIXTURE_AGENTS : BROKEN_FIXTURE_AGENTS;
+  writeFileSync(join(destination, "AGENTS.md"), `${agentsMd}\n`, "utf8");
   writeFileSync(
-    join(root, fixtureAgentsMdRelative),
-    [
-      "# Clean fixture",
-      "",
-      `Run \`npm run lint\` and edit \`${fixtureSrcIndexRelative}\`.`,
-      "",
-      `See [${fixtureSrcIndexRelative}](${fixtureSrcIndexRelative}).`,
-      "",
-    ].join("\n"),
-    fileUtf8,
+    join(destination, "package.json"),
+    `${JSON.stringify(FIXTURE_PACKAGE_JSON[variant], null, 2)}\n`,
+    "utf8",
   );
-  writeAgentsCheckFixturePackage(root, "agents-check-clean-fixture");
-  writeFileSync(
-    join(root, fixtureSrcIndexRelative),
-    "export function agentsCheckFixture(): boolean {\n  return true;\n}\n",
-    fileUtf8,
-  );
-}
-
-function writeBrokenAgentsCheckFixture(root: string): void {
-  writeFileSync(
-    join(root, fixtureAgentsMdRelative),
-    [
-      "# Broken fixture",
-      "",
-      "Missing file `missing/broken.ts` and script `npm run does-not-exist`.",
-      "",
-      "```sh",
-      "node scripts/missing-runner.ts",
-      "npm run does-not-exist",
-      "```",
-    ].join("\n"),
-    fileUtf8,
-  );
-  writeAgentsCheckFixturePackage(root, "agents-check-broken-fixture");
+  if (variant === "clean") {
+    mkdirSync(join(destination, "src"), { recursive: true });
+    writeFileSync(join(destination, "src", "index.ts"), CLEAN_FIXTURE_SRC, "utf8");
+  }
 }
 
 function copyAgentsCheckScript(destinationRoot: string): void {
@@ -114,7 +100,7 @@ describe("isPlaceholderToken", () => {
     expect(isPlaceholderToken(".github/workflows/**")).toBe(true);
     expect(isPlaceholderToken(".agents/skills/<name>/SKILL.md")).toBe(true);
     expect(isPlaceholderToken("../docs/architecture.md")).toBe(true);
-    expect(isPlaceholderToken(fixtureSrcIndexRelative)).toBe(false);
+    expect(isPlaceholderToken("src/index.ts")).toBe(false);
   });
 });
 
@@ -140,33 +126,31 @@ describe("extractGuidanceReferences", () => {
       "```",
     ].join("\n");
     const refs = extractGuidanceReferences(text);
-    expect(hasPathReference(refs, "docs/readme.md")).toBe(true);
-    expect(hasPathReference(refs, "scripts/a.mjs")).toBe(true);
-    expect(hasPathReference(refs, "scripts/run.ts")).toBe(true);
-    expect(
-      refs.some((entry) => entry.kind === npmScriptReferenceKind && entry.token === "build"),
-    ).toBe(true);
+    expect(refs.some((entry) => entry.kind === "path" && entry.token === "docs/readme.md")).toBe(true);
+    expect(refs.some((entry) => entry.kind === "path" && entry.token === "scripts/a.mjs")).toBe(true);
+    expect(refs.some((entry) => entry.kind === "path" && entry.token === "scripts/run.ts")).toBe(true);
+    expect(refs.some((entry) => entry.kind === NPM_SCRIPT_KIND && entry.token === "build")).toBe(true);
   });
 
   it("accepts CRLF line endings", async () => {
     const { extractGuidanceReferences } = await loadModule();
-    const text = `Link [x](${fixtureSrcIndexRelative})\r\n`;
+    const text = "Link [x](src/index.ts)\r\n";
     const refs = extractGuidanceReferences(text);
-    expect(refs).toEqual([{ kind: "path", line: 1, token: fixtureSrcIndexRelative }]);
+    expect(refs).toEqual([{ kind: "path", line: 1, token: "src/index.ts" }]);
   });
 });
 
 describe("path resolution", () => {
   it("accepts repo-relative and guidance-file-relative targets", async () => {
     const { pathExistsInRepo, candidatePathResolutions } = await loadModule();
-    expect(candidatePathResolutions("docs/agent-guard-hooks.md", `../${agentsCheckRelative}`)).toEqual([
-      `../${agentsCheckRelative}`,
-      agentsCheckRelative,
+    expect(candidatePathResolutions("docs/agent-guard-hooks.md", `../${AGENTS_CHECK_SCRIPT}`)).toEqual([
+      `../${AGENTS_CHECK_SCRIPT}`,
+      AGENTS_CHECK_SCRIPT,
     ]);
     expect(
       pathExistsInRepo(repoRoot, ".github/pull_request_template.md", "../AGENTS.md"),
     ).toBe(true);
-    expect(pathExistsInRepo(repoRoot, "AGENTS.md", agentsCheckRelative)).toBe(true);
+    expect(pathExistsInRepo(repoRoot, "AGENTS.md", AGENTS_CHECK_SCRIPT)).toBe(true);
   });
 });
 
@@ -181,7 +165,7 @@ describe("allowlist", () => {
     const allowed = validateReference(
       repoRoot,
       "AGENTS.md",
-      { kind: npmScriptReferenceKind, line: 1, token: "test:mcp" },
+      { kind: NPM_SCRIPT_KIND, line: 1, token: "test:mcp" },
       new Set(["lint"]),
     );
     expect(allowed).toBeNull();
@@ -193,7 +177,7 @@ describe("collectGuidanceFindings", () => {
     const { collectGuidanceFindings } = await loadModule();
     const tempDir = mkdtempSync(join(tmpdir(), "agents-check-clean-"));
     try {
-      writeCleanAgentsCheckFixture(tempDir);
+      writeAgentsCheckFixture(tempDir, "clean");
       expect(collectGuidanceFindings(tempDir)).toEqual([]);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -204,14 +188,12 @@ describe("collectGuidanceFindings", () => {
     const { collectGuidanceFindings } = await loadModule();
     const tempDir = mkdtempSync(join(tmpdir(), "agents-check-broken-"));
     try {
-      writeBrokenAgentsCheckFixture(tempDir);
+      writeAgentsCheckFixture(tempDir, "broken");
       const findings = collectGuidanceFindings(tempDir);
       expect(findings.some((entry) => entry.kind === "path" && entry.token.includes("missing"))).toBe(
         true,
       );
-      expect(
-        findings.some((entry) => entry.kind === npmScriptReferenceKind && entry.token === "does-not-exist"),
-      )
+      expect(findings.some((entry) => entry.kind === NPM_SCRIPT_KIND && entry.token === "does-not-exist"))
         .toBe(true);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -224,7 +206,7 @@ describe("agents-check gate canary", () => {
     const { collectGuidanceFindings } = await loadModule();
     const tempDir = mkdtempSync(join(tmpdir(), "agents-check-canary-"));
     try {
-      writeCleanAgentsCheckFixture(tempDir);
+      writeAgentsCheckFixture(tempDir, "clean");
       const findings = collectGuidanceFindings(tempDir);
       expect(findings).toEqual([]);
       let harnessError = "";
@@ -248,13 +230,13 @@ describe("agents-check CLI", () => {
       cwd: repoRoot,
       encoding: "utf8",
     });
-    expect(output).toMatch(/Agent guidance, skills, and npm scripts OK/);
+    expect(output).toMatch(AGENTS_CHECK_OK_MESSAGE);
   });
 
   it("fails with broken path and unknown npm script findings", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "agents-check-cli-broken-"));
     try {
-      writeBrokenAgentsCheckFixture(tempDir);
+      writeAgentsCheckFixture(tempDir, "broken");
       copyAgentsCheckScript(tempDir);
       let failed = false;
       let combined = "";
@@ -262,7 +244,7 @@ describe("agents-check CLI", () => {
         execFileSync(process.execPath, nodeArgs, { cwd: tempDir, encoding: "utf8" });
       } catch (error) {
         failed = true;
-        combined = execFailureOutput(error);
+        combined = readExecFailureOutput(error);
       }
       expect(failed, "expected non-zero exit for broken fixture").toBe(true);
       expect(combined).toMatch(/broken path/);
@@ -275,7 +257,7 @@ describe("agents-check CLI", () => {
   it("passes for the clean planted fixture", () => {
     const tempDir = mkdtempSync(join(tmpdir(), "agents-check-cli-clean-"));
     try {
-      writeCleanAgentsCheckFixture(tempDir);
+      writeAgentsCheckFixture(tempDir, "clean");
       copyAgentsCheckScript(tempDir);
       const output = execFileSync(process.execPath, nodeArgs, {
         cwd: tempDir,
@@ -325,12 +307,10 @@ describe("expandDotdirGuidanceGlob", () => {
 describe("formatFinding and CLI helpers", () => {
   it("formats npm script findings and direct execution detection", async () => {
     const { formatFinding, isDirectExecution } = await loadModule();
-    expect(
-      formatFinding({ file: "AGENTS.md", line: 2, kind: npmScriptReferenceKind, token: "lint" }),
-    ).toBe(
+    expect(formatFinding({ file: "AGENTS.md", line: 2, kind: NPM_SCRIPT_KIND, token: "lint" })).toBe(
       "AGENTS.md:2: unknown npm script: lint",
     );
-    const modulePath = join(repoRoot, agentsCheckRelative);
+    const modulePath = join(repoRoot, AGENTS_CHECK_SCRIPT);
     const moduleUrl = pathToFileURL(modulePath).href;
     expect(isDirectExecution(moduleUrl, modulePath)).toBe(true);
     expect(isDirectExecution(moduleUrl, undefined)).toBe(false);
@@ -346,7 +326,7 @@ describe("formatFinding and CLI helpers", () => {
     });
     try {
       copyAgentsCheckScript(tempDir);
-      const moduleUrl = pathToFileURL(join(tempDir, agentsCheckRelative)).href;
+      const moduleUrl = pathToFileURL(join(tempDir, AGENTS_CHECK_SCRIPT)).href;
       expect(runAgentsCheckCliEntry(moduleUrl)).toBe(1);
       expect(stderr).toMatch(/package\.json/);
     } finally {
@@ -371,9 +351,9 @@ describe("runAgentsCheckCliEntry", () => {
   it("returns 0 for clean trees and 1 when findings exist", async () => {
     const { runAgentsCheckCliEntry } = await loadModule();
     const tempDir = mkdtempSync(join(tmpdir(), "agents-check-entry-"));
-    const modulePath = join(tempDir, agentsCheckRelative);
+    const modulePath = join(tempDir, AGENTS_CHECK_SCRIPT);
     try {
-      writeCleanAgentsCheckFixture(tempDir);
+      writeAgentsCheckFixture(tempDir, "clean");
       copyAgentsCheckScript(tempDir);
       const moduleUrl = pathToFileURL(modulePath).href;
       expect(runAgentsCheckCliEntry(moduleUrl)).toBe(0);

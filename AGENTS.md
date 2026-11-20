@@ -63,6 +63,7 @@ These rules apply to every agent (Cursor, Grok Bot, any other) working in this r
 | `docs/npm-overrides.md` | When and how to use npm `overrides` for transitive audit fixes. |
 | `docs/sonar-quality-gate.md` | SonarCloud patterns and local SonarJS ESLint enforcement ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `knip.config.ts` | Unused files, exports, and dependencies ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `scripts/agents-check.ts` | Validates paths and `npm run` scripts cited in agent guidance (`npm run agents:check`). |
 | `.oxlintrc.json` | Oxlint rules ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `packages/eslint-sonarjs/` | SonarJS `recommended` rules via ESLint (TypeScript 6 parser; root uses TS 7) ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `.github/workflows/` | CI and security automation ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)); shared jobs call [org reusables](docs/consuming-org-reusables.md) with pinned SHAs. |
@@ -101,7 +102,7 @@ prefer **`npm run check:fast`**: Oxlint, suppression baseline, `agents:check`, t
 use the full ladder below.
 
 **`npm run precommit`** (Lefthook after `npm run prepare`, and CI **Quality**) runs Oxlint, the
-suppression baseline, `agents:check`, SonarJS ESLint (including `no-await-in-loop` / S9382 and
+suppression baseline, SonarJS ESLint (including `no-await-in-loop` / S9382 and
 `@typescript-eslint/require-await` / S7503), jscpd, typecheck, and the full Vitest suite.
 Run **`npm run precommit` before every push**. Never commit with `git commit --no-verify`, and
 never set `HUSKY=0`, `LEFTHOOK=0`, or `SKIP` to bypass hooks. Never suppress Sonar-style rules
@@ -121,8 +122,9 @@ Run gates in this order when preparing a pull request:
 9. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 10. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
    runs after `build` so `package.json` dist entries resolve)
-11. `npm run precommit` (Lefthook `pre-commit`; steps 1–5, 7, and `npm run test`)
-12. `npm run check` (precommit plus no-`CLAUDE.md`, markdown, coverage, build, and knip) before opening a pull request
+11. `npm run precommit` (Lefthook `pre-commit`; steps 1–4, 6, and `npm run test`)
+12. `npm run check` (precommit plus no-`CLAUDE.md`, `agents:check`, markdown, coverage, build, and knip)
+   before opening a pull request
 13. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 
 `npm run test:mutation` runs Stryker on `src/` (see `stryker.config.mjs` for the TypeScript 7 workaround). It is a

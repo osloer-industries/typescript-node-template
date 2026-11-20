@@ -24,11 +24,12 @@ const toolingAdrMd = readFileSync(
   "utf8",
 );
 
-const invalidPackageJsonMessage = "Invalid package.json";
+const INVALID_PACKAGE_JSON = "Invalid package.json";
+const AGENTS_CHECK_SCRIPT = "agents:check";
 
 function parsePackageJsonScripts(packageJsonText: string): Record<string, unknown> {
   const parsed: unknown = JSON.parse(packageJsonText);
-  if (typeof parsed !== "object" || parsed === null) throw new Error(invalidPackageJsonMessage);
+  if (typeof parsed !== "object" || parsed === null) throw new Error(INVALID_PACKAGE_JSON);
   const scripts = Reflect.get(parsed, "scripts");
   if (typeof scripts !== "object" || scripts === null) throw new Error("Missing scripts");
   return scripts;
@@ -36,7 +37,7 @@ function parsePackageJsonScripts(packageJsonText: string): Record<string, unknow
 
 function readDevDependencyNames(packageJsonText: string): string[] {
   const parsed: unknown = JSON.parse(packageJsonText);
-  if (typeof parsed !== "object" || parsed === null) throw new Error(invalidPackageJsonMessage);
+  if (typeof parsed !== "object" || parsed === null) throw new Error(INVALID_PACKAGE_JSON);
   const devDependencies = Reflect.get(parsed, "devDependencies");
   if (typeof devDependencies !== "object" || devDependencies === null) {
     throw new Error("Missing devDependencies");
@@ -119,7 +120,7 @@ describe("agent documentation contract", () => {
     const scripts = parsePackageJsonScripts(packageJson);
     const checkFast = Reflect.get(scripts, "check:fast");
     expect(typeof checkFast).toBe("string");
-    expect(checkFast).toContain("agents:check");
+    expect(checkFast).toContain(AGENTS_CHECK_SCRIPT);
   });
 
   it("includes SonarJS, duplication, and knip gates in npm run check", () => {
@@ -132,8 +133,9 @@ describe("agent documentation contract", () => {
     expect(precommit).toContain("lint:sonarjs");
     expect(precommit).toContain("lint:dup");
     expect(check).toContain("check:no-claude-md");
+    expect(check).toContain(AGENTS_CHECK_SCRIPT);
     expect(check).toContain("npm run precommit");
-    expect(precommit).toContain("agents:check");
+    expect(precommit).not.toContain(AGENTS_CHECK_SCRIPT);
     expect(check).toContain("lint:knip");
     expect(check).toMatch(/build && npm run lint:knip/);
   });
