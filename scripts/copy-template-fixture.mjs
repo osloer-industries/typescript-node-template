@@ -91,7 +91,7 @@ function buildFixtureTsconfig(repoRoot) {
     {
       compilerOptions,
       include: ["src/**/*.ts", "scripts/**/*.ts", "scripts/**/*.d.ts", "vitest.config.ts"],
-      exclude: ["dist", "coverage", "node_modules", "scripts/__fixtures__/**"],
+      exclude: ["dist", "coverage", "node_modules"],
     },
     null,
     2,

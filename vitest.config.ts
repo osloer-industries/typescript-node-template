@@ -29,7 +29,6 @@ export default defineConfig({
         "scripts/**/*.test.ts",
         "scripts/**/*.test.mjs",
         "scripts/vitest-global-setup.mjs",
-        "scripts/__fixtures__/**",
         "packages/**/*.test.mjs",
       ],
       thresholds: { branches: 80, functions: 80, lines: 80, statements: 80 },
