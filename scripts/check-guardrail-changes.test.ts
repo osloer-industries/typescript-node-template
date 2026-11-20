@@ -50,6 +50,7 @@ describe("isGuardrailPath", () => {
     expect(isGuardrailPath("lefthook.yml")).toBe(true);
     expect(isGuardrailPath("packages/eslint-sonarjs/eslint.config.mjs")).toBe(true);
     expect(isGuardrailPath("scripts/check-guardrail-changes.ts")).toBe(true);
+    expect(isGuardrailPath("scripts/agents-check.ts")).toBe(true);
     expect(isGuardrailPath("scripts/check-fleet-adoption-doc.ts")).toBe(true);
     expect(isGuardrailPath("docs/fleet-adoption.md")).toBe(true);
     expect(isGuardrailPath("scripts/agent-hooks/block-guardrail-edits.ts")).toBe(true);

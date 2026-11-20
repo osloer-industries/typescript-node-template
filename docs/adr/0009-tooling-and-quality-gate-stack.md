@@ -209,6 +209,18 @@ documented in `AGENTS.md` because Dependabot does not bump git-tag dependencies.
 
 **Why they lost:** Fork carries org-specific fixes/tags; no link check allows dead links in harness docs.
 
+### `agents:check` (npm script)
+
+**Why chosen:** `scripts/agents-check.ts` validates repository paths and `package.json` script names cited
+in agent guidance (`AGENTS.md`, `CONTRIBUTING.md`, PR template, and `docs/agent-guard-hooks.md`). It runs in
+`npm run check` and `npm run check:fast` so path and command rot is caught offline before agents act on stale
+instructions ([#134](https://github.com/osloer-industries/typescript-node-template/issues/134)).
+
+**Alternatives considered:** Rely on markdown link checking only; Langfuse-style check in postinstall.
+
+**Why they lost:** Link checks do not validate backticked paths or `npm run` commands; postinstall would slow
+`npm ci` and fight CI `--ignore-scripts`.
+
 ### `lefthook`
 
 <!-- devDependency: lefthook -->
