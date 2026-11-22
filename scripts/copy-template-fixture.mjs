@@ -45,6 +45,7 @@ const jscpdFixturePaths = [
   ".github/workflows/dependency-review.yml",
   ".github/workflows/pr-title.yml",
   ".github/workflows/release.yml",
+  ".github/workflows/auto-merge.yml",
 ];
 
 const pathGroups = [
