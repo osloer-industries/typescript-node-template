@@ -150,8 +150,9 @@ When touching `scripts/`, setup, or CI install steps, follow
 Sonar zero-open-issues, fleet adoption doc check, then org **`ci-passed.yml`** (`ci-passed` job).
 Repositories created from this template must keep **SonarCloud Automatic Analysis disabled** and use the CI scan
 instead ([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Fleet callers should require only the
-**`ci-passed`** status check—not individual jobs ([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md));
-this template’s org ruleset on `main` does not yet register required status checks.
+**`ci-passed / ci-passed`** check context—not individual jobs
+([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)); this template’s default-branch ruleset registers
+that context on `main`.
 
 **End-to-end tests:** `scripts/journey.e2e.test.ts` exercises the README path (`npm ci` → setup CLI with `--yes`
 so verify runs `npm run check` and `npm pack --dry-run` → run the built entrypoint) without importing `setup-lib`.

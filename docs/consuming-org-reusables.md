@@ -16,11 +16,32 @@ on that repository.
    reusable workflow SHAs together.
 5. In SonarCloud, **disable Automatic Analysis** for the project and rely on the CI `sonarqube-cloud-node.yml`
    job instead ([docs/sonar-quality-gate.md](sonar-quality-gate.md)). Enable organization secret **`SONAR_TOKEN`**.
-6. After the first green runs, consuming repos should register a **single** required status check: **`ci-passed`**
-   (org reusable called from [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)). Do not list individual
-   scanner jobs as required—the aggregate job already fails when any upstream job fails or is cancelled. This
-   template repo’s org ruleset on `main` currently enforces PR review rules only (no required status checks in
-   ruleset config); fleet callers still adopt the **`ci-passed`** gate per org doc.
+6. After the first green runs, require a **single** branch protection check: **`ci-passed`** with GitHub check
+   context **`ci-passed / ci-passed`** (job `name:` on the org reusable called from
+   [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)). Do not list individual scanner jobs as required—the
+   aggregate job already fails when any upstream job fails or is cancelled.
+7. Enable **Allow auto-merge** on the repository (**Settings > General > Pull Requests**) and restrict
+   merge methods to **squash** only so Dependabot and Release Please squash commits match Conventional Commit
+   prefixes (`chore(deps):`, `ci(deps):`) enforced by the PR title workflow.
+8. Configure org **auto-merge** credentials: repository (or organization) secret **`RELEASE_APP_PRIVATE_KEY`**
+   (PEM for the osloer-reviewer GitHub App) and repository variable **`OSLOER_RELEASE_APP_ID`** = **`5745328`**.
+   Mirror **`RELEASE_APP_PRIVATE_KEY`** into **Dependabot secrets** so workflows on `dependabot/*` branches can
+   mint the installation token. Copy [`.github/workflows/auto-merge.yml`](../.github/workflows/auto-merge.yml)
+   from this template (org reusable pin **`# v0.1.7`**).
+
+### Auto-merge behavior (org reusable)
+
+The org [`auto-merge.yml`](https://github.com/osloer-industries/.github/blob/v0.1.7/.github/workflows/auto-merge.yml)
+approves and enables **`gh pr merge --auto`** (merge completes only after required checks pass). It does **not**
+use `pull_request_target` and does not check out pull request code.
+
+| Source | Auto-merges when | Never auto-merges |
+| --- | --- | --- |
+| **Dependabot** | `version-update:semver-patch` or `version-update:semver-minor` (including grouped `osloer-reusables` patch/minor bumps) | **semver-major** dependency updates |
+| **Release Please** (`release-please--*` branches, osloer-reviewer) | Manifest diff is patch/minor only, allowlisted files, no `BREAKING CHANGE` / `⚠ BREAKING CHANGES` in PR body or changelog | Major manifest bumps, breaking markers, or unparseable manifest (fail closed). Pre-1.0 breaking changes bump **minor** and stay manual |
+
+Auto-merge waits for branch protection required checks. Register only **`ci-passed / ci-passed`** as required—not
+individual scanner jobs—so Dependabot and release PRs merge once the aggregate pipeline is green.
 
 Pin every org reusable to the same `.github` release tag commit SHA (for example
 `a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7`); use the tag in the `#` comment, not `main`, so
@@ -48,6 +69,7 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | [`dependency-review.yml`](../.github/workflows/dependency-review.yml) | `dependency-review.yml` | Job-level `contents` / `actions` / `pull-requests` read and `security-events: write` (nested OSV reusable). |
 | [`pr-title.yml`](../.github/workflows/pr-title.yml) | `semantic-pull-request.yml` | `pull_request` caller (not org doc `pull_request_target` — workflow-security zizmor rejects `pull_request_target` in this repo); job-level `pull-requests: read`. |
 | [`release.yml`](../.github/workflows/release.yml) | `release-please.yml` | Release GitHub App secrets (see org doc). |
+| [`.github/workflows/auto-merge.yml`](../.github/workflows/auto-merge.yml) | `auto-merge.yml` (`# v0.1.7`) | `RELEASE_APP_PRIVATE_KEY`, `vars.OSLOER_RELEASE_APP_ID` (`5745328` in this org); squash merge; `allow-dependabot` + `allow-release-prs`. |
 
 Domain-only jobs remain in-repo (for example `fleet-adoption-doc`, future `harness-approval`) per
 [ADR 0005](adr/0005-placement-template-vs-org-github.md).

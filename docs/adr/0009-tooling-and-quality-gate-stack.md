@@ -388,9 +388,9 @@ issues on the PR head after the CI scan job completes.
 
 **Why chosen:** Org `ci-passed.yml` on `.github/workflows/ci.yml` aggregates every upstream CI job and fails closed
 when any needed job fails or is cancelled. Skip rules: `sonar-zero-open-issues` may be **skipped** only off
-`pull_request`; on `pull_request` it must succeed. Consuming repos should register **`ci-passed`** as the sole
-required status check; this template repo’s org ruleset on `main` currently lists PR review rules only (no required
-status checks configured yet). Future `harness-approval` tolerance when `guardrail-detect` outputs
+`pull_request`; on `pull_request` it must succeed. The calling job keeps `name: ci-passed` so branch protection can
+require check context **`ci-passed / ci-passed`**. Consuming repos should register only that context—not individual
+scanner jobs. Future `harness-approval` tolerance when `guardrail-detect` outputs
 `guardrail_changed: false` is tracked for org `ci-passed-gate.ts` in
 [#103](https://github.com/osloer-industries/typescript-node-template/pull/103).
 
