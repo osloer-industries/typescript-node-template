@@ -342,12 +342,13 @@ root would violate template TS 7 goal.
 **Why they lost:** **Rationale not recorded, inferred:** Dependabot is native to GitHub with org-familiar
 PR flow; Renovate adds another bot/policy surface.
 
-### CI: `dependency-review-action`
+### CI: Dependency review (org reusable)
 
 <!-- ci-tool: dependency-review-action -->
 
-**Why chosen:** Fail PRs that introduce **high** severity vulnerable dependencies
-(`.github/workflows/dependency-review.yml`).
+**Why chosen:** Fail PRs that introduce **high** severity vulnerable dependencies via org
+`dependency-review.yml` (thin caller `.github/workflows/dependency-review.yml`; GitHub Dependency Review on
+public repos).
 
 **Alternatives considered:** `npm audit` only in CI.
 
@@ -387,11 +388,13 @@ issues on the PR head after the CI scan job completes.
 
 <!-- ci-tool: ci-passed -->
 
-**Why chosen:** Org `ci-passed.yml` is the **only** required branch protection check; it fails closed when any
-upstream job in `ci.yml` fails or is cancelled. Caller or inlined [`scripts/ci-passed-gate.ts`](../scripts/ci-passed-gate.ts)
-implements the org skip rules: `sonar-zero-open-issues` may be **skipped** only off `pull_request`; on
-`pull_request` it must succeed. `harness-approval` may be **skipped** only when `guardrail-detect` outputs
-`guardrail_changed: false` (no widening to event-based allowlists).
+**Why chosen:** Org `ci-passed.yml` on `.github/workflows/ci.yml` aggregates every upstream CI job and fails closed
+when any needed job fails or is cancelled. Skip rules: `sonar-zero-open-issues` may be **skipped** only off
+`pull_request`; on `pull_request` it must succeed. The calling job keeps `name: ci-passed` so branch protection can
+require check context **`ci-passed / ci-passed`**. Consuming repos should register only that context—not individual
+scanner jobs. Future `harness-approval` tolerance when `guardrail-detect` outputs
+`guardrail_changed: false` is tracked for org `ci-passed-gate.ts` in
+[#103](https://github.com/osloer-industries/typescript-node-template/pull/103).
 
 ### CI: zizmor
 

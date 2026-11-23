@@ -45,6 +45,7 @@ const jscpdFixturePaths = [
   ".github/workflows/dependency-review.yml",
   ".github/workflows/pr-title.yml",
   ".github/workflows/release.yml",
+  ".github/workflows/auto-merge.yml",
 ];
 
 const pathGroups = [
@@ -65,7 +66,6 @@ const pathGroups = [
     "scripts/agents-check.ts",
     "scripts/agents-check-patterns.mjs",
     "scripts/check-guardrail-changes.ts",
-    "scripts/ci-passed-gate.ts",
     "scripts/git-list-changed-paths.mjs",
     "scripts/suppression-baseline.json",
     "scripts/fixture-vitest.config.ts",
