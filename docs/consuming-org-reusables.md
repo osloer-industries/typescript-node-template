@@ -46,9 +46,9 @@ individual scanner jobs—so Dependabot and release PRs merge once the aggregate
 Pin every org reusable to the same `.github` release tag commit SHA (for example
 `618f33feb09deee59aa06b92fc203f162e73370a # v0.1.9`); use the tag in the `#` comment, not `main`, so
 zizmor ref-version-mismatch stays green when org `main` advances. Bump via Dependabot (`osloer-reusables`
-group) or template-sync when a new `.github` tag ships. Callers that want the composite gate use an inline `ci-passed` job with `ci-passed-gate@<pin-sha>` (static
-workflows resolve their scripts from
-`job.workflow_sha` (the pinned `uses:` ref).
+group) or template-sync when a new `.github` tag ships. For the composite gate, use an inline `ci-passed` job
+with `ci-passed-gate@<pin-sha>` (static SHA). Org reusables resolve vendored scripts from `job.workflow_sha`
+(the pinned `uses:` ref).
 
 Grant **job-level** `actions: read` on the workflow-security calling job (not at workflow level; Sonar rule
 `githubactions:S8264`).
