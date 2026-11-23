@@ -13,6 +13,6 @@ concurrency:
 
 jobs:
   semantic-title:
-    uses: osloer-industries/.github/.github/workflows/semantic-pull-request.yml@618f33feb09deee59aa06b92fc203f162e73370a # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/semantic-pull-request.yml@76aab6abfeeb4f8991f9ce83de1b9bd24abcf534 # v0.1.9
     permissions:
       pull-requests: read

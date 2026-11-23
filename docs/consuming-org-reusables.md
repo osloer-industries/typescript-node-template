@@ -44,7 +44,7 @@ Auto-merge waits for branch protection required checks. Register only **`ci-pass
 individual scanner jobs—so Dependabot and release PRs merge once the aggregate pipeline is green.
 
 Pin every org reusable to the same `.github` release tag commit SHA (for example
-`618f33feb09deee59aa06b92fc203f162e73370a # v0.1.9`); use the tag in the `#` comment, not `main`, so
+`76aab6abfeeb4f8991f9ce83de1b9bd24abcf534 # v0.1.9`); use the tag in the `#` comment, not `main`, so
 zizmor ref-version-mismatch stays green when org `main` advances. Bump via Dependabot (`osloer-reusables`
 group) or template-sync when a new `.github` tag ships. For the composite gate, use an inline `ci-passed` job
 with `ci-passed-gate@<pin-sha>` (static SHA). Org reusables resolve vendored scripts from `job.workflow_sha`
