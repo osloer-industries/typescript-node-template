@@ -19,7 +19,9 @@ function createSuppressionFixtureTree(
   const tempDir = mkdtempSync(join(tmpdir(), prefix));
   mkdirSync(join(tempDir, "scripts"), { recursive: true });
   mkdirSync(join(tempDir, "src"), { recursive: true });
-  cpSync(join(repoRoot, countSuppressionsRelativePath), join(tempDir, countSuppressionsRelativePath));
+  for (const relative of [countSuppressionsRelativePath, "scripts/shrink-only-ratchet.ts"]) {
+    cpSync(join(repoRoot, relative), join(tempDir, relative));
+  }
   writeFileSync(
     join(tempDir, "scripts/suppression-baseline.json"),
     `${JSON.stringify({ version: 1, total: baselineTotal })}\n`,
