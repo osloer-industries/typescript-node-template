@@ -14,7 +14,10 @@ coverage enforcement, and GitHub security automation.
 - Org-pinned workflow security (actionlint + zizmor), CodeQL, SonarCloud CI scan with coverage upload, and
   zero-open-issues gate; aggregate **`ci-passed`** required check; Dependabot and pull request dependency review
 - Release Please for Conventional Commit-based release pull requests, changelogs, tags, and GitHub releases
-- Conventional pull request title validation and matching Dependabot commit prefixes
+- Org **auto-merge** for eligible Dependabot patch/minor and non-major Release Please pull requests (squash
+  after **`ci-passed`** is green; majors and breaking releases stay manual)
+- Conventional pull request title validation and matching Dependabot commit prefixes (`chore(deps):`,
+  `ci(deps):`)
 - Full commit SHA pins, minimal permissions, timeouts, and concurrency cancellation
 - Secret-safe ignores, issue forms, and pull request guidance
 - Provider-neutral [AGENTS.md](AGENTS.md) and [docs/architecture.md](docs/architecture.md) for contributors and coding agents
@@ -99,10 +102,10 @@ Never commit the token.
 Release Please opens and maintains a release pull request from Conventional Commits. Merging that pull
 request updates `CHANGELOG.md` and package versions, creates a `vX.Y.Z` tag, and publishes a GitHub release.
 
-1. Have an organization administrator create or rotate the organization Actions secret named
-   `RELEASE_TOKEN`. Back it with a fine-grained maintainer token or GitHub App token that has repository
-   Contents and Pull requests read/write access. If your organization requires it, also grant Actions
-   read access.
+1. Configure the **osloer-reviewer** GitHub App for this repository: organization or repository secret
+   **`RELEASE_APP_PRIVATE_KEY`** (PEM) and repository variable **`OSLOER_RELEASE_APP_ID`** = **`5745328`** (see
+   [docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)). Add the same secret as a **Dependabot
+   secret** so auto-merge runs on `dependabot/*` branches. Release Please and auto-merge share this app identity.
 2. In the organization secret's repository access policy, select each repository created from this template
    that uses Release Please. Do not expose the secret to unrelated repositories.
 3. Confirm GitHub Actions may create pull requests under **Settings > Actions > General**. Organization
@@ -139,6 +142,7 @@ Branch protection is intentionally not automated. After the first successful run
 - Signed commits when the contributor workflow supports them (avoid requiring linear history that implies
   rebasing shared branches; merge `main` into pull request branches instead — see [AGENTS.md](AGENTS.md))
 - Squash merging only, with the pull request title used as the squash commit title
+- **Allow auto-merge** enabled (**Settings > General > Pull Requests**)
 
 Do not require Sonar until SonarCloud and `SONAR_TOKEN` are configured.
 
@@ -173,8 +177,8 @@ Consider these additions only when the generated project needs them:
 - OpenSSF Scorecard, a real `CODEOWNERS` file, and organization-wide Action SHA-pinning rules
 - Generated-code drift checks, integration tests, container scanning, deployment environments, and observability
 
-Automated publishing, broad write permissions, merge bots, and placeholder code owners are intentionally
-omitted because they require project-specific ownership and release decisions.
+Automated publishing, broad write permissions beyond the pinned osloer-reviewer app, and placeholder code
+owners are intentionally omitted because they require project-specific ownership and release decisions.
 
 ## Secrets
 
