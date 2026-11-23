@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   workflow-security:
-    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6
+    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7
     permissions:
       contents: read
       actions: read
@@ -56,65 +56,19 @@ jobs:
         run: echo "Harness guardrail approval recorded for commit ${{ github.sha }}"
 
   quality:
-    name: Quality
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      pull-requests: read
-    steps:
-      - name: Check out repository (quality)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { persist-credentials: false, fetch-depth: 0 }
-      - name: Set up Node.js (quality)
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with: { node-version-file: .nvmrc, cache: npm }
-      - run: node scripts/ci-npm-workspace.mjs --install-eslint-sonarjs
-      - run: npm audit --omit=dev --audit-level=high
-      - run: npm audit --omit=dev --audit-level=high --prefix packages/eslint-sonarjs
-      - run: npm run precommit
+    uses: osloer-industries/.github/.github/workflows/node-npm-quality.yml@a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7
+    with:
+      check-npm-script: precommit
+      fetch-depth: 0
+      npm-prefixes-json: '["packages/eslint-sonarjs"]'
 
   mutation:
-    name: Mutation
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      pull-requests: read
-    steps:
-      - name: Check out repository (mutation)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { persist-credentials: false, fetch-depth: 0 }
-      - name: Set up Node.js (mutation)
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with: { node-version-file: .nvmrc, cache: npm }
-      - run: node scripts/ci-npm-workspace.mjs
-      - name: Mutation (changed src on pull request)
-        if: github.event_name == 'pull_request'
-        env:
-          MUTATION_BASE_REF: ${{ github.event.pull_request.base.sha }}
-        run: node scripts/run-mutation-changed.ts
-      - name: Mutation (full src on main)
-        if: github.event_name == 'push'
-        run: npm run test:mutation
+    uses: osloer-industries/.github/.github/workflows/mutation-changed.yml@a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7
 
   setup-smoke:
-    name: Setup smoke (${{ matrix.scenario }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        scenario: [plugin, mcp, npm-package, cli]
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { persist-credentials: false }
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with: { node-version-file: .nvmrc, cache: npm }
-      - run: node scripts/ci-npm-workspace.mjs
-      - run: npm run setup -- --scenario ${{ matrix.scenario }} --name @smoke/${{ matrix.scenario }}-template --yes
+    uses: osloer-industries/.github/.github/workflows/node-setup-smoke.yml@a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7
+    with:
+      timeout-minutes: 15
 
   journey-e2e:
     name: Journey e2e
@@ -131,14 +85,14 @@ jobs:
       - run: npm run test:e2e
 
   codeql:
-    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6
+    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7
     permissions:
       contents: read
       actions: read
       security-events: write
 
   sonar-analyze:
-    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6
+    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7
     with:
       coverage-npm-script: coverage:sonar
       timeout-minutes: 20
@@ -148,7 +102,7 @@ jobs:
   sonar-zero-open-issues:
     if: github.event_name == 'pull_request'
     needs: sonar-analyze
-    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@348b254ef112f4f8e239a41e7adb3f3e2dac3944 # v0.1.6
+    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7
     with:
       project-key: osloer-industries_typescript-node-template
       ce-task-id: ${{ needs.sonar-analyze.outputs.ce-task-id }}
