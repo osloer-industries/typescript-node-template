@@ -15,14 +15,14 @@ concurrency:
   cancel-in-progress: true
 jobs:
   ci-paths-scope:
-    uses: osloer-industries/.github/.github/workflows/ci-paths-scope.yml@962e9cfd1567c7ea3b31ff704a17961d0a6afc17 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/ci-paths-scope.yml@1a4e4c8d7d8c0e532d32240d53d81f2a52f47bb6 # v0.1.9
 
   workflow-security:
     needs: ci-paths-scope
     if: |
       always() && needs.ci-paths-scope.outputs.run-full-ci == 'true' &&
       needs.ci-paths-scope.outputs.workflows-changed == 'true'
-    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@962e9cfd1567c7ea3b31ff704a17961d0a6afc17 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@1a4e4c8d7d8c0e532d32240d53d81f2a52f47bb6 # v0.1.9
     permissions:
       contents: read
       actions: read
@@ -30,7 +30,7 @@ jobs:
   quality:
     needs: ci-paths-scope
     if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
-    uses: osloer-industries/.github/.github/workflows/node-npm-quality.yml@962e9cfd1567c7ea3b31ff704a17961d0a6afc17 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/node-npm-quality.yml@1a4e4c8d7d8c0e532d32240d53d81f2a52f47bb6 # v0.1.9
     with:
       check-npm-script: precommit
       fetch-depth: 0
@@ -40,12 +40,12 @@ jobs:
   mutation:
     needs: ci-paths-scope
     if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
-    uses: osloer-industries/.github/.github/workflows/mutation-changed.yml@962e9cfd1567c7ea3b31ff704a17961d0a6afc17 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/mutation-changed.yml@1a4e4c8d7d8c0e532d32240d53d81f2a52f47bb6 # v0.1.9
 
   setup-smoke:
     needs: ci-paths-scope
     if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
-    uses: osloer-industries/.github/.github/workflows/node-setup-smoke.yml@962e9cfd1567c7ea3b31ff704a17961d0a6afc17 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/node-setup-smoke.yml@1a4e4c8d7d8c0e532d32240d53d81f2a52f47bb6 # v0.1.9
     with:
       timeout-minutes: 15
 
@@ -70,7 +70,7 @@ jobs:
     if: |
       needs.ci-paths-scope.outputs.run-full-ci == 'true' &&
       (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'merge_group')
-    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@962e9cfd1567c7ea3b31ff704a17961d0a6afc17 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@1a4e4c8d7d8c0e532d32240d53d81f2a52f47bb6 # v0.1.9
     permissions:
       contents: read
       actions: read
@@ -79,7 +79,7 @@ jobs:
   sonar-analyze:
     needs: ci-paths-scope
     if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
-    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@962e9cfd1567c7ea3b31ff704a17961d0a6afc17 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@1a4e4c8d7d8c0e532d32240d53d81f2a52f47bb6 # v0.1.9
     with:
       coverage-npm-script: coverage:sonar
       timeout-minutes: 20
@@ -91,7 +91,7 @@ jobs:
     needs:
       - ci-paths-scope
       - sonar-analyze
-    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@962e9cfd1567c7ea3b31ff704a17961d0a6afc17 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@1a4e4c8d7d8c0e532d32240d53d81f2a52f47bb6 # v0.1.9
     with:
       project-key: osloer-industries_typescript-node-template
       ce-task-id: ${{ needs.sonar-analyze.outputs.ce-task-id }}
@@ -138,7 +138,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: osloer-industries/.github/.github/actions/ci-passed-gate@962e9cfd1567c7ea3b31ff704a17961d0a6afc17 # v0.1.9
+      - uses: osloer-industries/.github/.github/actions/ci-passed-gate@1a4e4c8d7d8c0e532d32240d53d81f2a52f47bb6 # v0.1.9
         with:
           needs-json: ${{ toJSON(needs) }}
           github-event-name: ${{ github.event_name }}
