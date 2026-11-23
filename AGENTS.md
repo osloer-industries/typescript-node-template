@@ -148,10 +148,12 @@ When touching `scripts/`, setup, or CI install steps, follow
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the main pipeline: workflow security;
 **Quality** runs `npm run precommit` (run full `npm run check` before merge), setup smoke matrix, mutation testing,
 **journey e2e** (`npm run test:e2e`), CodeQL, Sonar scan (`sonarqube-cloud-node.yml` with coverage upload),
-Sonar zero-open-issues, fleet adoption doc check, then **`ci-passed`** ([`scripts/ci-passed-gate.ts`](scripts/ci-passed-gate.ts)).
+Sonar zero-open-issues, fleet adoption doc check, then org **`ci-passed.yml`** (`ci-passed` job).
 Repositories created from this template must keep **SonarCloud Automatic Analysis disabled** and use the CI scan
-instead ([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Branch protection should require only the
-**`ci-passed`** check—not individual jobs ([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)).
+instead ([docs/sonar-quality-gate.md](docs/sonar-quality-gate.md)). Fleet callers should require only the
+**`ci-passed / ci-passed`** check context—not individual jobs
+([docs/consuming-org-reusables.md](docs/consuming-org-reusables.md)); this template’s default-branch ruleset registers
+that context on `main`.
 
 **End-to-end tests:** `scripts/journey.e2e.test.ts` exercises the README path (`npm ci` → setup CLI with `--yes`
 so verify runs `npm run check` and `npm pack --dry-run` → run the built entrypoint) without importing `setup-lib`.
