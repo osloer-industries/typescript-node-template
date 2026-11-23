@@ -12,7 +12,7 @@ const TEMPLATE_CALLER_WORKFLOWS = [
 ] as const;
 
 const AUTO_MERGE_REUSABLE_PIN =
-  "osloer-industries/.github/.github/workflows/auto-merge.yml@76aab6abfeeb4f8991f9ce83de1b9bd24abcf534 # v0.1.9";
+  "osloer-industries/.github/.github/workflows/auto-merge.yml@f6fcd0ea66c6fded546b7d02f89d069a331755cb # v0.1.9";
 
 describe("template harness contracts", () => {
   it("keeps github-actions Dependabot cooldown to supported keys only", () => {
