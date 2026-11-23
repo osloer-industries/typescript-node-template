@@ -10,7 +10,7 @@ on:
 
 jobs:
   auto-merge:
-    uses: osloer-industries/.github/.github/workflows/auto-merge.yml@a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7
+    uses: osloer-industries/.github/.github/workflows/auto-merge.yml@962e9cfd1567c7ea3b31ff704a17961d0a6afc17 # v0.1.9
     secrets:
       RELEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
     with:

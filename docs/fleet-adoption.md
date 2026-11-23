@@ -3,13 +3,13 @@
 Deterministic map of [org reusable workflows](https://github.com/osloer-industries/.github/blob/main/docs/consuming-workflows.md)
 and template harness features across consuming repositories.
 
-**Verification date:** 2026-11-20 (default branches; workflow YAML and config on GitHub).
+**Verification date:** 2026-11-23 (default branches; workflow YAML and config on GitHub).
 
 ## Reusable pin snapshot
 
 | Repository | Org `.github` pin (comment) | Notes |
 | --- | --- | --- |
-| typescript-node-template | `a6ee91211fd9ba096ec141bacdb67985a82b6767` (`# v0.1.7`) | Template reference; org CI stack ([#153](https://github.com/osloer-industries/typescript-node-template/pull/153)) + `auto-merge.yml` ([#159](https://github.com/osloer-industries/typescript-node-template/pull/159)) |
+| typescript-node-template | `962e9cfd1567c7ea3b31ff704a17961d0a6afc17` (`# v0.1.9`) | Actions minutes stack ([#170](https://github.com/osloer-industries/typescript-node-template/issues/170)): `ci-paths-scope.yml`, composite `ci-passed-gate`, off-PR CodeQL |
 | lunch-money | `348b254ef112f4f8e239a41e7adb3f3e2dac3944` (`# v0.1.6`) | Bun repo; `.github/workflows/` on `main` |
 | lunch-money-de-invest-sync | `a081e1b87b5309ff2b3999e8d6804d8ebec5c518` (`# v0.1.1`) | |
 | vakt | `348b254ef112f4f8e239a41e7adb3f3e2dac3944` (`# v0.1.6`) | Consolidated `ci.yml` on `main` |

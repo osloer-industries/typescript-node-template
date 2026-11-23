@@ -44,7 +44,7 @@ Auto-merge waits for branch protection required checks. Register only **`ci-pass
 individual scanner jobs—so Dependabot and release PRs merge once the aggregate pipeline is green.
 
 Pin every org reusable to the same `.github` release tag commit SHA (for example
-`a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7`); use the tag in the `#` comment, not `main`, so
+`962e9cfd1567c7ea3b31ff704a17961d0a6afc17 # v0.1.9`); use the tag in the `#` comment, not `main`, so
 zizmor ref-version-mismatch stays green when org `main` advances. Bump via Dependabot (`osloer-reusables`
 group) or template-sync when a new `.github` tag ships. Callers do not pass `reusables-ref`; reusable
 workflows resolve their scripts from
@@ -57,19 +57,20 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 
 | Caller file | Org reusable | Notes |
 | --- | --- | --- |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`workflow-security` job) | `workflow-security.yml` | actionlint + zizmor; **job**-level `actions: read` on the calling job (zizmor online audits); default empty `min-severity` / `min-confidence` (strictest). |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`codeql` job) | `codeql-javascript-typescript.yml` | Public repo: default Code Scanning upload. Private repos without GHAS: set `code-scanning-upload: false` and keep `fail-on-sarif-level: error` (see org doc). |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-paths-scope` job) | `ci-paths-scope.yml` | Docs-only skip + `workflows-changed` outputs; gates heavy jobs ([#170](https://github.com/osloer-industries/typescript-node-template/issues/170)). |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`workflow-security` job) | `workflow-security.yml` | actionlint + zizmor when `workflows-changed` is true; **job**-level `actions: read` (zizmor online audits). |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`codeql` job) | `codeql-javascript-typescript.yml` | **`push` / `schedule` / `merge_group` only** on PR workflows (not every `pull_request` synchronize). Public repo: default Code Scanning upload. Private: artifact mode (org doc). |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-analyze` job) | `sonarqube-cloud-node.yml` | `npm run coverage:sonar` (`run-sonar-coverage.mjs` installs nested `packages/eslint-sonarjs` via `ci-npm-workspace.mjs` after the reusable’s root `npm ci`, then `test:coverage`); requires `SONAR_TOKEN`. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`quality` job) | `node-npm-quality.yml` | `precommit` via org package-manager ([#114](https://github.com/osloer-industries/typescript-node-template/pull/114)); `fetch-depth: 0`; `pr-pre-check-script: scripts/check-guardrail-changes.ts`; `npm-prefixes-json` for `packages/eslint-sonarjs`. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`mutation` job) | `mutation-changed.yml` | Thin caller; script runs from org pin at `job.workflow_sha`. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`setup-smoke` job) | `node-setup-smoke.yml` | Default four-scenario matrix. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`journey-e2e` job) | *(in-repo)* | Black-box `npm run test:e2e` for the template setup journey ([#129](https://github.com/osloer-industries/typescript-node-template/pull/129)); replace in generated repos. |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`sonar-zero-open-issues` job) | `sonarcloud-zero-issues.yml` | Pull requests only (`if: github.event_name == 'pull_request'`); `ce-task-id` from `sonar-analyze`. |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | `ci-passed.yml` | Org aggregate gate; `needs:` every upstream job including `journey-e2e`. Sonar zero-open **skipped** tolerated only off `pull_request`. Future `harness-approval` skip rules land in org gate via [#103](https://github.com/osloer-industries/typescript-node-template/pull/103). |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`ci-passed` job) | `ci-passed-gate` composite action | Aggregate gate via `.github/actions/ci-passed-gate` (no nested `workflow_call`); `needs:` every upstream job. Tolerates selective skips (Sonar off-PR, CodeQL off-PR, workflow-security, docs-only). |
 | [`dependency-review.yml`](../.github/workflows/dependency-review.yml) | `dependency-review.yml` | Job-level `contents` / `actions` / `pull-requests` read and `security-events: write` (nested OSV reusable). |
-| [`pr-title.yml`](../.github/workflows/pr-title.yml) | `semantic-pull-request.yml` | `pull_request` caller (not org doc `pull_request_target` — workflow-security zizmor rejects `pull_request_target` in this repo); job-level `pull-requests: read`. |
+| [`pr-title.yml`](../.github/workflows/pr-title.yml) | `semantic-pull-request.yml` | `pull_request` types `opened` / `reopened` / `edited` only (not `synchronize`); `concurrency` on caller; job-level `pull-requests: read`. |
 | [`release.yml`](../.github/workflows/release.yml) | `release-please.yml` | Release GitHub App secrets (see org doc). |
-| [`.github/workflows/auto-merge.yml`](../.github/workflows/auto-merge.yml) | `auto-merge.yml` (`# v0.1.7`) | `RELEASE_APP_PRIVATE_KEY`, `vars.OSLOER_RELEASE_APP_ID` (`5745328` in this org); squash merge; `allow-dependabot` + `allow-release-prs`. |
+| [`.github/workflows/auto-merge.yml`](../.github/workflows/auto-merge.yml) | `auto-merge.yml` (`# v0.1.9`) | `RELEASE_APP_PRIVATE_KEY`, `vars.OSLOER_RELEASE_APP_ID` (`5745328` in this org); squash merge; `allow-dependabot` + `allow-release-prs`. |
 
 Domain-only jobs remain in-repo (for example `fleet-adoption-doc`, future `harness-approval`) per
 [ADR 0005](adr/0005-placement-template-vs-org-github.md).
