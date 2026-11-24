@@ -1,5 +1,19 @@
 import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { listJsPathsOnDisk } from "./list-untyped-js-on-disk.mjs";
+
+/**
+ * @param {string} targetDir
+ */
+function writeFixtureJsAllowlist(targetDir) {
+  const paths = listJsPathsOnDisk(targetDir).toSorted((a, b) => a.localeCompare(b));
+  mkdirSync(join(targetDir, "quality"), { recursive: true });
+  writeFileSync(
+    join(targetDir, "quality/js-allowlist.json"),
+    `${JSON.stringify({ version: 1, paths }, null, 2)}\n`,
+    "utf8",
+  );
+}
 
 const rootFiles = [
   "package.json",
@@ -61,12 +75,15 @@ const pathGroups = [
     "scripts/run-sonar-coverage.mjs",
     "scripts/lint-sonarjs.mjs",
     "scripts/count-suppressions.ts",
+    "scripts/check-ts-only.ts",
+    "scripts/shrink-only-ratchet.ts",
+    "scripts/list-untyped-js-on-disk.mjs",
+    "quality/js-allowlist.json",
     "scripts/oxlint-plugin-osloer.ts",
     "scripts/check-no-claude-md.ts",
     "scripts/agents-check.ts",
     "scripts/agents-check-patterns.mjs",
     "scripts/check-guardrail-changes.ts",
-    "scripts/ci-passed-gate.ts",
     "scripts/git-list-changed-paths.mjs",
     "scripts/suppression-baseline.json",
     "scripts/fixture-vitest.config.ts",
@@ -140,4 +157,5 @@ export function copyTemplateFixture(repoRoot, targetDir) {
     mkdirSync(dirname(destination), { recursive: true });
     cpSync(source, destination);
   }
+  writeFixtureJsAllowlist(targetDir);
 }
