@@ -10,6 +10,9 @@
 /lefthook.yml @osloer-industries/platform
 /scripts/suppression-baseline.json @osloer-industries/platform
 /scripts/count-suppressions.ts @osloer-industries/platform
+/scripts/check-ts-only.ts @osloer-industries/platform
+/scripts/shrink-only-ratchet.ts @osloer-industries/platform
+/quality/ @osloer-industries/platform
 /scripts/oxlint-plugin-osloer.ts @osloer-industries/platform
 /scripts/check-guardrail-changes.ts @osloer-industries/platform
 /scripts/agents-check.ts @osloer-industries/platform
