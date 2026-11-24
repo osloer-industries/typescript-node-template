@@ -15,14 +15,14 @@ concurrency:
   cancel-in-progress: true
 jobs:
   ci-paths-scope:
-    uses: osloer-industries/.github/.github/workflows/ci-paths-scope.yml@0bf1af4007d3e4c1037fadd7e2fbf1970564d4d5 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/ci-paths-scope.yml@81c031697de21b270a2db604e71bd16443e3b09f # v0.1.9
 
   workflow-security:
     needs: ci-paths-scope
     if: |
       always() && needs.ci-paths-scope.outputs.run-full-ci == 'true' &&
       needs.ci-paths-scope.outputs.workflows-changed == 'true'
-    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@0bf1af4007d3e4c1037fadd7e2fbf1970564d4d5 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@81c031697de21b270a2db604e71bd16443e3b09f # v0.1.9
     permissions:
       contents: read
       actions: read
@@ -30,7 +30,7 @@ jobs:
   quality:
     needs: ci-paths-scope
     if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
-    uses: osloer-industries/.github/.github/workflows/node-npm-quality.yml@0bf1af4007d3e4c1037fadd7e2fbf1970564d4d5 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/node-npm-quality.yml@81c031697de21b270a2db604e71bd16443e3b09f # v0.1.9
     with:
       check-npm-script: precommit
       fetch-depth: 0
@@ -40,12 +40,12 @@ jobs:
   mutation:
     needs: ci-paths-scope
     if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
-    uses: osloer-industries/.github/.github/workflows/mutation-changed.yml@0bf1af4007d3e4c1037fadd7e2fbf1970564d4d5 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/mutation-changed.yml@81c031697de21b270a2db604e71bd16443e3b09f # v0.1.9
 
   setup-smoke:
     needs: ci-paths-scope
     if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
-    uses: osloer-industries/.github/.github/workflows/node-setup-smoke.yml@0bf1af4007d3e4c1037fadd7e2fbf1970564d4d5 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/node-setup-smoke.yml@81c031697de21b270a2db604e71bd16443e3b09f # v0.1.9
     with:
       timeout-minutes: 15
 
@@ -58,9 +58,9 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@@81c031697de21b270a2db604e71bd16443e3b09f # v7.0.1
         with: { persist-credentials: false }
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@@81c031697de21b270a2db604e71bd16443e3b09f # v7.1.0
         with: { node-version-file: .nvmrc, cache: npm }
       - run: node scripts/ci-npm-workspace.mjs --install-eslint-sonarjs
       - run: npm run test:e2e
@@ -69,8 +69,11 @@ jobs:
     needs: ci-paths-scope
     if: |
       needs.ci-paths-scope.outputs.run-full-ci == 'true' &&
-      (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'merge_group')
-    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@0bf1af4007d3e4c1037fadd7e2fbf1970564d4d5 # v0.1.9
+      (
+        github.event_name != 'pull_request' ||
+        needs.ci-paths-scope.outputs.run-codeql == 'true'
+      )
+    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@81c031697de21b270a2db604e71bd16443e3b09f # v0.1.9
     permissions:
       contents: read
       actions: read
@@ -81,7 +84,7 @@ jobs:
     if: |
       needs.ci-paths-scope.outputs.run-full-ci == 'true' &&
       needs.ci-paths-scope.outputs.product-code-changed == 'true'
-    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@0bf1af4007d3e4c1037fadd7e2fbf1970564d4d5 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@81c031697de21b270a2db604e71bd16443e3b09f # v0.1.9
     with:
       coverage-npm-script: coverage:sonar
       timeout-minutes: 20
@@ -96,7 +99,7 @@ jobs:
     needs:
       - ci-paths-scope
       - sonar-analyze
-    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@0bf1af4007d3e4c1037fadd7e2fbf1970564d4d5 # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@81c031697de21b270a2db604e71bd16443e3b09f # v0.1.9
     with:
       project-key: osloer-industries_typescript-node-template
       ce-task-id: ${{ needs.sonar-analyze.outputs.ce-task-id }}
@@ -115,9 +118,9 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@@81c031697de21b270a2db604e71bd16443e3b09f # v7.0.1
         with: { persist-credentials: false, fetch-depth: 0 }
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@@81c031697de21b270a2db604e71bd16443e3b09f # v7.1.0
         with: { node-version-file: .nvmrc }
       - name: Require fleet-adoption.md when workflows change
         env:
@@ -143,7 +146,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: osloer-industries/.github/.github/actions/ci-passed-gate@0bf1af4007d3e4c1037fadd7e2fbf1970564d4d5 # v0.1.9
+      - uses: osloer-industries/.github/.github/actions/ci-passed-gate@81c031697de21b270a2db604e71bd16443e3b09f # v0.1.9
         with:
           needs-json: ${{ toJSON(needs) }}
           github-event-name: ${{ github.event_name }}
