@@ -4,8 +4,8 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { copyTemplateFixture } from "./copy-template-fixture.mjs";
-import { npmExecutablePath } from "./run-npm.mjs";
+import { copyTemplateFixture } from "./copy-template-fixture.ts";
+import { npmExecutablePath } from "./run-npm.ts";
 import { gitCommitPaths, gitExecutableForTests, initGitRepo } from "./test-git-fixture.js";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));

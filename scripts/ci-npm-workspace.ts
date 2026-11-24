@@ -3,18 +3,17 @@ import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { pathToFileURL } from "node:url";
 
-import { runNpm } from "./run-npm.mjs";
+import { runNpm } from "./run-npm.ts";
 
 const ESLINT_SONARJS_PREFIX = "packages/eslint-sonarjs";
 
-/**
- * @param {{
- *   runInstall?: typeof runNpm;
- *   installEslintSonarjs?: boolean;
- *   skipRootCi?: boolean;
- * }} [options]
- */
-export function runCiNpmWorkspace(options = {}) {
+export interface RunCiNpmWorkspaceOptions {
+  runInstall?: typeof runNpm;
+  installEslintSonarjs?: boolean;
+  skipRootCi?: boolean;
+}
+
+export function runCiNpmWorkspace(options: RunCiNpmWorkspaceOptions = {}): void {
   const runInstall = options.runInstall ?? runNpm;
   const installEslintSonarjs = options.installEslintSonarjs ?? false;
   const skipRootCi = options.skipRootCi ?? false;
@@ -27,7 +26,7 @@ export function runCiNpmWorkspace(options = {}) {
   }
 }
 
-function isDirectExecution(moduleUrl, argvEntry) {
+function isDirectExecution(moduleUrl: string, argvEntry: string | undefined): boolean {
   if (argvEntry === undefined) return false;
   return moduleUrl === pathToFileURL(resolve(argvEntry)).href;
 }

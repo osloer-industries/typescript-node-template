@@ -2,10 +2,7 @@ import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { listJsPathsOnDisk } from "./list-untyped-js-on-disk.mjs";
 
-/**
- * @param {string} targetDir
- */
-function writeFixtureJsAllowlist(targetDir) {
+function writeFixtureJsAllowlist(targetDir: string): void {
   const paths = listJsPathsOnDisk(targetDir).toSorted((a, b) => a.localeCompare(b));
   mkdirSync(join(targetDir, "quality"), { recursive: true });
   writeFileSync(
@@ -35,22 +32,22 @@ const rootFiles = [
   "README.md",
   "SECURITY.md",
   ".github/pull_request_template.md",
-];
+] as const;
 
-const docDirectories = ["docs"];
+const docDirectories = ["docs"] as const;
 
 const agentsSkillsDir = ".agents/skills";
 const agentsCheckPathStubs = [
   "scripts/setup.test.ts",
   "scripts/check-fleet-adoption-doc.ts",
   "scripts/journey.e2e.test.ts",
-];
+] as const;
 
 const agentsCheckSupportFiles = [
   ".github/dependabot.yml",
   ".github/agent-files.allow",
   "CODEOWNERS",
-];
+] as const;
 
 const jscpdFixturePaths = [
   "packages/eslint-sonarjs/README.md",
@@ -60,19 +57,18 @@ const jscpdFixturePaths = [
   ".github/workflows/pr-title.yml",
   ".github/workflows/release.yml",
   ".github/workflows/auto-merge.yml",
-];
+] as const;
 
-const pathGroups = [
+const pathGroups: readonly (readonly string[])[] = [
   rootFiles,
   agentsCheckSupportFiles,
   [
     "scripts/setup.mjs",
     "scripts/setup-lib.mjs",
     "scripts/setup-lib.d.mts",
-    "scripts/run-npm.mjs",
-    "scripts/run-npm.d.mts",
-    "scripts/ci-npm-workspace.mjs",
-    "scripts/run-sonar-coverage.mjs",
+    "scripts/run-npm.ts",
+    "scripts/ci-npm-workspace.ts",
+    "scripts/run-sonar-coverage.ts",
     "scripts/lint-sonarjs.mjs",
     "scripts/count-suppressions.ts",
     "scripts/check-ts-only.ts",
@@ -84,7 +80,7 @@ const pathGroups = [
     "scripts/agents-check.ts",
     "scripts/agents-check-patterns.mjs",
     "scripts/check-guardrail-changes.ts",
-    "scripts/git-list-changed-paths.mjs",
+    "scripts/git-list-changed-paths.ts",
     "scripts/suppression-baseline.json",
     "scripts/fixture-vitest.config.ts",
   ],
@@ -104,11 +100,10 @@ const pathGroups = [
   jscpdFixturePaths,
 ];
 
-/**
- * @param {string} repoRoot
- */
-function buildFixtureTsconfig(repoRoot) {
-  const base = JSON.parse(readFileSync(join(repoRoot, "tsconfig.json"), "utf8"));
+function buildFixtureTsconfig(repoRoot: string): string {
+  const base: { compilerOptions: Record<string, unknown> } = JSON.parse(
+    readFileSync(join(repoRoot, "tsconfig.json"), "utf8"),
+  );
   const compilerOptions = { ...base.compilerOptions };
   return `${JSON.stringify(
     {
@@ -121,11 +116,7 @@ function buildFixtureTsconfig(repoRoot) {
   )}\n`;
 }
 
-/**
- * @param {string} repoRoot
- * @param {string} targetDir
- */
-export function copyTemplateFixture(repoRoot, targetDir) {
+export function copyTemplateFixture(repoRoot: string, targetDir: string): void {
   writeFileSync(join(targetDir, "tsconfig.json"), buildFixtureTsconfig(repoRoot));
   cpSync(
     join(repoRoot, "scripts/fixture-vitest.config.ts"),
