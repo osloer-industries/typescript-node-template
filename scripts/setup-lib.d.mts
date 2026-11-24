@@ -58,6 +58,8 @@ export function resolveSetupOptions(
 
 export const generatedTestMcpScript: string;
 
+export function appendJsAllowlistPaths(baseDir: string, relativePaths: readonly string[]): void;
+
 export function writeMcpSmokeScripts(baseDir: string): void;
 
 export function applySetup(
