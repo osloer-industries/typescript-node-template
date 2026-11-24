@@ -1,10 +1,11 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import { copyTemplateFixture } from "./copy-template-fixture.mjs";
 import {
+  appendJsAllowlistPaths,
   applySetup,
   assertKnownScenario,
   configureHarnessDevDependencies,
@@ -18,6 +19,9 @@ import {
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const packageJsonFileName = "package.json";
+const jsAllowlistRelativePath = "quality/js-allowlist.json";
+const generatedMjsPath = "scripts/generated.mjs";
+const seedMjsPath = "scripts/seed.mjs";
 
 function packageJsonPathIn(dir: string): string {
   return join(dir, packageJsonFileName);
@@ -225,6 +229,40 @@ describe("applySetup metadata", () => {
       }
       expect(Reflect.get(dependencies, "@modelcontextprotocol/sdk")).toBeDefined();
       expect(Reflect.get(devDependencies, "@modelcontextprotocol/sdk")).toBeUndefined();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("merges paths into an existing JS allowlist", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "setup-allowlist-merge-"));
+    try {
+      mkdirSync(join(tempDir, "quality"), { recursive: true });
+      writeFileSync(
+        join(tempDir, jsAllowlistRelativePath),
+        `${JSON.stringify({ version: 1, paths: [seedMjsPath] }, null, 2)}\n`,
+        "utf8",
+      );
+      appendJsAllowlistPaths(tempDir, [generatedMjsPath, seedMjsPath]);
+      const parsed: unknown = JSON.parse(readFileSync(join(tempDir, jsAllowlistRelativePath), "utf8"));
+      const paths =
+        typeof parsed === "object" && parsed !== null ? Reflect.get(parsed, "paths") : undefined;
+      expect(paths).toEqual([generatedMjsPath, seedMjsPath]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("ignores appendJsAllowlistPaths when the allowlist shape is invalid", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "setup-allowlist-bad-"));
+    try {
+      mkdirSync(join(tempDir, "quality"), { recursive: true });
+      writeFileSync(join(tempDir, jsAllowlistRelativePath), '{"version":1}\n', "utf8");
+      appendJsAllowlistPaths(tempDir, [generatedMjsPath]);
+      const parsed: unknown = JSON.parse(readFileSync(join(tempDir, jsAllowlistRelativePath), "utf8"));
+      const paths =
+        typeof parsed === "object" && parsed !== null ? Reflect.get(parsed, "paths") : undefined;
+      expect(paths).toBeUndefined();
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }

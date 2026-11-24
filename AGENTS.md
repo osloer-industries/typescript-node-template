@@ -113,20 +113,21 @@ Run gates in this order when preparing a pull request:
 
 1. `npm run lint` (Oxlint — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 2. `npm run lint:suppressions` (shrink-only suppression baseline — [ADR 0006](docs/adr/0006-escape-hatch-lint-and-suppression-baseline.md))
-3. `npm run agents:check` (paths and npm scripts cited in agent guidance — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-4. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-5. `npm run lint:dup` (jscpd on `src/`, `scripts/`, `packages/`, tests, docs, and workflows — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
+3. `npm run check:ts-only` (shrink-only untyped JS allowlist — `quality/js-allowlist.json`)
+4. `npm run agents:check` (paths and npm scripts cited in agent guidance — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+5. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+6. `npm run lint:dup` (jscpd on `src/`, `scripts/`, `packages/`, tests, docs, and workflows — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
    **3%** threshold aligned with SonarCloud duplicated-lines-on-new-code; Sonar still owns PR-level policy and zero-open-issues)
-6. `npm run lint:md` and `npm run lint:md-links` ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-7. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-8. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-9. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-10. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
+7. `npm run lint:md` and `npm run lint:md-links` ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+8. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+9. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+10. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+11. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
    runs after `build` so `package.json` dist entries resolve)
-11. `npm run precommit` (Lefthook `pre-commit`; steps 1–2, 4–5, 7, and `npm run test`)
-12. `npm run check` (precommit plus no-`CLAUDE.md`, `agents:check`, markdown, coverage, build, and knip)
+12. `npm run precommit` (Lefthook `pre-commit`; steps 1–4, 6, and `npm run test`)
+13. `npm run check` (precommit plus no-`CLAUDE.md`, `check:ts-only`, `agents:check`, markdown, coverage, build, and knip)
    before opening a pull request
-13. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+14. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 
 `npm run test:mutation` runs Stryker on `src/` (see `stryker.config.mjs` for the TypeScript 7 workaround). It is a
 separate CI job, not part of `check`.
@@ -222,7 +223,7 @@ Pull requests that change `.github/workflows/**` or `.github/actions/**` without
   dependency intentionally changes, then commit `package-lock.json`.
 - Run `npm run precommit` before every push (Lefthook) and `npm run check` before submitting a change.
   `precommit` includes jscpd on TypeScript, JavaScript, Markdown, YAML, and shell at the same **3%** threshold as
-  Sonar duplicated-lines-on-new-code. `check` adds no-`CLAUDE.md`, `agents:check`, markdown, coverage, production
+  Sonar duplicated-lines-on-new-code. `check` adds no-`CLAUDE.md`, `check:ts-only`, markdown, coverage, production
   build, and knip (after build so `package.json` dist entries resolve). SonarCloud still runs on the pull request for
   org policy and
   zero-open-issues — see [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md).
@@ -255,6 +256,9 @@ fix the error path or rethrow instead of comment-only swallowing.
 
 The suppression baseline (`scripts/suppression-baseline.json`) may only **shrink**. Regenerate
 with `node scripts/count-suppressions.ts --write-baseline` after intentional cleanup.
+Tracked `*.mjs` / `*.cjs` / `*.js` / `*.jsx` / `*.d.mts` must appear in **`quality/js-allowlist.json`**
+(shrink-only; stale entries fail). Run `npm run check:ts-only`; shrink with
+`node scripts/check-ts-only.ts --write-allowlist` after converting a file.
 
 ## Architecture and implementation
 
