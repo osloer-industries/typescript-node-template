@@ -9,7 +9,7 @@ and template harness features across consuming repositories.
 
 | Repository | Org `.github` pin (comment) | Notes |
 | --- | --- | --- |
-| typescript-node-template | `81c031697de21b270a2db604e71bd16443e3b09f` (`# v0.1.9`) | Actions minutes stack ([#170](https://github.com/osloer-industries/typescript-node-template/issues/170)): `ci-paths-scope.yml` (`run-codeql`), composite `ci-passed-gate`, scoped PR CodeQL |
+| typescript-node-template | `c445f93d7b7f55f55619226422fc493b4516bb6e` (`# v0.1.9`) | Actions minutes stack ([#170](https://github.com/osloer-industries/typescript-node-template/issues/170)): `ci-paths-scope.yml` (`run-codeql`), composite `ci-passed-gate`, scoped PR CodeQL |
 | lunch-money | `348b254ef112f4f8e239a41e7adb3f3e2dac3944` (`# v0.1.6`) | Bun repo; `.github/workflows/` on `main` |
 | lunch-money-de-invest-sync | `a081e1b87b5309ff2b3999e8d6804d8ebec5c518` (`# v0.1.1`) | |
 | vakt | `348b254ef112f4f8e239a41e7adb3f3e2dac3944` (`# v0.1.6`) | Consolidated `ci.yml` on `main` |
