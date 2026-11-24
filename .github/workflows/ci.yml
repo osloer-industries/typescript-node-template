@@ -58,9 +58,9 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@d35742865fee88749fa3efb6cf657b012598584e # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false }
-      - uses: actions/setup-node@d35742865fee88749fa3efb6cf657b012598584e # v7.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: npm }
       - run: node scripts/ci-npm-workspace.mjs --install-eslint-sonarjs
       - run: npm run test:e2e
@@ -118,9 +118,9 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@d35742865fee88749fa3efb6cf657b012598584e # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false, fetch-depth: 0 }
-      - uses: actions/setup-node@d35742865fee88749fa3efb6cf657b012598584e # v7.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc }
       - name: Require fleet-adoption.md when workflows change
         env:
