@@ -26,8 +26,8 @@ Related: [issue #60](https://github.com/osloer-industries/typescript-node-templa
   the workflow on its own**; it writes **`guardrail_changed=true|false`** to `GITHUB_OUTPUT` and logs
   which harness paths changed.
 - **`harness-approval`** always runs after **`guardrail-detect`** succeeds. When **`guardrail_changed`** is
-  **`false`**, a step records waiver with **no** environment (job result **`success`**). When **`true`**, the
-  approval step uses Environment **`harness-approval`** (required reviewer **`@tn819`**, admin bypass disabled)
+  **`false`**, the job uses **no** deployment environment and a waiver step exits **`success`**. When **`true`**, the
+  job uses Environment **`harness-approval`** at job level (required reviewer **`@tn819`**, admin bypass disabled)
   and stays **waiting** until Thomas uses **Review deployments** on the PR checks (including GitHub mobile) and
   taps **Approve**. A **new push** requires a **fresh** deployment approval for the new commit SHA.
 - The aggregate org **`ci-passed.yml`** job **`needs`** every CI job, including **`harness-approval`** and

@@ -47,6 +47,9 @@ jobs:
     if: always() && needs.guardrail-detect.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 4320
+    environment: >-
+      ${{ needs.guardrail-detect.outputs.guardrail_changed == 'true'
+      && 'harness-approval' }}
     permissions: {}
     steps:
       - name: Waive harness approval when guardrails unchanged
@@ -54,7 +57,6 @@ jobs:
         run: echo "No harness path changes; approval not required."
       - name: Record approved commit
         if: needs.guardrail-detect.outputs.guardrail_changed == 'true'
-        environment: harness-approval
         run: echo "Harness guardrail approval recorded for commit ${{ github.sha }}"
 
   quality:
