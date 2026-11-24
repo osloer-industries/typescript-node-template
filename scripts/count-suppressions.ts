@@ -1,6 +1,9 @@
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { assertShrinkOnly } from "./shrink-only-ratchet.ts";
+
+export { assertShrinkOnly } from "./shrink-only-ratchet.ts";
 
 /** Matches eslint/oxlint disable directives and TypeScript comment suppressions. */
 export const SUPPRESSION_PATTERN =
@@ -73,15 +76,6 @@ export function loadBaseline(baselinePath: string): SuppressionBaseline {
   return { version: 1, total };
 }
 
-export function assertShrinkOnly(actual: number, baseline: SuppressionBaseline): void {
-  if (actual > baseline.total) {
-    throw new Error(
-      `Suppression count ${actual} exceeds baseline ${baseline.total}. ` +
-        "Remove new disable/ts-comment suppressions or lower the baseline intentionally in a dedicated PR.",
-    );
-  }
-}
-
 export function writeBaseline(baselinePath: string, total: number): void {
   const payload: SuppressionBaseline = { version: 1, total };
   writeFileSync(baselinePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
@@ -104,7 +98,7 @@ export function runCountSuppressionsCli(moduleUrl: string, argv: readonly string
   }
 
   const baseline = loadBaseline(baselinePath);
-  assertShrinkOnly(total, baseline);
+  assertShrinkOnly(total, baseline, { label: "Suppression count" });
   process.stdout.write(
     `Suppression count ${total} (baseline ${baseline.total}, shrink-only OK)\n`,
   );
