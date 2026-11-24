@@ -10,8 +10,14 @@ const TEMPLATE_CALLER_WORKFLOWS = [
   ".github/workflows/auto-merge.yml",
 ] as const;
 
+const ORG_REUSABLE_PIN_SHA = "a6ee91211fd9ba096ec141bacdb67985a82b6767";
+const ORG_REUSABLE_PIN_SUFFIX = `# v0.1.7`;
+
 const AUTO_MERGE_REUSABLE_PIN =
-  "osloer-industries/.github/.github/workflows/auto-merge.yml@a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7";
+  `osloer-industries/.github/.github/workflows/auto-merge.yml@${ORG_REUSABLE_PIN_SHA} ${ORG_REUSABLE_PIN_SUFFIX}`;
+
+const CI_PASSED_REUSABLE_PIN =
+  `osloer-industries/.github/.github/workflows/ci-passed.yml@${ORG_REUSABLE_PIN_SHA} ${ORG_REUSABLE_PIN_SUFFIX}`;
 
 describe("template GitHub workflow callers", () => {
   it("includes the standard thin caller workflows", () => {
@@ -19,6 +25,13 @@ describe("template GitHub workflow callers", () => {
     for (const relativePath of TEMPLATE_CALLER_WORKFLOWS) {
       expect(() => readFileSync(new URL(`../${relativePath}`, import.meta.url))).not.toThrow();
     }
+  });
+
+  it("pins org ci-passed reusable at v0.1.7 in CI", () => {
+    const ciYaml = readFileSync(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8");
+    expect(ciYaml).toContain(CI_PASSED_REUSABLE_PIN);
+    expect(ciYaml).toContain("\n  ci-passed:\n");
+    expect(ciYaml).toMatch(/needs-json:\s*\$\{\{\s*toJSON\(needs\)\s*\}\}/u);
   });
 
   it("pins org auto-merge reusable at v0.1.7 with squash and release/Dependabot flags", () => {

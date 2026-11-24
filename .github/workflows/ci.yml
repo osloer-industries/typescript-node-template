@@ -44,15 +44,17 @@ jobs:
   harness-approval:
     name: harness-approval
     needs: guardrail-detect
-    if: >-
-      github.event_name == 'pull_request' &&
-      needs.guardrail-detect.outputs.guardrail_changed == 'true'
+    if: always() && needs.guardrail-detect.result == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    environment: harness-approval
+    timeout-minutes: 4320
     permissions: {}
     steps:
+      - name: Waive harness approval when guardrails unchanged
+        if: needs.guardrail-detect.outputs.guardrail_changed != 'true'
+        run: echo "No harness path changes; approval not required."
       - name: Record approved commit
+        if: needs.guardrail-detect.outputs.guardrail_changed == 'true'
+        environment: harness-approval
         run: echo "Harness guardrail approval recorded for commit ${{ github.sha }}"
 
   quality:
@@ -129,8 +131,6 @@ jobs:
 
   ci-passed:
     name: ci-passed
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
     needs:
       - workflow-security
       - guardrail-detect
@@ -144,15 +144,6 @@ jobs:
       - sonar-zero-open-issues
       - fleet-adoption-doc
     if: always()
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { persist-credentials: false }
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with: { node-version-file: .nvmrc }
-      - name: Require every upstream job to succeed
-        env:
-          NEEDS_JSON: ${{ toJSON(needs) }}
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-        run: node scripts/ci-passed-gate.ts
+    uses: osloer-industries/.github/.github/workflows/ci-passed.yml@a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7
+    with:
+      needs-json: ${{ toJSON(needs) }}

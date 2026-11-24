@@ -390,9 +390,8 @@ issues on the PR head after the CI scan job completes.
 when any needed job fails or is cancelled. Skip rules: `sonar-zero-open-issues` may be **skipped** only off
 `pull_request`; on `pull_request` it must succeed. The calling job keeps `name: ci-passed` so branch protection can
 require check context **`ci-passed / ci-passed`**. Consuming repos should register only that context—not individual
-scanner jobs. Future `harness-approval` tolerance when `guardrail-detect` outputs
-`guardrail_changed: false` is tracked for org `ci-passed-gate.ts` in
-[#103](https://github.com/osloer-industries/typescript-node-template/pull/103).
+scanner jobs. Template harness approval keeps **`harness-approval`** in **`needs`** with step-level environment
+only when `guardrail-detect` outputs `guardrail_changed: true` ([ADR 0012](0012-blocking-guardrail-change-check.md)).
 
 ### CI: zizmor
 

@@ -25,15 +25,14 @@ Related: [issue #60](https://github.com/osloer-industries/typescript-node-templa
 - **`guardrail-detect`** runs **`scripts/check-guardrail-changes.ts`** on pull requests. It **never fails
   the workflow on its own**; it writes **`guardrail_changed=true|false`** to `GITHUB_OUTPUT` and logs
   which harness paths changed.
-- When **`guardrail_changed`** is **`true`**, the **`harness-approval`** job runs against the GitHub
-  Environment **`harness-approval`** (required reviewer **`@tn819`**, admin bypass disabled). The job stays
-  **waiting** until Thomas uses **Review deployments** on the PR checks (including GitHub mobile) and taps
-  **Approve**. A **new push** to the PR requires a **fresh** deployment approval for the new commit SHA.
-- The aggregate **`ci-passed`** check **`needs`** every CI job, including **`harness-approval`**. It succeeds
-  when **`harness-approval`** **succeeded** or was **skipped** because no guardrail paths changed;
-  **rejected**, **cancelled**, or **failed** deployment reviews block merge. **`scripts/ci-passed-gate.ts`**
-  mirrors the org gate and treats **`harness-approval: skipped`** as success only when
-  **`guardrail-detect.outputs.guardrail_changed`** is **`false`**.
+- **`harness-approval`** always runs after **`guardrail-detect`** succeeds. When **`guardrail_changed`** is
+  **`false`**, a step records waiver with **no** environment (job result **`success`**). When **`true`**, the
+  approval step uses Environment **`harness-approval`** (required reviewer **`@tn819`**, admin bypass disabled)
+  and stays **waiting** until Thomas uses **Review deployments** on the PR checks (including GitHub mobile) and
+  taps **Approve**. A **new push** requires a **fresh** deployment approval for the new commit SHA.
+- The aggregate org **`ci-passed.yml`** job **`needs`** every CI job, including **`harness-approval`** and
+  **`guardrail-detect`**. **Rejected**, **cancelled**, or **failed** deployment reviews block merge; skipped
+  **`harness-approval`** is not used (org gate fails closed on skipped upstream jobs).
 - **Dependabot** Action SHA bumps under `.github/**` still require maintainer **deployment approval**
   (the bot is not the environment reviewer).
 - Protected paths match the hardening list: `AGENTS.md`, `.oxlintrc.json`, `vitest.config.ts`,
