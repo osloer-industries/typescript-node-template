@@ -3,13 +3,13 @@
 Deterministic map of [org reusable workflows](https://github.com/osloer-industries/.github/blob/main/docs/consuming-workflows.md)
 and template harness features across consuming repositories.
 
-**Verification date:** 2026-11-20 (default branches; workflow YAML and config on GitHub).
+**Verification date:** 2026-11-25 (template org reusables pin; fleet rows unchanged since 2026-11-20).
 
 ## Reusable pin snapshot
 
 | Repository | Org `.github` pin (comment) | Notes |
 | --- | --- | --- |
-| typescript-node-template | `a6ee91211fd9ba096ec141bacdb67985a82b6767` (`# v0.1.7`) | Template reference; org CI stack ([#153](https://github.com/osloer-industries/typescript-node-template/pull/153)) + `auto-merge.yml` ([#159](https://github.com/osloer-industries/typescript-node-template/pull/159)) |
+| typescript-node-template | `b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb` (`# v0.1.10`) | Template reference; org CI stack ([#153](https://github.com/osloer-industries/typescript-node-template/pull/153)) + `auto-merge.yml` ([#159](https://github.com/osloer-industries/typescript-node-template/pull/159)); pin bump [#111](https://github.com/osloer-industries/typescript-node-template/issues/111) |
 | lunch-money | `348b254ef112f4f8e239a41e7adb3f3e2dac3944` (`# v0.1.6`) | Bun repo; `.github/workflows/` on `main` |
 | lunch-money-de-invest-sync | `a081e1b87b5309ff2b3999e8d6804d8ebec5c518` (`# v0.1.1`) | |
 | vakt | `348b254ef112f4f8e239a41e7adb3f3e2dac3944` (`# v0.1.6`) | Consolidated `ci.yml` on `main` |
@@ -17,7 +17,7 @@ and template harness features across consuming repositories.
 | expat-finance-hub | `a6ee91211fd9ba096ec141bacdb67985a82b6767` (`# v0.1.7`) | org repo; consolidated `ci.yml` on `main` |
 | coast-fire-visualizer | `348b254ef112f4f8e239a41e7adb3f3e2dac3944` (`# v0.1.6`) | Next.js app; org `ci.yml` on `main` |
 | markdown-link-check | *none* | Legacy Actions; default branch `master` |
-| osloer-industries/.github | `a6ee91211fd9ba096ec141bacdb67985a82b6767` (`# v0.1.7`) | Publisher; [#39](https://github.com/osloer-industries/.github/pull/39), [#40](https://github.com/osloer-industries/.github/pull/40) shipped in `v0.1.3` |
+| osloer-industries/.github | `b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb` (`# v0.1.10`) | Publisher; latest tag at template pin snapshot |
 
 Cell legend: **adopted** · **partial** · **migrating** · **not adopted** · **n/a**. Each cell is
 `state` — caveat — tracking (`not adopted, no tracking issue` only when the repo has issues disabled).
