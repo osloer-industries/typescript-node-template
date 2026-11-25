@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { assertGithubActionsCooldownSupported, readRepoDependabotConfig } from "./dependabot-config.js";
 
 /** Thin caller workflows every repo scaffolded from the template should ship. */
 const TEMPLATE_CALLER_WORKFLOWS = [
@@ -18,6 +19,12 @@ const AUTO_MERGE_REUSABLE_PIN =
 
 const CI_PASSED_REUSABLE_PIN =
   `osloer-industries/.github/.github/workflows/ci-passed.yml@${ORG_REUSABLE_PIN_SHA} ${ORG_REUSABLE_PIN_SUFFIX}`;
+
+describe("template harness contracts", () => {
+  it("keeps github-actions Dependabot cooldown to supported keys only", () => {
+    expect(() => assertGithubActionsCooldownSupported(readRepoDependabotConfig())).not.toThrow();
+  });
+});
 
 describe("template GitHub workflow callers", () => {
   it("includes the standard thin caller workflows", () => {
