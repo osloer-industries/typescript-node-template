@@ -16,6 +16,8 @@ on that repository.
    reusable workflow SHAs together.
 5. In SonarCloud, **disable Automatic Analysis** for the project and rely on the CI `sonarqube-cloud-node.yml`
    job instead ([docs/sonar-quality-gate.md](sonar-quality-gate.md)). Enable organization secret **`SONAR_TOKEN`**.
+   Private repos using CodeQL artifact mode: job-level `actions: read` on the `analyze` caller (see
+   [Private repository CodeQL](#private-repository-codeql) below).
 6. After the first green runs, require a **single** branch protection check: **`ci-passed`** with GitHub check
    context **`ci-passed / ci-passed`** (job `name:` on the org reusable called from
    [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)). Do not list individual scanner jobs as required—the
@@ -27,11 +29,11 @@ on that repository.
    (PEM for the osloer-reviewer GitHub App) and repository variable **`OSLOER_RELEASE_APP_ID`** = **`5745328`**.
    Mirror **`RELEASE_APP_PRIVATE_KEY`** into **Dependabot secrets** so workflows on `dependabot/*` branches can
    mint the installation token. Copy [`.github/workflows/auto-merge.yml`](../.github/workflows/auto-merge.yml)
-   from this template (org reusable pin **`# v0.1.7`**).
+   from this template (org reusable pin **`# v0.1.10`**).
 
 ### Auto-merge behavior (org reusable)
 
-The org [`auto-merge.yml`](https://github.com/osloer-industries/.github/blob/v0.1.7/.github/workflows/auto-merge.yml)
+The org [`auto-merge.yml`](https://github.com/osloer-industries/.github/blob/v0.1.10/.github/workflows/auto-merge.yml)
 approves and enables **`gh pr merge --auto`** (merge completes only after required checks pass). It does **not**
 use `pull_request_target` and does not check out pull request code.
 
@@ -44,7 +46,7 @@ Auto-merge waits for branch protection required checks. Register only **`ci-pass
 individual scanner jobs—so Dependabot and release PRs merge once the aggregate pipeline is green.
 
 Pin every org reusable to the same `.github` release tag commit SHA (for example
-`a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7`); use the tag in the `#` comment, not `main`, so
+`b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10`); use the tag in the `#` comment, not `main`, so
 zizmor ref-version-mismatch stays green when org `main` advances. Bump via Dependabot (`osloer-reusables`
 group) or template-sync when a new `.github` tag ships. Callers do not pass `reusables-ref`; reusable
 workflows resolve their scripts from
@@ -69,18 +71,23 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | [`dependency-review.yml`](../.github/workflows/dependency-review.yml) | `dependency-review.yml` | Job-level `contents` / `actions` / `pull-requests` read and `security-events: write` (nested OSV reusable). |
 | [`pr-title.yml`](../.github/workflows/pr-title.yml) | `semantic-pull-request.yml` | `pull_request` caller (not org doc `pull_request_target` — workflow-security zizmor rejects `pull_request_target` in this repo); job-level `pull-requests: read`. |
 | [`release.yml`](../.github/workflows/release.yml) | `release-please.yml` | Release GitHub App secrets (see org doc). |
-| [`.github/workflows/auto-merge.yml`](../.github/workflows/auto-merge.yml) | `auto-merge.yml` (`# v0.1.7`) | `RELEASE_APP_PRIVATE_KEY`, `vars.OSLOER_RELEASE_APP_ID` (`5745328` in this org); squash merge; `allow-dependabot` + `allow-release-prs`. |
+| [`.github/workflows/auto-merge.yml`](../.github/workflows/auto-merge.yml) | `auto-merge.yml` (`# v0.1.10`) | `RELEASE_APP_PRIVATE_KEY`, `vars.OSLOER_RELEASE_APP_ID` (`5745328` in this org); squash merge; `allow-dependabot` + `allow-release-prs`. |
 
 Domain-only jobs remain in-repo (for example `fleet-adoption-doc`, future `harness-approval`) per
 [ADR 0005](adr/0005-placement-template-vs-org-github.md).
 
 ## Private repository CodeQL
 
-Do not enable paid GitHub Advanced Security for CodeQL alone. Use artifact mode from the org doc. Under
-`workflow_call` in a private repository, set workflow-level `permissions: contents: read`, and grant the
+Do not enable paid GitHub Advanced Security for CodeQL alone. Use artifact mode from the org
+[consuming-workflows.md](https://github.com/osloer-industries/.github/blob/v0.1.10/docs/consuming-workflows.md)
+private-repo CodeQL section (same contract on `main`).
+
+Under `workflow_call` in a private repository, set workflow-level `permissions: contents: read` only, and grant the
 **calling job** `contents: read` plus `actions: read`. Without job-level `actions: read`, `github/codeql-action`
-fails with **Resource not accessible by integration** (keep `actions: read` on the job, not at workflow
-level; Sonar rule `githubactions:S8264`).
+fails during SARIF post-processing with **Resource not accessible by integration** when it calls the workflow
+run API — proven in
+[lunch-money-de-invest-sync#10](https://github.com/osloer-industries/lunch-money-de-invest-sync/pull/10).
+Do **not** grant `actions: read` at workflow level (Sonar rule `githubactions:S8264`).
 
 ```yaml
 name: CodeQL
