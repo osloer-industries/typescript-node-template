@@ -1,6 +1,6 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { listChangedPaths as listGitChangedPaths } from "./git-list-changed-paths.mjs";
+import { listChangedPaths as listGitChangedPaths } from "./git-list-changed-paths.ts";
 
 /** Paths (file or directory prefix) treated as agent harness / guardrails. */
 export const GUARDRAIL_PATH_PREFIXES = [

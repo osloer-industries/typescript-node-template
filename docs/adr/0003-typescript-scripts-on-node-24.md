@@ -18,7 +18,7 @@ Node 24 native type stripping (no `--experimental-strip-types` in scripts).
 - Implement **repo scripts and CI helpers in TypeScript** (under `scripts/**/*.ts`), executed with
   **Node 24** using native type stripping (`node scripts/foo.ts`).
 - Keep existing **`.mjs`** entrypoints where they are the stable CLI surface (`setup.mjs`,
-  `run-npm.mjs`, `lint-sonarjs.mjs`); new testable logic prefers TypeScript modules imported or
+  `lint-sonarjs.mjs`); new testable logic prefers TypeScript modules imported or
   spawned from those entrypoints.
 - Do **not** introduce **Python** (or other runtimes) for template-local automation.
 

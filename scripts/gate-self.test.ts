@@ -223,7 +223,7 @@ describe("gate self-tests (allowed type constructs)", () => {
 describe("gate self-tests (architecture boundaries)", () => {
   it("rejects src imports from scripts/", () => {
     const { filePath, cleanup } = writeTempSrcOxlintSource(
-      'import "../scripts/run-npm.mjs";\n',
+      'import "../scripts/run-npm.ts";\n',
       "uses-scripts.ts",
     );
     try {
