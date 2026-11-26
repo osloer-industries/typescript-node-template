@@ -45,7 +45,7 @@ function loadDepcruiseConfiguration(): IConfiguration {
 
 function assertSwcParserBackend(): void {
   if (typeof swcCore.transform !== "function") {
-    throw new Error("@swc/core is unavailable; dependency-cruiser swc parser cannot run.");
+    throw new TypeError("@swc/core is unavailable; dependency-cruiser swc parser cannot run.");
   }
 }
 
@@ -190,13 +190,12 @@ function isDirectExecution(moduleUrl: string, argvEntry: string | undefined): bo
 }
 
 if (isDirectExecution(import.meta.url, process.argv[1])) {
-  runLintDepsCli(process.argv.slice(2))
-    .then((code) => {
-      process.exit(code);
-    })
-    .catch((error: unknown) => {
-      const message = error instanceof Error ? error.message : String(error);
-      process.stderr.write(`lint:deps: ${message}\n`);
-      process.exit(1);
-    });
+  try {
+    const code = await runLintDepsCli(process.argv.slice(2));
+    process.exit(code);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`lint:deps: ${message}\n`);
+    process.exit(1);
+  }
 }
