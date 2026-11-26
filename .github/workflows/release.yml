@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   release-please:
-    uses: osloer-industries/.github/.github/workflows/release-please.yml@a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7
+    uses: osloer-industries/.github/.github/workflows/release-please.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     secrets:
       RELEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
     with:
