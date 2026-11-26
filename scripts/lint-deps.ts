@@ -1,13 +1,16 @@
-import { spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import swcCore from "@swc/core";
+import { cruise } from "dependency-cruiser";
+import type { ICruiseOptions, IConfiguration } from "dependency-cruiser";
 
 import { ensureEslintSonarjsDependencies } from "./lint-sonarjs.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const depcruiseConfig = join(repoRoot, ".dependency-cruiser.cjs");
-const depcruiseBin = join(repoRoot, "node_modules", ".bin", "depcruise");
+const requireFromRepo = createRequire(join(repoRoot, "package.json"));
 
 const defaultCruiseRoots = ["src", "scripts", "packages"] as const;
 
@@ -23,6 +26,40 @@ type DepcruiseJsonOutput = {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isDepcruiseConfiguration(value: unknown): value is IConfiguration {
+  return isRecord(value) && Array.isArray(value.forbidden);
+}
+
+function loadDepcruiseConfiguration(): IConfiguration {
+  if (!existsSync(depcruiseConfig)) {
+    throw new Error(`Missing dependency-cruiser config at ${depcruiseConfig}`);
+  }
+  const loaded: unknown = requireFromRepo(depcruiseConfig);
+  if (!isDepcruiseConfiguration(loaded)) {
+    throw new Error("dependency-cruiser config must export forbidden rules.");
+  }
+  return loaded;
+}
+
+function assertSwcParserBackend(): void {
+  if (typeof swcCore.transform !== "function") {
+    throw new Error("@swc/core is unavailable; dependency-cruiser swc parser cannot run.");
+  }
+}
+
+function buildCruiseOptions(configuration: IConfiguration, outputType: "json" | "err"): ICruiseOptions {
+  const options = configuration.options ?? {};
+  return {
+    ...options,
+    ruleSet: configuration,
+    outputType,
+  };
+}
+
+function reporterOutputToStdout(output: unknown): string {
+  return typeof output === "string" ? output : JSON.stringify(output);
 }
 
 function parseDepcruiseJson(stdout: string): DepcruiseJsonOutput {
@@ -51,22 +88,35 @@ function parseDepcruiseJson(stdout: string): DepcruiseJsonOutput {
   return result;
 }
 
-function runDepcruiseJson(cruiseRoots: readonly string[]): { status: number; stdout: string; stderr: string } {
-  if (!existsSync(depcruiseBin)) {
-    throw new Error(
-      "dependency-cruiser binary not found. Run npm ci and ensure dependency-cruiser is installed.",
-    );
-  }
-  const result = spawnSync(
-    depcruiseBin,
-    ["--config", depcruiseConfig, "--output-type", "json", ...cruiseRoots],
-    { cwd: repoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
-  );
+async function runDepcruiseJson(cruiseRoots: readonly string[]): Promise<{
+  status: number;
+  stdout: string;
+  stderr: string;
+}> {
+  assertSwcParserBackend();
+  const configuration = loadDepcruiseConfiguration();
+  const reporter = await cruise([...cruiseRoots], buildCruiseOptions(configuration, "json"));
   return {
-    status: result.status ?? 1,
-    stdout: result.stdout ?? "",
-    stderr: result.stderr ?? "",
+    status: reporter.exitCode,
+    stdout: reporterOutputToStdout(reporter.output),
+    stderr: reporter.meta ?? "",
   };
+}
+
+async function runDepcruiseErr(cruiseRoots: readonly string[]): Promise<number> {
+  assertSwcParserBackend();
+  const configuration = loadDepcruiseConfiguration();
+  const reporter = await cruise([...cruiseRoots], buildCruiseOptions(configuration, "err"));
+  if (typeof reporter.output === "string") {
+    process.stdout.write(reporter.output);
+    if (!reporter.output.endsWith("\n")) {
+      process.stdout.write("\n");
+    }
+  }
+  if (reporter.meta !== undefined && reporter.meta.length > 0) {
+    process.stderr.write(reporter.meta);
+  }
+  return reporter.exitCode;
 }
 
 export function evaluateDepcruiseGate(stdout: string): { ok: true } | { ok: false; message: string } {
@@ -94,25 +144,23 @@ export function evaluateDepcruiseGate(stdout: string): { ok: true } | { ok: fals
   return { ok: true };
 }
 
-type DepcruiseJsonRun = ReturnType<typeof runDepcruiseJson>;
+type DepcruiseJsonRun = Awaited<ReturnType<typeof runDepcruiseJson>>;
 
-type SpawnErrResult = Pick<ReturnType<typeof spawnSync>, "status">;
-
-export function runLintDepsCli(
+export async function runLintDepsCli(
   argv: readonly string[],
   options: {
-    spawnJson?: (roots: readonly string[]) => DepcruiseJsonRun;
-    spawnErr?: (command: string, args: readonly string[], options: object) => SpawnErrResult;
+    runJson?: (roots: readonly string[]) => Promise<DepcruiseJsonRun>;
+    runErr?: (roots: readonly string[]) => Promise<number>;
     ensureSonarWorkspace?: () => void;
   } = {},
-): number {
+): Promise<number> {
   const ensureSonar = options.ensureSonarWorkspace ?? ensureEslintSonarjsDependencies;
   ensureSonar();
 
   const cruiseRoots = argv.length > 0 ? argv : defaultCruiseRoots;
-  const runJson = options.spawnJson ?? runDepcruiseJson;
+  const runJson = options.runJson ?? runDepcruiseJson;
 
-  const jsonRun = runJson(cruiseRoots);
+  const jsonRun = await runJson(cruiseRoots);
   if (jsonRun.stderr.length > 0) {
     process.stderr.write(jsonRun.stderr);
   }
@@ -123,18 +171,8 @@ export function runLintDepsCli(
     return 1;
   }
 
-  if (!existsSync(depcruiseBin)) {
-    process.stderr.write("lint:deps: dependency-cruiser binary not found.\n");
-    return 1;
-  }
-
-  const spawnErr = options.spawnErr ?? spawnSync;
-  const errRun = spawnErr(
-    depcruiseBin,
-    ["--config", depcruiseConfig, "--output-type", "err", ...cruiseRoots],
-    { cwd: repoRoot, stdio: "inherit" },
-  );
-  const errStatus = errRun.status ?? 1;
+  const runErr = options.runErr ?? runDepcruiseErr;
+  const errStatus = await runErr(cruiseRoots);
   if (errStatus !== 0) {
     return errStatus;
   }
@@ -152,5 +190,13 @@ function isDirectExecution(moduleUrl: string, argvEntry: string | undefined): bo
 }
 
 if (isDirectExecution(import.meta.url, process.argv[1])) {
-  process.exit(runLintDepsCli(process.argv.slice(2)));
+  runLintDepsCli(process.argv.slice(2))
+    .then((code) => {
+      process.exit(code);
+    })
+    .catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      process.stderr.write(`lint:deps: ${message}\n`);
+      process.exit(1);
+    });
 }

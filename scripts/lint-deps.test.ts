@@ -39,38 +39,43 @@ describe("evaluateDepcruiseGate", () => {
 });
 
 describe("runLintDepsCli", () => {
-  it("fails when zero modules are cruised", () => {
-    const code = runLintDepsCli(["src"], {
+  it("fails when zero modules are cruised", async () => {
+    const code = await runLintDepsCli(["src"], {
       ensureSonarWorkspace: () => {},
-      spawnJson: () => ({ status: 0, stdout: '{"summary":{"totalCruised":0}}', stderr: "" }),
-      spawnErr: () => ({ status: 0 }),
+      runJson: () => Promise.resolve({ status: 0, stdout: '{"summary":{"totalCruised":0}}', stderr: "" }),
+      runErr: () => Promise.resolve(0),
     });
     expect(code).toBe(1);
   });
 
-  it("returns depcruise err output status on violations", () => {
-    const code = runLintDepsCli([], {
+  it("returns depcruise err output status on violations", async () => {
+    const code = await runLintDepsCli([], {
       ensureSonarWorkspace: () => {},
-      spawnJson: () => ({ status: 0, stdout: '{"summary":{"totalCruised":12}}', stderr: "" }),
-      spawnErr: () => ({ status: 2 }),
+      runJson: () => Promise.resolve({ status: 0, stdout: '{"summary":{"totalCruised":12}}', stderr: "" }),
+      runErr: () => Promise.resolve(2),
     });
     expect(code).toBe(2);
   });
 
-  it("returns json status when err output passes but json failed", () => {
-    const code = runLintDepsCli([], {
+  it("returns json status when err output passes but json failed", async () => {
+    const code = await runLintDepsCli([], {
       ensureSonarWorkspace: () => {},
-      spawnJson: () => ({ status: 3, stdout: '{"summary":{"totalCruised":12}}', stderr: "warn\n" }),
-      spawnErr: () => ({ status: 0 }),
+      runJson: () => Promise.resolve({ status: 3, stdout: '{"summary":{"totalCruised":12}}', stderr: "warn\n" }),
+      runErr: () => Promise.resolve(0),
     });
     expect(code).toBe(3);
   });
 
-  it("succeeds when json and err outputs pass", () => {
-    const code = runLintDepsCli([], {
+  it("succeeds when json and err outputs pass", async () => {
+    const code = await runLintDepsCli([], {
       ensureSonarWorkspace: () => {},
-      spawnJson: () => ({ status: 0, stdout: '{"summary":{"totalCruised":12,"error":0,"warn":1}}', stderr: "" }),
-      spawnErr: () => ({ status: 0 }),
+      runJson: () =>
+        Promise.resolve({
+          status: 0,
+          stdout: '{"summary":{"totalCruised":12,"error":0,"warn":1}}',
+          stderr: "",
+        }),
+      runErr: () => Promise.resolve(0),
     });
     expect(code).toBe(0);
   });

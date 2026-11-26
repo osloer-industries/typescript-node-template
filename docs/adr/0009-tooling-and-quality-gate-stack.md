@@ -216,9 +216,8 @@ unused locals do not trace the full dependency graph. Knip matches the pattern a
 
 **False positives:** Prefer deleting dead code or dropping unused dependencies. `knip.config.ts` may
 list genuine entry points (CLI scripts, fixture templates, module declaration files). Justify any
-`ignore*` config in this ADR before adding it. `dependency-cruiser` and `@swc/core` are ignored as
-devDependencies because `lint:deps` spawns the `depcruise` CLI and `.dependency-cruiser.cjs` sets
-`parser: "swc"` without a static import.
+`ignore*` config in this ADR before adding it. The **dependency-cruiser** Knip plugin (enabled in
+`knip.config.ts`) treats `.dependency-cruiser.cjs` and the `depcruise` binary as entry points.
 
 ### `markdownlint-cli2`
 
