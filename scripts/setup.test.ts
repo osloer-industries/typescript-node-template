@@ -150,6 +150,8 @@ describe("pickHarnessDevDependencies", () => {
 
   it("lists the shared harness keys", () => {
     expect(harnessDevDependencyKeys).toContain("knip");
+    expect(harnessDevDependencyKeys).toContain("dependency-cruiser");
+    expect(harnessDevDependencyKeys).toContain("@swc/core");
     expect(harnessDevDependencyKeys).not.toContain(fastCheckPackageName);
   });
 });

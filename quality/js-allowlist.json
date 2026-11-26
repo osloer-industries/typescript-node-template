@@ -9,6 +9,7 @@
     "packages/eslint-sonarjs/sonarjs-rules.mjs",
     "packages/eslint-sonarjs/sonarjs-rules.test.mjs",
     "scripts/agents-check-patterns.mjs",
+    ".dependency-cruiser.cjs",
     "scripts/lint-sonarjs.mjs",
     "scripts/lint-sonarjs.test.mjs",
     "scripts/list-untyped-js-on-disk.mjs",
