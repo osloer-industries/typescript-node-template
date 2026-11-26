@@ -333,7 +333,9 @@ root would violate template TS 7 goal.
 
 **Why chosen:** Weekly npm and GitHub Actions updates with **cooldown** and grouped dev-deps
 (`.github/dependabot.yml`, [#61](https://github.com/osloer-industries/typescript-node-template/pull/61));
-`github-actions` on `/` also bumps pinned `osloer-industries/.github` reusable workflow SHAs.
+npm roots use full semver cooldown windows; **`github-actions` uses `default-days` only** (Dependabot does not
+accept semver cooldown keys on that ecosystem). `github-actions` on `/` also bumps pinned
+`osloer-industries/.github` reusable workflow SHAs.
 
 **Alternatives considered:** Renovate; manual-only bumps.
 

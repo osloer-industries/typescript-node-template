@@ -42,6 +42,9 @@ uses `chore(deps):` for npm updates and `ci(deps):` for GitHub Actions updates.
 
 Dependabot version updates use explicit `cooldown` settings in `.github/dependabot.yml` so newly
 published versions stabilize before pull requests are opened (security updates are not delayed).
+**npm** entries use `default-days`, `semver-major-days`, `semver-minor-days`, and `semver-patch-days`.
+**github-actions** supports only `cooldown.default-days` (Dependabot rejects semver cooldown keys on that
+ecosystem); patch/minor grouping for Actions stays in the `github-actions` group's `update-types`.
 
 ## Merge order
 

@@ -15,6 +15,10 @@ are not covered for CLI-driven CI the same way.
 Related: [osloer-industries/.github#5](https://github.com/osloer-industries/.github/issues/5),
 [issue #60](https://github.com/osloer-industries/typescript-node-template/issues/60).
 
+Fleet callers without GHAS use the org CodeQL reusable in artifact mode; grant **job-level** `actions: read`
+on the `analyze` job (workflow-level `contents: read` only). See
+[consuming-org-reusables.md](../consuming-org-reusables.md#private-repository-codeql).
+
 ## Decision
 
 **No decision yet.** Thomas to choose among the options below for private fleet repos.
