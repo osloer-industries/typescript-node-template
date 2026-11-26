@@ -145,7 +145,7 @@ change (included in unattended `--yes` setup). See [docs/mcp-stdio-smoke-test.md
 
 When touching `scripts/`, setup, or CI install steps, follow
 [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) so **SonarCloud CI analysis** stays green
-(use `scripts/run-npm.mjs`, prefer `--ignore-scripts` on npm ci/install).
+(use `scripts/run-npm.ts`, prefer `--ignore-scripts` on npm ci/install).
 
 ## Continuous integration
 
@@ -185,7 +185,7 @@ Pull requests that change `.github/workflows/**` or `.github/actions/**` without
 | New MCP tool | MCP profile in `scripts/setup-lib.mjs`, generated handler | Profile tests + integration scenario `mcp` + `npm run test:mcp` |
 | New CLI flag or argv rule | CLI profile in `scripts/setup-lib.mjs` | Profile tests + integration scenario `cli` |
 | New setup scenario | `scripts/setup-lib.mjs`, README, SETUP docs | `scripts/setup.test.ts` unit + integration |
-| npm via child_process | `scripts/run-npm.mjs` only | Do not add new `execFileSync("npm", …)` call sites |
+| npm via child_process | `scripts/run-npm.ts` only | Do not add new `execFileSync("npm", …)` call sites |
 
 ## Do not edit without reason
 

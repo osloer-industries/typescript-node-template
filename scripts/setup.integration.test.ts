@@ -1,10 +1,10 @@
-import { runNpm } from "./run-npm.mjs";
+import { runNpm } from "./run-npm.ts";
 import { mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { copyTemplateFixture } from "./copy-template-fixture.mjs";
+import { copyTemplateFixture } from "./copy-template-fixture.ts";
 import { applySetup, profiles, resolveSetupOptions } from "./setup-lib.mjs";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));

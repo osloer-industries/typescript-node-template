@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { copyTemplateFixture } from "./copy-template-fixture.mjs";
+import { copyTemplateFixture } from "./copy-template-fixture.js";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 

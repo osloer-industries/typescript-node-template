@@ -41,7 +41,7 @@
     "test": "vitest run",
     "test:fast": "vitest run --exclude '**/*.integration.test.ts' --exclude '**/*.e2e.test.ts'",
     "test:e2e": "vitest run scripts/journey.e2e.test.ts",
-    "coverage:sonar": "node scripts/run-sonar-coverage.mjs",
+    "coverage:sonar": "node scripts/run-sonar-coverage.ts",
     "test:coverage": "vitest run --coverage",
     "test:mutation": "stryker run",
     "test:watch": "vitest",

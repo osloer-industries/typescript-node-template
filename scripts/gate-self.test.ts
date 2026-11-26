@@ -255,7 +255,7 @@ describe("gate self-tests (allowed type constructs)", () => {
 describe("gate self-tests (architecture boundaries)", () => {
   it("rejects src imports from scripts/", () => {
     const { filePath, cleanup } = writeTempSrcOxlintSource(
-      'import "../scripts/run-npm.mjs";\n',
+      'import "../scripts/run-npm.ts";\n',
       "uses-scripts.ts",
     );
     try {
@@ -270,7 +270,7 @@ describe("gate self-tests (architecture boundaries)", () => {
 describe("gate self-tests (dependency-cruiser graph)", () => {
   it("rejects src imports from scripts/", () => {
     const { roots, cleanup } = writeTempDepcruiseProbe({
-      "leak.ts": 'import "../../scripts/run-npm.mjs";\nexport const x = 1;\n',
+      "leak.ts": 'import "../../scripts/run-npm.ts";\nexport const x = 1;\n',
     });
     try {
       expect.assertions(2);

@@ -131,7 +131,7 @@ describe("check-guardrail-changes CLI", () => {
 function cpGuardrailScript(tempDir: string): void {
   const scriptsDir = join(tempDir, "scripts");
   mkdirSync(scriptsDir, { recursive: true });
-  for (const fileName of ["check-guardrail-changes.ts", "git-list-changed-paths.mjs"]) {
+  for (const fileName of ["check-guardrail-changes.ts", "git-list-changed-paths.ts"]) {
     cpSync(join(repoRoot, "scripts", fileName), join(scriptsDir, fileName));
   }
 }

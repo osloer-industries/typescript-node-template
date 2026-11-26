@@ -3,7 +3,7 @@
 import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { runNpm } from "./run-npm.mjs";
+import { runNpm } from "./run-npm.ts";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 
