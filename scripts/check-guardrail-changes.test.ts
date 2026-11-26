@@ -47,6 +47,7 @@ describe("isGuardrailPath", () => {
     expect(isGuardrailPath("AGENTS.md")).toBe(true);
     expect(isGuardrailPath(".gitignore")).toBe(true);
     expect(isGuardrailPath("CODEOWNERS")).toBe(true);
+    expect(isGuardrailPath(".dependency-cruiser.cjs")).toBe(true);
     expect(isGuardrailPath("lefthook.yml")).toBe(true);
     expect(isGuardrailPath("packages/eslint-sonarjs/eslint.config.mjs")).toBe(true);
     expect(isGuardrailPath("scripts/check-guardrail-changes.ts")).toBe(true);

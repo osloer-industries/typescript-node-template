@@ -11,7 +11,7 @@ commands to run and how to read failures.
 ## Fast lane (in the loop)
 
 1. Prefer **`npm run check:fast`**: Oxlint, suppression baseline, `check:ts-only`, `agents:check`,
-   typecheck, SonarJS, and `test:fast` (Vitest without setup integration installs).
+   `lint:deps`, typecheck, SonarJS, and `test:fast` (Vitest without setup integration installs).
 2. If a gate fails, fix the **root cause** in the output — do not add lint suppressions, skip
    tests, or weaken thresholds (see **Enforced escape-hatch rules** in
    [AGENTS.md](../../../AGENTS.md)).
@@ -31,6 +31,7 @@ Run the full ladder in [AGENTS.md](../../../AGENTS.md) (**Verification**), endin
 | `lint:suppressions` | Remove disable comments; shrink baseline only when counts drop |
 | `check:ts-only` | Convert new `.mjs` to `.ts` or shrink `quality/js-allowlist.json` after conversion |
 | `agents:check` | Broken `` `path/to/file` `` citations or unknown `npm run` script names |
+| `lint:deps` | Module graph violations (cycles, devDep leaks, `src`→`scripts`, unresolvable imports) or 0 modules cruised |
 | `typecheck` | TypeScript diagnostics (authoritative over Oxlint hints) |
 | `test` / `test:coverage` | Failing or uncovered behavior |
 | `build` / `lint:knip` | Compile errors or unused exports after build |

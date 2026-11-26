@@ -4,6 +4,7 @@ import { listChangedPaths as listGitChangedPaths } from "./git-list-changed-path
 
 /** Paths (file or directory prefix) treated as agent harness / guardrails. */
 export const GUARDRAIL_PATH_PREFIXES = [
+  ".dependency-cruiser.cjs",
   ".github/",
   "AGENTS.md",
   ".gitignore",

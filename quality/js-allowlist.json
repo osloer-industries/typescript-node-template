@@ -15,6 +15,7 @@
     "scripts/copy-template-fixture.mjs",
     "scripts/copy-template-fixture.test.mjs",
     "scripts/git-list-changed-paths.mjs",
+    ".dependency-cruiser.cjs",
     "scripts/lint-sonarjs.mjs",
     "scripts/lint-sonarjs.test.mjs",
     "scripts/list-untyped-js-on-disk.mjs",

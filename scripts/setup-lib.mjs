@@ -15,9 +15,11 @@ const packageJsonFileName = "package.json";
 
 /** Dev dependencies every generated project keeps (see `pickHarnessDevDependencies`). */
 export const harnessDevDependencyKeys = [
+  "@swc/core",
   "@types/node",
   "@vitest/coverage-v8",
   "@osloer-industries/markdown-link-check",
+  "dependency-cruiser",
   "jscpd",
   "knip",
   "lefthook",

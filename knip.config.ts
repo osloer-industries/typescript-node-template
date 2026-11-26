@@ -9,6 +9,8 @@ const config: KnipConfig = {
         "scripts/**/*.{mjs,ts}",
         "scripts/**/*.d.mts",
       ],
+      // Invoked via `lint:deps` / `.dependency-cruiser.cjs` (spawn + swc parser), not static imports.
+      ignoreDependencies: ["@swc/core", "dependency-cruiser"],
       project: ["src/**/*.ts", "scripts/**/*.{ts,mjs,d.mts}"],
     },
     "packages/eslint-sonarjs": {
