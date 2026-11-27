@@ -49,7 +49,7 @@ function initSrcOnlyDiffRepo(tempDir: string): { base: string; head: string } {
 function cpGuardrailScript(tempDir: string): void {
   const scriptsDir = join(tempDir, "scripts");
   mkdirSync(scriptsDir, { recursive: true });
-  for (const fileName of ["check-guardrail-changes.ts", "git-list-changed-paths.mjs"]) {
+  for (const fileName of ["check-guardrail-changes.ts", "git-list-changed-paths.ts"]) {
     cpSync(join(repoRoot, "scripts", fileName), join(scriptsDir, fileName));
   }
 }
@@ -60,6 +60,7 @@ describe("isGuardrailPath", () => {
     expect(isGuardrailPath("AGENTS.md")).toBe(true);
     expect(isGuardrailPath(".gitignore")).toBe(true);
     expect(isGuardrailPath("CODEOWNERS")).toBe(true);
+    expect(isGuardrailPath(".dependency-cruiser.cjs")).toBe(true);
     expect(isGuardrailPath("lefthook.yml")).toBe(true);
     expect(isGuardrailPath("vitest.config.ts")).toBe(true);
     expect(isGuardrailPath("tsconfig.json")).toBe(true);

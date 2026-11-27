@@ -151,6 +151,37 @@ custom Jest/Mocha adapter.
 
 **Why they lost:** Template standardizes on Vitest; command-runner is slower and harder to scope per mutant.
 
+### `dependency-cruiser`
+
+<!-- devDependency: dependency-cruiser -->
+
+**Why chosen:** Whole-module graph gate (`npm run lint:deps`) for cycles, unresolvable imports,
+production imports of `devDependencies`, `src/` → `scripts/` boundaries, and orphans
+([issue #118](https://github.com/osloer-industries/typescript-node-template/issues/118)). Rules live in
+`.dependency-cruiser.cjs`; Oxlint `no-restricted-imports` mirrors `src-not-scripts` for in-editor feedback only.
+
+**Alternatives considered:** Oxlint import rules only; ESLint `import/no-cycle` and `import/no-extraneous-dependencies`.
+
+**Why they lost:** Per-file rules do not see multi-file cycles or graph-level orphans; dependency-cruiser is the
+authority for architecture edges (aligned with [issue #49](https://github.com/osloer-industries/typescript-node-template/issues/49)).
+
+**TypeScript 7:** The default dependency-cruiser TypeScript parser refuses TS 7; the config sets `parser: "swc"` with
+`@swc/core` until TS 7.1’s compiler API is stable enough to re-test the built-in parser.
+
+### `@swc/core`
+
+<!-- devDependency: @swc/core -->
+
+**Why chosen:** SWC parser backend for dependency-cruiser on **TypeScript 7** (`options.parser: "swc"` in
+`.dependency-cruiser.cjs`). Ships platform binaries via optionalDependencies; CI uses the same `npm ci`
+install as local check.
+
+**Alternatives considered:** Downgrade root `typescript` to 6.x for dependency-cruiser’s `tsc` parser;
+`tsPreCompilationDeps` on TS 7 (fails without a stable compiler API).
+
+**Why they lost:** Template standardizes on TS 7 for consumers; SWC is the verified workaround documented in
+[#118](https://github.com/osloer-industries/typescript-node-template/issues/118).
+
 ### `jscpd`
 
 <!-- devDependency: jscpd -->
@@ -185,7 +216,8 @@ unused locals do not trace the full dependency graph. Knip matches the pattern a
 
 **False positives:** Prefer deleting dead code or dropping unused dependencies. `knip.config.ts` may
 list genuine entry points (CLI scripts, fixture templates, module declaration files). Justify any
-`ignore*` config in this ADR before adding it.
+`ignore*` config in this ADR before adding it. The **dependency-cruiser** Knip plugin (enabled in
+`knip.config.ts`) treats `.dependency-cruiser.cjs` and the `depcruise` binary as entry points.
 
 ### `markdownlint-cli2`
 

@@ -1,6 +1,7 @@
 # Guardrail / agent harness files — @osloer-industries/platform.
 # CI blocks harness edits without harness-approval environment deployment (ADR 0012).
 
+/.dependency-cruiser.cjs @osloer-industries/platform
 /AGENTS.md @osloer-industries/platform
 /.gitignore @osloer-industries/platform
 /.agents/ @osloer-industries/platform

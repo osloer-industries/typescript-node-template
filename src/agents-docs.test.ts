@@ -116,11 +116,12 @@ describe("agent documentation contract", () => {
     expect(agentsMd).toMatch(/npm run agents:index/);
   });
 
-  it("includes agents:check in npm run check:fast", () => {
+  it("includes agents:check and lint:deps in npm run check:fast", () => {
     const scripts = parsePackageJsonScripts(packageJson);
     const checkFast = Reflect.get(scripts, "check:fast");
     expect(typeof checkFast).toBe("string");
     expect(checkFast).toContain(AGENTS_CHECK_SCRIPT);
+    expect(checkFast).toContain("lint:deps");
   });
 
   it("includes SonarJS, duplication, and knip gates in npm run check", () => {
@@ -134,6 +135,7 @@ describe("agent documentation contract", () => {
     expect(precommit).toContain("lint:dup");
     expect(check).toContain("check:no-claude-md");
     expect(check).toContain(AGENTS_CHECK_SCRIPT);
+    expect(check).toContain("lint:deps");
     expect(check).toContain("npm run precommit");
     expect(precommit).not.toContain(AGENTS_CHECK_SCRIPT);
     expect(check).toContain("lint:knip");

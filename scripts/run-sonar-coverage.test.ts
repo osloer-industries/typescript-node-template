@@ -1,16 +1,18 @@
+import type { ExecFileSyncOptions } from "node:child_process";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { RunCiNpmWorkspaceOptions } from "./ci-npm-workspace.ts";
 
-vi.mock("./ci-npm-workspace.mjs", () => ({
-  runCiNpmWorkspace: vi.fn(),
+vi.mock("./ci-npm-workspace.ts", () => ({
+  runCiNpmWorkspace: vi.fn<(options?: RunCiNpmWorkspaceOptions) => void>(),
 }));
 
-vi.mock("./run-npm.mjs", () => ({
-  runNpm: vi.fn(),
+vi.mock("./run-npm.ts", () => ({
+  runNpm: vi.fn<(args: readonly string[], options?: ExecFileSyncOptions) => void>(),
 }));
 
-const { runCiNpmWorkspace } = await import("./ci-npm-workspace.mjs");
-const { runNpm } = await import("./run-npm.mjs");
-const { runSonarCoverage } = await import("./run-sonar-coverage.mjs");
+const { runCiNpmWorkspace } = await import("./ci-npm-workspace.js");
+const { runNpm } = await import("./run-npm.js");
+const { runSonarCoverage } = await import("./run-sonar-coverage.js");
 
 describe("runSonarCoverage", () => {
   afterEach(() => {

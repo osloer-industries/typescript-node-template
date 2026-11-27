@@ -1,18 +1,11 @@
 import { execFileSync } from "node:child_process";
 
-/**
- * @param {string} baseRef
- * @param {string} headRef
- * @param {string} cwd
- * @param {string} [gitExecutable]
- * @returns {string[]}
- */
 export function listChangedPaths(
-  baseRef,
-  headRef,
-  cwd,
+  baseRef: string,
+  headRef: string,
+  cwd: string,
   gitExecutable = "/usr/bin/git",
-) {
+): string[] {
   const output = execFileSync(gitExecutable, ["diff", "--name-only", `${baseRef}...${headRef}`], {
     cwd,
     encoding: "utf8",

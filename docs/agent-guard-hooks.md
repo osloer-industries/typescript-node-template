@@ -72,7 +72,7 @@ node scripts/agent-hooks/pre-stop-fast-check.ts --fast-check-strike 0
 ## Fast verification lane
 
 `npm run check:fast` is the subset used by the stop hook: Oxlint, suppression baseline,
-`agents:check`, typecheck, SonarJS, and Vitest **excluding** `*.integration.test.ts` (setup scenario installs).
+`agents:check`, `lint:deps`, typecheck, SonarJS, and Vitest **excluding** `*.integration.test.ts` (setup scenario installs).
 Use it while iterating; run full `npm run check` before opening a pull request (see `AGENTS.md`).
 
 ## Optional Lefthook integration

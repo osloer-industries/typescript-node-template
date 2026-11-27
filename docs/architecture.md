@@ -32,9 +32,14 @@ running integration tests in `scripts/setup.test.ts`.
 ## Dependency direction
 
 - `src/` must not import from `scripts/` (enforced by Oxlint `no-restricted-imports` on `src/**`,
-  banning `**/scripts/**`).
+  banning `**/scripts/**`, and by **dependency-cruiser** rule `src-not-scripts` in
+  [`.dependency-cruiser.cjs`](../.dependency-cruiser.cjs) via `npm run lint:deps`).
 - `scripts/setup.mjs` imports only `scripts/setup-lib.mjs`.
-- Avoid import cycles (enforced by Oxlint).
+- Avoid import cycles (Oxlint plus dependency-cruiser `no-circular`).
+- Production code under `src/` must not import `devDependencies` (`src-not-to-dev-dep`); unresolvable
+  imports and orphans are flagged on the whole graph (`not-to-unresolvable`, `no-orphans`).
+- dependency-cruiser uses the **swc** parser because TypeScript 7 is not supported by the default
+  `tsc` parser yet ([#118](https://github.com/osloer-industries/typescript-node-template/issues/118)).
 
 Future layer boundaries (for example core versus adapters in #49) should use the same pattern:
 scoped `no-restricted-imports` overrides in `.oxlintrc.json` with a `patterns` group and a message
