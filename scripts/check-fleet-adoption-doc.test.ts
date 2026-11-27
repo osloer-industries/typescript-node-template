@@ -19,7 +19,7 @@ import {
 const gitExecutable = gitExecutableForTests("FLEET_ADOPTION_GIT_PATH");
 const ciWorkflowPath = ".github/workflows/ci.yml";
 const fleetAdoptionCheckSource = "./check-fleet-adoption-doc.ts";
-const gitListChangedSource = "./git-list-changed-paths.mjs";
+const gitListChangedSource = "./git-list-changed-paths.ts";
 const fleetAdoptionCheckBasename = "scripts/check-fleet-adoption-doc.ts";
 
 describe("isWorkflowHarnessChange", () => {
@@ -73,7 +73,7 @@ describe("runFleetAdoptionDocCheckCli", () => {
       );
       cpSync(
         resolve(fileURLToPath(new URL(gitListChangedSource, import.meta.url))),
-        join(tempDir, "scripts/git-list-changed-paths.mjs"),
+        join(tempDir, "scripts/git-list-changed-paths.ts"),
       );
       const moduleUrl = new URL(`file://${join(tempDir, fleetAdoptionCheckBasename)}`).href;
       const code = runFleetAdoptionDocCheckCli(moduleUrl, [base, head]);
@@ -105,7 +105,7 @@ describe("runFleetAdoptionDocCheckCli", () => {
       );
       cpSync(
         resolve(fileURLToPath(new URL(gitListChangedSource, import.meta.url))),
-        join(tempDir, "scripts/git-list-changed-paths.mjs"),
+        join(tempDir, "scripts/git-list-changed-paths.ts"),
       );
       const moduleUrl = new URL(`file://${join(tempDir, fleetAdoptionCheckBasename)}`).href;
       const code = runFleetAdoptionDocCheckCli(moduleUrl, [base, head]);

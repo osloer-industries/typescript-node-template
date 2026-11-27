@@ -63,6 +63,7 @@ These rules apply to every agent (Cursor, Grok Bot, any other) working in this r
 | `docs/npm-overrides.md` | When and how to use npm `overrides` for transitive audit fixes. |
 | `docs/sonar-quality-gate.md` | SonarCloud patterns and local SonarJS ESLint enforcement ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `knip.config.ts` | Unused files, exports, and dependencies ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
+| `.dependency-cruiser.cjs` | Module graph rules for `npm run lint:deps` (swc parser on TS 7; [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `scripts/agents-check.ts` | Validates paths and `npm run` scripts cited in agent guidance (`npm run agents:check`). |
 | `.oxlintrc.json` | Oxlint rules ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
 | `packages/eslint-sonarjs/` | SonarJS `recommended` rules via ESLint (TypeScript 6 parser; root uses TS 7) ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md)). |
@@ -97,7 +98,8 @@ dependencies; when the fork publishes a new annotated tag, update the `#v…` re
 ## Verification
 
 While iterating (including in-loop agent stop hooks — [docs/agent-guard-hooks.md](docs/agent-guard-hooks.md)),
-prefer **`npm run check:fast`**: Oxlint, suppression baseline, `agents:check`, typecheck, SonarJS, and unit tests
+prefer **`npm run check:fast`**: Oxlint, suppression baseline, `agents:check`, `lint:deps`, typecheck, SonarJS, and
+unit tests
 (`test:fast` excludes `*.integration.test.ts` setup installs). CI and pre-merge verification still
 use the full ladder below.
 
@@ -114,19 +116,21 @@ Run gates in this order when preparing a pull request:
 2. `npm run lint:suppressions` (shrink-only suppression baseline — [ADR 0006](docs/adr/0006-escape-hatch-lint-and-suppression-baseline.md))
 3. `npm run check:ts-only` (shrink-only untyped JS allowlist — `quality/js-allowlist.json`)
 4. `npm run agents:check` (paths and npm scripts cited in agent guidance — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-5. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-6. `npm run lint:dup` (jscpd on Markdown, workflow YAML, and shell under `.jscpd.json` paths — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
-   TypeScript/JavaScript duplication is gated by SonarCloud on the pull request)
-7. `npm run lint:md` and `npm run lint:md-links` ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-8. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-9. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-10. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-11. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
-   runs after `build` so `package.json` dist entries resolve)
-12. `npm run precommit` (Lefthook `pre-commit`; steps 1–4, 6, and `npm run test`)
-13. `npm run check` (precommit plus no-`CLAUDE.md`, `check:ts-only`, `agents:check`, markdown, coverage, build, and knip)
+5. `npm run lint:deps` (dependency-cruiser module graph — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+6. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+7. `npm run lint:dup` (jscpd on Markdown, workflow YAML, and shell under `.jscpd.json` paths — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
+ TypeScript/JavaScript duplication is gated by SonarCloud on the pull request)
+8. `npm run lint:md` and `npm run lint:md-links` ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+9. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+10. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+11. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+12. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
+ runs after `build` so `package.json` dist entries resolve)
+13. `npm run precommit` (Lefthook `pre-commit`; steps 1–4, 6, and `npm run test`)
+14. `npm run check` (precommit plus no-`CLAUDE.md`, `check:ts-only`, `agents:check`, `lint:deps`, markdown,
+   coverage, build, and knip)
    before opening a pull request
-14. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
+15. `npm audit --omit=dev` when `package.json` or `package-lock.json` changes ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 
 `npm run test:mutation` runs Stryker on `src/` (see `stryker.config.mjs` for the TypeScript 7 workaround). It is a
 separate CI job, not part of `check`.
@@ -141,7 +145,7 @@ change (included in unattended `--yes` setup). See [docs/mcp-stdio-smoke-test.md
 
 When touching `scripts/`, setup, or CI install steps, follow
 [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) so **SonarCloud CI analysis** stays green
-(use `scripts/run-npm.mjs`, prefer `--ignore-scripts` on npm ci/install).
+(use `scripts/run-npm.ts`, prefer `--ignore-scripts` on npm ci/install).
 
 ## Continuous integration
 
@@ -181,7 +185,7 @@ Pull requests that change `.github/workflows/**` or `.github/actions/**` without
 | New MCP tool | MCP profile in `scripts/setup-lib.mjs`, generated handler | Profile tests + integration scenario `mcp` + `npm run test:mcp` |
 | New CLI flag or argv rule | CLI profile in `scripts/setup-lib.mjs` | Profile tests + integration scenario `cli` |
 | New setup scenario | `scripts/setup-lib.mjs`, README, SETUP docs | `scripts/setup.test.ts` unit + integration |
-| npm via child_process | `scripts/run-npm.mjs` only | Do not add new `execFileSync("npm", …)` call sites |
+| npm via child_process | `scripts/run-npm.ts` only | Do not add new `execFileSync("npm", …)` call sites |
 
 ## Avoid repetition
 

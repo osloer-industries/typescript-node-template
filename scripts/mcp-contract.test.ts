@@ -7,9 +7,9 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { copyTemplateFixture } from "./copy-template-fixture.mjs";
+import { copyTemplateFixture } from "./copy-template-fixture.ts";
 import { applySetup, resolveSetupOptions } from "./setup-lib.mjs";
-import { runNpm } from "./run-npm.mjs";
+import { runNpm } from "./run-npm.ts";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 

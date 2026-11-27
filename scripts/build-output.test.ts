@@ -2,7 +2,7 @@ import { existsSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { runNpm } from "./run-npm.mjs";
+import { runNpm } from "./run-npm.ts";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const distIndex = join(repoRoot, "dist/index.js");
