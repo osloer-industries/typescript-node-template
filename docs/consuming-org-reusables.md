@@ -29,11 +29,11 @@ on that repository.
    (PEM for the osloer-reviewer GitHub App) and repository variable **`OSLOER_RELEASE_APP_ID`** = **`5745328`**.
    Mirror **`RELEASE_APP_PRIVATE_KEY`** into **Dependabot secrets** so workflows on `dependabot/*` branches can
    mint the installation token. Copy [`.github/workflows/auto-merge.yml`](../.github/workflows/auto-merge.yml)
-   from this template (org reusable pin **`# v0.1.10`**).
+   from this template (org reusable pin **`# v0.1.11`**).
 
 ### Auto-merge behavior (org reusable)
 
-The org [`auto-merge.yml`](https://github.com/osloer-industries/.github/blob/v0.1.10/.github/workflows/auto-merge.yml)
+The org [`auto-merge.yml`](https://github.com/osloer-industries/.github/blob/v0.1.11/.github/workflows/auto-merge.yml)
 approves and enables **`gh pr merge --auto`** (merge completes only after required checks pass). It does **not**
 use `pull_request_target` and does not check out pull request code.
 
@@ -46,7 +46,7 @@ Auto-merge waits for branch protection required checks. Register only **`ci-pass
 individual scanner jobs—so Dependabot and release PRs merge once the aggregate pipeline is green.
 
 Pin every org reusable to the same `.github` release tag commit SHA (for example
-`b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10`); use the tag in the `#` comment, not `main`, so
+`d8f690b3ee555b72426099f4755e0da2f74d745f # v0.1.11`); use the tag in the `#` comment, not `main`, so
 zizmor ref-version-mismatch stays green when org `main` advances. Bump via Dependabot (`osloer-reusables`
 group) or template-sync when a new `.github` tag ships. Callers do not pass `reusables-ref`; reusable
 workflows resolve their scripts from
@@ -71,7 +71,7 @@ Grant **job-level** `actions: read` on the workflow-security calling job (not at
 | [`dependency-review.yml`](../.github/workflows/dependency-review.yml) | `dependency-review.yml` | Job-level `contents` / `actions` / `pull-requests` read and `security-events: write` (nested OSV reusable). |
 | [`pr-title.yml`](../.github/workflows/pr-title.yml) | `semantic-pull-request.yml` | `pull_request` caller (not org doc `pull_request_target` — workflow-security zizmor rejects `pull_request_target` in this repo); job-level `pull-requests: read`. |
 | [`release.yml`](../.github/workflows/release.yml) | `release-please.yml` | Release GitHub App secrets (see org doc). |
-| [`.github/workflows/auto-merge.yml`](../.github/workflows/auto-merge.yml) | `auto-merge.yml` (`# v0.1.10`) | `RELEASE_APP_PRIVATE_KEY`, `vars.OSLOER_RELEASE_APP_ID` (`5745328` in this org); squash merge; `allow-dependabot` + `allow-release-prs`. |
+| [`.github/workflows/auto-merge.yml`](../.github/workflows/auto-merge.yml) | `auto-merge.yml` (`# v0.1.11`) | `RELEASE_APP_PRIVATE_KEY`, `vars.OSLOER_RELEASE_APP_ID` (`5745328` in this org); squash merge; `allow-dependabot` + `allow-release-prs`. |
 
 Domain-only jobs remain in-repo (for example `fleet-adoption-doc`, future `harness-approval`) per
 [ADR 0005](adr/0005-placement-template-vs-org-github.md).
@@ -79,7 +79,7 @@ Domain-only jobs remain in-repo (for example `fleet-adoption-doc`, future `harne
 ## Private repository CodeQL
 
 Do not enable paid GitHub Advanced Security for CodeQL alone. Use artifact mode from the org
-[consuming-workflows.md](https://github.com/osloer-industries/.github/blob/v0.1.10/docs/consuming-workflows.md)
+[consuming-workflows.md](https://github.com/osloer-industries/.github/blob/v0.1.11/docs/consuming-workflows.md)
 private-repo CodeQL section (same contract on `main`).
 
 Under `workflow_call` in a private repository, set workflow-level `permissions: contents: read` only, and grant the
