@@ -11,8 +11,11 @@ const TEMPLATE_CALLER_WORKFLOWS = [
   ".github/workflows/auto-merge.yml",
 ] as const;
 
+const ORG_REUSABLES_SHA = "b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb";
+const ORG_REUSABLES_TAG = "v0.1.10";
+
 const AUTO_MERGE_REUSABLE_PIN =
-  "osloer-industries/.github/.github/workflows/auto-merge.yml@a6ee91211fd9ba096ec141bacdb67985a82b6767 # v0.1.7";
+  `osloer-industries/.github/.github/workflows/auto-merge.yml@${ORG_REUSABLES_SHA} # ${ORG_REUSABLES_TAG}`;
 
 describe("template harness contracts", () => {
   it("keeps github-actions Dependabot cooldown to supported keys only", () => {
@@ -28,7 +31,24 @@ describe("template GitHub workflow callers", () => {
     }
   });
 
-  it("pins org auto-merge reusable at v0.1.7 with squash and release/Dependabot flags", () => {
+  it("pins every org reusable caller at the same release tag", () => {
+    const pins: Array<{ path: string; sha: string; tag: string }> = [];
+    for (const relativePath of TEMPLATE_CALLER_WORKFLOWS) {
+      const yaml = readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
+      for (const match of yaml.matchAll(
+        /osloer-industries\/\.github\/\.github\/workflows\/[^\s@]+@([0-9a-f]{40})\s*#\s*(\S+)/gu,
+      )) {
+        pins.push({ path: relativePath, sha: match[1] ?? "", tag: match[2] ?? "" });
+      }
+    }
+    expect(pins.length).toBeGreaterThan(0);
+    for (const pin of pins) {
+      expect(pin.sha).toBe(ORG_REUSABLES_SHA);
+      expect(pin.tag).toBe(ORG_REUSABLES_TAG);
+    }
+  });
+
+  it("pins org auto-merge reusable with squash and release/Dependabot flags", () => {
     const autoMergeYaml = readFileSync(
       new URL("../.github/workflows/auto-merge.yml", import.meta.url),
       "utf8",

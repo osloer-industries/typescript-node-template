@@ -19,7 +19,7 @@ import {
 const gitExecutable = gitExecutableForTests("FLEET_ADOPTION_GIT_PATH");
 const ciWorkflowPath = ".github/workflows/ci.yml";
 const fleetAdoptionCheckSource = "./check-fleet-adoption-doc.ts";
-const gitListChangedSource = "./git-list-changed-paths.mjs";
+const gitListChangedSource = "./git-list-changed-paths.ts";
 const fleetAdoptionCheckBasename = "scripts/check-fleet-adoption-doc.ts";
 
 function copyFleetAdoptionHarnessInto(tempDir: string): void {
@@ -29,7 +29,7 @@ function copyFleetAdoptionHarnessInto(tempDir: string): void {
   );
   cpSync(
     resolve(fileURLToPath(new URL(gitListChangedSource, import.meta.url))),
-    join(tempDir, "scripts/git-list-changed-paths.mjs"),
+    join(tempDir, "scripts/git-list-changed-paths.ts"),
   );
 }
 

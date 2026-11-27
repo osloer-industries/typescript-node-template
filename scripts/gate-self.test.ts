@@ -1,8 +1,8 @@
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
@@ -10,6 +10,8 @@ const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const oxlintConfig = join(repoRoot, ".oxlintrc.json");
 const oxlintExecutable = join(repoRoot, "node_modules", ".bin", "oxlint");
 const sonarjsConfig = join(repoRoot, "packages/eslint-sonarjs/eslint.config.mjs");
+const depcruiseConfig = join(repoRoot, ".dependency-cruiser.cjs");
+const depcruiseExecutable = join(repoRoot, "node_modules", ".bin", "depcruise");
 
 type CommandResult = {
   status: number;
@@ -87,6 +89,36 @@ function writeTempSrcOxlintSource(source: string, fileName: string): { filePath:
   writeFileSync(filePath, source, "utf8");
   return {
     filePath,
+    cleanup: () => {
+      rmSync(tempDir, { recursive: true, force: true });
+    },
+  };
+}
+
+function runDepcruiseOnRoots(roots: readonly string[]): CommandResult {
+  return execCommand(depcruiseExecutable, ["--config", depcruiseConfig, "--output-type", "err", ...roots], repoRoot);
+}
+
+function assertDepcruiseReportsRule(result: CommandResult, ruleName: string): void {
+  expect.hasAssertions();
+  expect(result.status, `expected exit non-zero, got ${result.status}\n${result.output}`).not.toBe(0);
+  expect(
+    result.output.includes(ruleName),
+    `expected rule ${ruleName} in output:\n${result.output}`,
+  ).toBe(true);
+}
+
+function writeTempDepcruiseProbe(
+  files: Readonly<Record<string, string>>,
+): { roots: string[]; cleanup: () => void } {
+  const tempDir = mkdtempSync(join(repoRoot, "src", "gate-self-depcruise-"));
+  for (const [fileName, source] of Object.entries(files)) {
+    const filePath = join(tempDir, fileName);
+    mkdirSync(dirname(filePath), { recursive: true });
+    writeFileSync(filePath, source, "utf8");
+  }
+  return {
+    roots: [tempDir],
     cleanup: () => {
       rmSync(tempDir, { recursive: true, force: true });
     },
@@ -223,12 +255,102 @@ describe("gate self-tests (allowed type constructs)", () => {
 describe("gate self-tests (architecture boundaries)", () => {
   it("rejects src imports from scripts/", () => {
     const { filePath, cleanup } = writeTempSrcOxlintSource(
-      'import "../scripts/run-npm.mjs";\n',
+      'import "../scripts/run-npm.ts";\n',
       "uses-scripts.ts",
     );
     try {
       expect.assertions(2);
       assertLintReportsRule(runOxlintOnFile(filePath), "no-restricted-imports");
+    } finally {
+      cleanup();
+    }
+  });
+});
+
+describe("gate self-tests (dependency-cruiser graph)", () => {
+  it("rejects src imports from scripts/", () => {
+    const { roots, cleanup } = writeTempDepcruiseProbe({
+      "leak.ts": 'import "../../scripts/run-npm.ts";\nexport const x = 1;\n',
+    });
+    try {
+      expect.assertions(2);
+      assertDepcruiseReportsRule(runDepcruiseOnRoots(roots), "src-not-scripts");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("rejects type-only imports from scripts/", () => {
+    const { roots, cleanup } = writeTempDepcruiseProbe({
+      "type-leak.ts":
+        'import type * as SetupLib from "../../scripts/setup-lib.mjs";\nexport type Ref = SetupLib;\n',
+    });
+    try {
+      expect.assertions(2);
+      assertDepcruiseReportsRule(runDepcruiseOnRoots(roots), "src-not-scripts");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("rejects circular imports", () => {
+    const { roots, cleanup } = writeTempDepcruiseProbe({
+      "m/a.ts": 'import "./b.js";\nexport const a = 1;\n',
+      "m/b.ts": 'import "./a.js";\nexport const b = 1;\n',
+    });
+    try {
+      expect.assertions(2);
+      assertDepcruiseReportsRule(runDepcruiseOnRoots(roots), "no-circular");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("rejects production src imports from devDependencies", () => {
+    const { roots, cleanup } = writeTempDepcruiseProbe({
+      "dev-dep.ts": 'import { fc } from "fast-check";\nexport const sample = fc.constant(1);\n',
+    });
+    try {
+      expect.assertions(2);
+      assertDepcruiseReportsRule(runDepcruiseOnRoots(roots), "src-not-to-dev-dep");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("rejects unresolvable imports", () => {
+    const { roots, cleanup } = writeTempDepcruiseProbe({
+      "missing.ts": 'import "pkg-that-does-not-exist-gate-self";\nexport const x = 1;\n',
+    });
+    try {
+      expect.assertions(2);
+      assertDepcruiseReportsRule(runDepcruiseOnRoots(roots), "not-to-unresolvable");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("fails when cruising zero modules (empty scope)", () => {
+    const emptyDir = mkdtempSync(join(tmpdir(), "gate-self-depcruise-empty-"));
+    try {
+      const depcruiseOnly = runDepcruiseOnRoots([emptyDir]);
+      expect(depcruiseOnly.status, "depcruise alone false-greens empty scope").toBe(0);
+
+      const lintResult = execCommand(process.execPath, ["scripts/lint-deps.ts", emptyDir], repoRoot);
+      expect(lintResult.status).toBe(1);
+      expect(lintResult.output).toMatch(/0 modules/);
+    } finally {
+      rmSync(emptyDir, { recursive: true, force: true });
+    }
+  });
+
+  it("reports orphan modules", () => {
+    const { roots, cleanup } = writeTempDepcruiseProbe({
+      "orphan.ts": "export const lonely = 1;\n",
+    });
+    try {
+      const result = runDepcruiseOnRoots(roots);
+      expect(result.output).toContain("no-orphans");
     } finally {
       cleanup();
     }

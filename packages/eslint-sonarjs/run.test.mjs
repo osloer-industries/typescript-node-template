@@ -13,7 +13,7 @@ describe("resolveLintTargets", () => {
   });
 
   it("forwards explicit paths", () => {
-    expect(resolveLintTargets(["scripts/run-npm.mjs"])).toEqual(["scripts/run-npm.mjs"]);
+    expect(resolveLintTargets(["scripts/run-npm.ts"])).toEqual(["scripts/run-npm.ts"]);
   });
 });
 
