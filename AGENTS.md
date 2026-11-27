@@ -127,7 +127,7 @@ Run gates in this order when preparing a pull request:
 11. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 12. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
    runs after `build` so `package.json` dist entries resolve)
-13. `npm run precommit` (Lefthook `pre-commit`; steps 1–4, 6, and `npm run test`)
+13. `npm run precommit` (Lefthook `pre-commit`; steps 1–2, 6–7, 9, and `npm run test`)
 14. `npm run check` (precommit plus no-`CLAUDE.md`, `check:ts-only`, `agents:check`, `lint:deps`, markdown,
    coverage, build, and knip)
    before opening a pull request
@@ -227,8 +227,9 @@ Pull requests that change `.github/workflows/**` or `.github/actions/**` without
   dependency intentionally changes, then commit `package-lock.json`.
 - Run `npm run precommit` before every push (Lefthook) and `npm run check` before submitting a change.
   `precommit` includes jscpd on TypeScript, JavaScript, Markdown, YAML, and shell at the same **3%** threshold as
-  Sonar duplicated-lines-on-new-code. `check` adds no-`CLAUDE.md`, `check:ts-only`, markdown, coverage, production
-  build, and knip (after build so `package.json` dist entries resolve). SonarCloud still runs on the pull request for
+  Sonar duplicated-lines-on-new-code. `check` adds no-`CLAUDE.md`, `check:ts-only`, `agents:check`, `lint:deps`,
+  markdown, coverage, production build, and knip (after build so `package.json` dist entries resolve). SonarCloud still
+  runs on the pull request for
   org policy and
   zero-open-issues — see [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md).
 - Run `npm audit --omit=dev` whenever dependencies or the lockfile change. For transitive
