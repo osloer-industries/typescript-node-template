@@ -11,8 +11,8 @@ const TEMPLATE_CALLER_WORKFLOWS = [
   ".github/workflows/auto-merge.yml",
 ] as const;
 
-const ORG_REUSABLES_SHA = "b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb";
-const ORG_REUSABLES_TAG = "v0.1.10";
+const ORG_REUSABLES_SHA = "d8f690b3ee555b72426099f4755e0da2f74d745f";
+const ORG_REUSABLES_TAG = "v0.1.11";
 
 const AUTO_MERGE_REUSABLE_PIN =
   `osloer-industries/.github/.github/workflows/auto-merge.yml@${ORG_REUSABLES_SHA} # ${ORG_REUSABLES_TAG}`;
