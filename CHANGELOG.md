@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0](https://github.com/osloer-industries/typescript-node-template/compare/v0.5.0...v0.6.0) (2026-11-27)
+
+
+### Features
+
+* dependency-cruiser graph gate on TS 7 (swc parser) ([#174](https://github.com/osloer-industries/typescript-node-template/issues/174)) ([63ab2b5](https://github.com/osloer-industries/typescript-node-template/commit/63ab2b584e808fa85e56160bde3bfc009108ad7e))
+* standardize org auto-merge for template consumers ([#159](https://github.com/osloer-industries/typescript-node-template/issues/159)) ([481a0cc](https://github.com/osloer-industries/typescript-node-template/commit/481a0ccd8614096b768ec43e11c142e8930a9de1))
+
+
+### Bug Fixes
+
+* github-actions dependabot cooldown keys ([#164](https://github.com/osloer-industries/typescript-node-template/issues/164)) ([0d5aefa](https://github.com/osloer-industries/typescript-node-template/commit/0d5aefa3054a9b943b52077bdbf7637b8c4f6365))
+
 ## [0.5.0](https://github.com/osloer-industries/typescript-node-template/compare/v0.4.0...v0.5.0) (2026-11-20)
 
 
