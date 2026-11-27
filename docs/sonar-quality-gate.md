@@ -59,7 +59,7 @@ CI **Quality** runs the same command so `--no-verify` commits still fail in Acti
 
 Sonar flags `execFileSync("npm", …)` and similar because `npm` is resolved via **`PATH`**.
 
-Use [`scripts/run-npm.mjs`](../scripts/run-npm.mjs):
+Use [`scripts/run-npm.ts`](../scripts/run-npm.ts):
 
 - `npmExecutablePath()` — prefers `process.env.npm_execpath`, then `npm` adjacent to `process.execPath`
 - `runNpm(args, options)` — wrapper around `execFileSync`
