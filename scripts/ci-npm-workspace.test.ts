@@ -1,14 +1,15 @@
+import type { ExecFileSyncOptions } from "node:child_process";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("./run-npm.mjs", () => ({
-  runNpm: vi.fn(),
+vi.mock("./run-npm.ts", () => ({
+  runNpm: vi.fn<(args: readonly string[], options?: ExecFileSyncOptions) => void>(),
 }));
 
-const { runNpm } = await import("./run-npm.mjs");
-const { runCiNpmWorkspace } = await import("./ci-npm-workspace.mjs");
-const inheritStdio = { stdio: "inherit" };
-const rootCiArgs = ["ci", "--ignore-scripts"];
-const eslintSonarjsPrefixArgs = ["ci", "--ignore-scripts", "--prefix", "packages/eslint-sonarjs"];
+const { runNpm } = await import("./run-npm.js");
+const { runCiNpmWorkspace } = await import("./ci-npm-workspace.js");
+const inheritStdio = { stdio: "inherit" } as const;
+const rootCiArgs = ["ci", "--ignore-scripts"] as const;
+const eslintSonarjsPrefixArgs = ["ci", "--ignore-scripts", "--prefix", "packages/eslint-sonarjs"] as const;
 
 describe("runCiNpmWorkspace", () => {
   afterEach(() => {

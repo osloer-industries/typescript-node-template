@@ -12,13 +12,13 @@ vi.mock("node:child_process", () => ({
   spawnSync: vi.fn(),
 }));
 
-vi.mock("./run-npm.mjs", () => ({
+vi.mock("./run-npm.ts", () => ({
   runNpm: vi.fn(),
 }));
 
 const { existsSync } = await import("node:fs");
 const { spawnSync } = await import("node:child_process");
-const { runNpm } = await import("./run-npm.mjs");
+const { runNpm } = await import("./run-npm.ts");
 const { ensureEslintSonarjsDependencies, eslintSonarjsInstallMarker, runLintSonarjs } = await import(
   "./lint-sonarjs.mjs",
 );

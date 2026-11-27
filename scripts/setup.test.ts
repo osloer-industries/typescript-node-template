@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
-import { copyTemplateFixture } from "./copy-template-fixture.mjs";
+import { copyTemplateFixture } from "./copy-template-fixture.ts";
 import {
   appendJsAllowlistPaths,
   applySetup,
@@ -150,6 +150,8 @@ describe("pickHarnessDevDependencies", () => {
 
   it("lists the shared harness keys", () => {
     expect(harnessDevDependencyKeys).toContain("knip");
+    expect(harnessDevDependencyKeys).toContain("dependency-cruiser");
+    expect(harnessDevDependencyKeys).toContain("@swc/core");
     expect(harnessDevDependencyKeys).not.toContain(fastCheckPackageName);
   });
 });

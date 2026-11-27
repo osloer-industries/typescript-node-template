@@ -12,4 +12,4 @@ jobs:
       actions: read
       pull-requests: read
       security-events: write
-    uses: osloer-industries/.github/.github/workflows/dependency-review.yml@d35742865fee88749fa3efb6cf657b012598584e # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/dependency-review.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10

@@ -1,6 +1,7 @@
 # Guardrail / agent harness files — replace @osloer-industries/platform with your maintainer team.
 # Branch protection can require review from these owners (see CONTRIBUTING.md).
 
+/.dependency-cruiser.cjs @osloer-industries/platform
 /AGENTS.md @osloer-industries/platform
 /.gitignore @osloer-industries/platform
 /.agents/ @osloer-industries/platform

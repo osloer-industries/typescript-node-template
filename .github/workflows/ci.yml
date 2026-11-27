@@ -15,14 +15,14 @@ concurrency:
   cancel-in-progress: true
 jobs:
   ci-paths-scope:
-    uses: osloer-industries/.github/.github/workflows/ci-paths-scope.yml@d35742865fee88749fa3efb6cf657b012598584e # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/ci-paths-scope.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
 
   workflow-security:
     needs: ci-paths-scope
     if: |
       always() && needs.ci-paths-scope.outputs.run-full-ci == 'true' &&
       needs.ci-paths-scope.outputs.workflows-changed == 'true'
-    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@d35742865fee88749fa3efb6cf657b012598584e # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/workflow-security.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     permissions:
       contents: read
       actions: read
@@ -30,7 +30,7 @@ jobs:
   quality:
     needs: ci-paths-scope
     if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
-    uses: osloer-industries/.github/.github/workflows/node-npm-quality.yml@d35742865fee88749fa3efb6cf657b012598584e # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/node-npm-quality.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     with:
       check-npm-script: precommit
       fetch-depth: 0
@@ -40,12 +40,12 @@ jobs:
   mutation:
     needs: ci-paths-scope
     if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
-    uses: osloer-industries/.github/.github/workflows/mutation-changed.yml@d35742865fee88749fa3efb6cf657b012598584e # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/mutation-changed.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
 
   setup-smoke:
     needs: ci-paths-scope
     if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
-    uses: osloer-industries/.github/.github/workflows/node-setup-smoke.yml@d35742865fee88749fa3efb6cf657b012598584e # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/node-setup-smoke.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     with:
       timeout-minutes: 15
 
@@ -62,7 +62,7 @@ jobs:
         with: { persist-credentials: false }
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: npm }
-      - run: node scripts/ci-npm-workspace.mjs --install-eslint-sonarjs
+      - run: node scripts/ci-npm-workspace.ts --install-eslint-sonarjs
       - run: npm run test:e2e
 
   codeql:
@@ -73,7 +73,7 @@ jobs:
         github.event_name != 'pull_request' ||
         needs.ci-paths-scope.outputs.run-codeql == 'true'
       )
-    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@d35742865fee88749fa3efb6cf657b012598584e # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     permissions:
       contents: read
       actions: read
@@ -84,7 +84,7 @@ jobs:
     if: |
       needs.ci-paths-scope.outputs.run-full-ci == 'true' &&
       needs.ci-paths-scope.outputs.product-code-changed == 'true'
-    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@d35742865fee88749fa3efb6cf657b012598584e # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     with:
       coverage-npm-script: coverage:sonar
       timeout-minutes: 20
@@ -99,7 +99,7 @@ jobs:
     needs:
       - ci-paths-scope
       - sonar-analyze
-    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@d35742865fee88749fa3efb6cf657b012598584e # v0.1.9
+    uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     with:
       project-key: osloer-industries_typescript-node-template
       ce-task-id: ${{ needs.sonar-analyze.outputs.ce-task-id }}
@@ -146,7 +146,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: osloer-industries/.github/.github/actions/ci-passed-gate@d35742865fee88749fa3efb6cf657b012598584e # v0.1.9
+      - uses: osloer-industries/.github/.github/actions/ci-passed-gate@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
         with:
           needs-json: ${{ toJSON(needs) }}
           github-event-name: ${{ github.event_name }}

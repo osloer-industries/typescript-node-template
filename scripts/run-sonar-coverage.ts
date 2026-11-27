@@ -3,15 +3,15 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { runCiNpmWorkspace } from "./ci-npm-workspace.mjs";
-import { runNpm } from "./run-npm.mjs";
+import { runCiNpmWorkspace } from "./ci-npm-workspace.ts";
+import { runNpm } from "./run-npm.ts";
 
-/**
- * Coverage for org `sonarqube-cloud-node.yml` after root `npm ci` (nested eslint-sonarjs only).
- *
- * @param {{ runInstall?: typeof runNpm }} [options]
- */
-export function runSonarCoverage(options = {}) {
+/** Coverage for org `sonarqube-cloud-node.yml` after root `npm ci` (nested eslint-sonarjs only). */
+export interface RunSonarCoverageOptions {
+  runInstall?: typeof runNpm;
+}
+
+export function runSonarCoverage(options: RunSonarCoverageOptions = {}): void {
   const runInstall = options.runInstall ?? runNpm;
   runCiNpmWorkspace({
     runInstall,
@@ -21,7 +21,7 @@ export function runSonarCoverage(options = {}) {
   runInstall(["run", "test:coverage"], { stdio: "inherit" });
 }
 
-function isDirectExecution(moduleUrl, argvEntry) {
+function isDirectExecution(moduleUrl: string, argvEntry: string | undefined): boolean {
   if (argvEntry === undefined) return false;
   return moduleUrl === pathToFileURL(resolve(argvEntry)).href;
 }

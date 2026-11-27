@@ -1,23 +1,25 @@
+import type { ExecFileSyncOptions } from "node:child_process";
 import { mkdtempSync } from "node:fs";
+import type { PathLike } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("node:child_process", () => ({
-  execFileSync: vi.fn(),
+  execFileSync: vi.fn<(file: string, args: readonly string[], options?: ExecFileSyncOptions) => Buffer>(),
 }));
 
 vi.mock("node:fs", async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal<typeof import("node:fs")>();
   return {
     ...actual,
-    existsSync: vi.fn(),
+    existsSync: vi.fn<(path: PathLike) => boolean>(),
   };
 });
 
 const { execFileSync } = await import("node:child_process");
 const { existsSync } = await import("node:fs");
-const { npmExecutablePath, runNpm } = await import("./run-npm.mjs");
+const { npmExecutablePath, runNpm } = await import("./run-npm.js");
 const sampleNpmCliPath = "/usr/local/lib/node_modules/npm/bin/npm-cli.js";
 
 describe("npmExecutablePath", () => {
