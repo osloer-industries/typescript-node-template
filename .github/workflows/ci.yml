@@ -11,7 +11,8 @@ permissions:
   actions: read
   pull-requests: read
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Per PR head SHA so a prior run waiting on harness-approval does not block newer commits (ADR 0012).
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.head.sha || github.ref }}
   cancel-in-progress: true
 jobs:
   workflow-security:
