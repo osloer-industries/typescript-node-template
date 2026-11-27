@@ -24,10 +24,12 @@ footer or `!` marker for a major release.
 
 While the version stays below `1.0.0`, `release-please-config.json` sets `bump-minor-pre-major`, so breaking
 changes bump the **minor** version instead of jumping to `1.0.0`; features still bump minor and fixes bump patch.
-Repos remain on `0.x` until the owner deliberately cuts `1.0.0` with a squash-merge commit footer
-`Release-As: 1.0.0` (see [Release Please](https://github.com/googleapis/release-please#how-do-i-change-the-version-number)).
+`initial-version` is `0.1.0` so a new repo with manifest `0.0.0` and no existing tag still ships `0.1.0` as its
+first release instead of defaulting to `1.0.0`. Repos remain on `0.x` until the owner deliberately cuts `1.0.0`
+with a squash-merge commit footer `Release-As: 1.0.0` (see
+[Release Please](https://github.com/googleapis/release-please#how-do-i-change-the-version-number)).
 When you create a new repository from this template, reset `.release-please-manifest.json` to `"0.0.0"` for the
-root package (and align `package.json` `version` if you publish) so the first release is `0.1.0`.
+root package (and align `package.json` `version` if you publish) so Release Please can apply `initial-version`.
 
 Harness files listed in `CODEOWNERS` (lint config, workflows, `AGENTS.md`, and related scripts)
 should receive maintainer review. Replace `@osloer-industries/platform` in `CODEOWNERS` with your
