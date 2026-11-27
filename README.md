@@ -85,7 +85,7 @@ Further patterns (provider-neutral):
 ## SonarQube Cloud setup
 
 Contributors and agents should follow [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md) to avoid
-**SonarCloud Code Analysis** failures (PATH-safe npm via `scripts/run-npm.mjs`, `--ignore-scripts` on CI
+**SonarCloud Code Analysis** failures (PATH-safe npm via `scripts/run-npm.ts`, `--ignore-scripts` on CI
 installs, and local `eslint-plugin-sonarjs` via `npm run lint:sonarjs`).
 
 1. Import the repository into SonarQube Cloud and **disable Automatic Analysis** (CI runs

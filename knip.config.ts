@@ -1,6 +1,7 @@
 import type { KnipConfig } from "knip";
 
 const config: KnipConfig = {
+  "dependency-cruiser": true,
   workspaces: {
     ".": {
       entry: [

@@ -1,4 +1,4 @@
-import { runNpm } from "../run-npm.mjs";
+import { runNpm } from "../run-npm.ts";
 import { runAgentHookMain } from "./cli-entry.js";
 import {
   HOOK_EXIT_BLOCK,

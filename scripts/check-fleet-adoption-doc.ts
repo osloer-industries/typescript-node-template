@@ -1,6 +1,6 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { listChangedPaths as listGitChangedPaths } from "./git-list-changed-paths.mjs";
+import { listChangedPaths as listGitChangedPaths } from "./git-list-changed-paths.ts";
 
 /** Checked-in source of truth for org reusable and template-feature adoption. */
 export const FLEET_ADOPTION_DOC_PATH = "docs/fleet-adoption.md";

@@ -26,6 +26,9 @@ updates:
       development-dependencies:
         dependency-type: development
         update-types: [minor, patch]
+        exclude-patterns:
+          - "vitest"
+          - "@vitest/*"
       # Keeps direct markdownlint-cli2 bumps from fanning out into separate multi-PRs for the same
       # transitive majors (markdown-it 15, js-yaml 5) when those land together.
       markdownlint-cli2:

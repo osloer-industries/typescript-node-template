@@ -3,8 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { copyTemplateFixture } from "./copy-template-fixture.mjs";
-import * as runNpmModule from "./run-npm.mjs";
+import { copyTemplateFixture } from "./copy-template-fixture.ts";
+import * as runNpmModule from "./run-npm.ts";
 import { applySetup, profiles, runSetupCli } from "./setup-lib.mjs";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));

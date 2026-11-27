@@ -5,7 +5,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { runNpm } from "./run-npm.mjs";
+import { runNpm } from "./run-npm.ts";
 
 const pkgDir = path.resolve(fileURLToPath(new URL("../packages/eslint-sonarjs", import.meta.url)));
 
