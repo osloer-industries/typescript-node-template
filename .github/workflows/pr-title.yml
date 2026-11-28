@@ -2,10 +2,14 @@ name: Pull request title
 
 on:
   pull_request:
-    types: [opened, reopened, edited, synchronize]
+    types: [opened, reopened, edited]
 
 permissions:
   contents: read
+
+concurrency:
+  group: pr-title-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   semantic-title:

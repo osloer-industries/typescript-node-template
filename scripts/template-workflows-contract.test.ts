@@ -48,6 +48,18 @@ describe("template GitHub workflow callers", () => {
     }
   });
 
+  it("uses ci-paths-scope and composite ci-passed-gate in CI", () => {
+    const ciYaml = readFileSync(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8");
+    expect(ciYaml).toContain(
+      `osloer-industries/.github/.github/workflows/ci-paths-scope.yml@${ORG_REUSABLES_SHA} # ${ORG_REUSABLES_TAG}`,
+    );
+    expect(ciYaml).toContain(
+      `osloer-industries/.github/.github/actions/ci-passed-gate@${ORG_REUSABLES_SHA} # ${ORG_REUSABLES_TAG}`,
+    );
+    expect(ciYaml).toMatch(/needs-json:\s*\$\{\{\s*toJSON\(needs\)\s*\}\}/u);
+    expect(ciYaml).toMatch(/github-event-name:\s*\$\{\{\s*github\.event_name\s*\}\}/u);
+  });
+
   it("pins org auto-merge reusable with squash and release/Dependabot flags", () => {
     const autoMergeYaml = readFileSync(
       new URL("../.github/workflows/auto-merge.yml", import.meta.url),

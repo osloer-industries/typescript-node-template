@@ -14,13 +14,22 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  ci-paths-scope:
+    uses: osloer-industries/.github/.github/workflows/ci-paths-scope.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
+
   workflow-security:
+    needs: ci-paths-scope
+    if: |
+      always() && needs.ci-paths-scope.outputs.run-full-ci == 'true' &&
+      needs.ci-paths-scope.outputs.workflows-changed == 'true'
     uses: osloer-industries/.github/.github/workflows/workflow-security.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     permissions:
       contents: read
       actions: read
 
   quality:
+    needs: ci-paths-scope
+    if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
     uses: osloer-industries/.github/.github/workflows/node-npm-quality.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     with:
       check-npm-script: precommit
@@ -29,15 +38,21 @@ jobs:
       npm-prefixes-json: '["packages/eslint-sonarjs"]'
 
   mutation:
+    needs: ci-paths-scope
+    if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
     uses: osloer-industries/.github/.github/workflows/mutation-changed.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
 
   setup-smoke:
+    needs: ci-paths-scope
+    if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
     uses: osloer-industries/.github/.github/workflows/node-setup-smoke.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     with:
       timeout-minutes: 15
 
   journey-e2e:
     name: Journey e2e
+    needs: ci-paths-scope
+    if: needs.ci-paths-scope.outputs.run-full-ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
@@ -51,6 +66,13 @@ jobs:
       - run: npm run test:e2e
 
   codeql:
+    needs: ci-paths-scope
+    if: |
+      needs.ci-paths-scope.outputs.run-full-ci == 'true' &&
+      (
+        github.event_name != 'pull_request' ||
+        needs.ci-paths-scope.outputs.run-codeql == 'true'
+      )
     uses: osloer-industries/.github/.github/workflows/codeql-javascript-typescript.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     permissions:
       contents: read
@@ -58,6 +80,10 @@ jobs:
       security-events: write
 
   sonar-analyze:
+    needs: ci-paths-scope
+    if: |
+      needs.ci-paths-scope.outputs.run-full-ci == 'true' &&
+      needs.ci-paths-scope.outputs.product-code-changed == 'true'
     uses: osloer-industries/.github/.github/workflows/sonarqube-cloud-node.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     with:
       coverage-npm-script: coverage:sonar
@@ -66,8 +92,13 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   sonar-zero-open-issues:
-    if: github.event_name == 'pull_request'
-    needs: sonar-analyze
+    if: |
+      github.event_name == 'pull_request' &&
+      needs.ci-paths-scope.outputs.run-full-ci == 'true' &&
+      needs.ci-paths-scope.outputs.product-code-changed == 'true'
+    needs:
+      - ci-paths-scope
+      - sonar-analyze
     uses: osloer-industries/.github/.github/workflows/sonarcloud-zero-issues.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     with:
       project-key: osloer-industries_typescript-node-template
@@ -77,6 +108,10 @@ jobs:
 
   fleet-adoption-doc:
     name: Fleet adoption table sync
+    needs: ci-paths-scope
+    if: |
+      github.event_name == 'pull_request' &&
+      needs.ci-paths-scope.outputs.workflows-changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -88,7 +123,6 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc }
       - name: Require fleet-adoption.md when workflows change
-        if: github.event_name == 'pull_request'
         env:
           FLEET_ADOPTION_BASE_REF: ${{ github.event.pull_request.base.sha }}
         run: node scripts/check-fleet-adoption-doc.ts
@@ -96,6 +130,7 @@ jobs:
   ci-passed:
     name: ci-passed
     needs:
+      - ci-paths-scope
       - workflow-security
       - quality
       - mutation
@@ -106,6 +141,12 @@ jobs:
       - sonar-zero-open-issues
       - fleet-adoption-doc
     if: always()
-    uses: osloer-industries/.github/.github/workflows/ci-passed.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
-    with:
-      needs-json: ${{ toJSON(needs) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: osloer-industries/.github/.github/actions/ci-passed-gate@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
+        with:
+          needs-json: ${{ toJSON(needs) }}
+          github-event-name: ${{ github.event_name }}
