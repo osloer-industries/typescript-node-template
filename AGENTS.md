@@ -105,7 +105,8 @@ use the full ladder below.
 
 **`npm run precommit`** (Lefthook after `npm run prepare`, and CI **Quality**) runs Oxlint, the
 suppression baseline, SonarJS ESLint (including `no-await-in-loop` / S9382 and
-`@typescript-eslint/require-await` / S7503), jscpd, typecheck, and the full Vitest suite.
+`@typescript-eslint/require-await` / S7503), jscpd on `src/`, `scripts/`, `packages/`, docs, and
+workflows (3% threshold), typecheck, and the full Vitest suite.
 Run **`npm run precommit` before every push**. Never commit with `git commit --no-verify`, and
 never set `HUSKY=0`, `LEFTHOOK=0`, or `SKIP` to bypass hooks. Never suppress Sonar-style rules
 (no new `eslint-disable`, `NOSONAR`, baseline increases, or Sonar exclusions).
@@ -118,15 +119,15 @@ Run gates in this order when preparing a pull request:
 4. `npm run agents:check` (paths and npm scripts cited in agent guidance — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 5. `npm run lint:deps` (dependency-cruiser module graph — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 6. `npm run lint:sonarjs` (SonarJS via `eslint-plugin-sonarjs` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-7. `npm run lint:dup` (jscpd on Markdown, workflow YAML, and shell under `.jscpd.json` paths — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
- TypeScript/JavaScript duplication is gated by SonarCloud on the pull request)
+7. `npm run lint:dup` (jscpd on `src/`, `scripts/`, `packages/`, tests, docs, and workflows — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
+   **3%** threshold aligned with SonarCloud duplicated-lines-on-new-code; Sonar still owns PR-level policy and zero-open-issues)
 8. `npm run lint:md` and `npm run lint:md-links` ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 9. `npm run typecheck` (root TypeScript 7 plus `packages/eslint-sonarjs` TypeScript 6 — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 10. `npm run test` or `npm run test:coverage` (Vitest — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 11. `npm run build` (root `typescript` — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
 12. `npm run lint:knip` (unused files, exports, and dependencies — [ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md);
- runs after `build` so `package.json` dist entries resolve)
-13. `npm run precommit` (Lefthook `pre-commit`; steps 1–4, 6, and `npm run test`)
+   runs after `build` so `package.json` dist entries resolve)
+13. `npm run precommit` (Lefthook `pre-commit`; steps 1–2, 6–7, 9, and `npm run test`)
 14. `npm run check` (precommit plus no-`CLAUDE.md`, `check:ts-only`, `agents:check`, `lint:deps`, markdown,
    coverage, build, and knip)
    before opening a pull request
@@ -136,7 +137,8 @@ Run gates in this order when preparing a pull request:
 separate CI job, not part of `check`.
 
 After `npm ci`, run `npm run prepare` once locally to install Lefthook pre-commit hooks ([ADR 0009](docs/adr/0009-tooling-and-quality-gate-stack.md))
-(CI uses `npm ci --ignore-scripts`, so hooks are not installed in Actions).
+(CI uses `npm ci --ignore-scripts`, so hooks are not installed in Actions). Pre-commit runs **`npm run precommit`**
+(same script as CI **Quality**).
 
 After editing setup profiles, rely on `scripts/setup.test.ts` integration cases for all four scenarios.
 
@@ -224,9 +226,12 @@ Pull requests that change `.github/workflows/**` or `.github/actions/**` without
 - Install reproducibly with `npm ci`. Use `npm install --save-exact` when a
   dependency intentionally changes, then commit `package-lock.json`.
 - Run `npm run precommit` before every push (Lefthook) and `npm run check` before submitting a change.
-  `check` adds no-`CLAUDE.md`, markdown, coverage, production build, and knip (after build so `package.json`
-  dist entries resolve). SonarCloud owns TypeScript/JavaScript duplication (Sonar way fails above **3%**
-  duplicated new lines) and the org zero-open-issues check — see [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md).
+  `precommit` includes jscpd on TypeScript, JavaScript, Markdown, YAML, and shell at the same **3%** threshold as
+  Sonar duplicated-lines-on-new-code. `check` adds no-`CLAUDE.md`, `check:ts-only`, `agents:check`, `lint:deps`,
+  markdown, coverage, production build, and knip (after build so `package.json` dist entries resolve). SonarCloud still
+  runs on the pull request for
+  org policy and
+  zero-open-issues — see [docs/sonar-quality-gate.md](docs/sonar-quality-gate.md).
 - Run `npm audit --omit=dev` whenever dependencies or the lockfile change. For transitive
   production findings, follow [docs/npm-overrides.md](docs/npm-overrides.md) before adding
   npm `overrides`.

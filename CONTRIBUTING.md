@@ -2,8 +2,10 @@
 
 1. Install Node.js 24.22.0.
 2. Run `npm ci` (or `npm ci --ignore-scripts` to match CI; then run `npm run prepare` locally to install Git hooks).
+   Pre-commit runs **`npm run precommit`** (Oxlint, SonarJS, jscpd on source/docs, typecheck, and unit tests — same
+   as CI **Quality**).
 3. Create a focused branch and add tests with the change.
-4. Run `npm run check` (Oxlint, SonarJS ESLint, jscpd on Markdown/workflow YAML/shell, knip, markdownlint,
+4. Run `npm run check` (Oxlint, SonarJS ESLint, jscpd on source/tests/docs/workflows, knip, markdownlint,
    markdown link checks, TypeScript,
    tests, and build)
    and `npm audit --omit=dev`.

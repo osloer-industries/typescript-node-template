@@ -22,6 +22,17 @@ const fleetAdoptionCheckSource = "./check-fleet-adoption-doc.ts";
 const gitListChangedSource = "./git-list-changed-paths.ts";
 const fleetAdoptionCheckBasename = "scripts/check-fleet-adoption-doc.ts";
 
+function copyFleetAdoptionHarnessInto(tempDir: string): void {
+  cpSync(
+    resolve(fileURLToPath(new URL(fleetAdoptionCheckSource, import.meta.url))),
+    join(tempDir, fleetAdoptionCheckBasename),
+  );
+  cpSync(
+    resolve(fileURLToPath(new URL(gitListChangedSource, import.meta.url))),
+    join(tempDir, "scripts/git-list-changed-paths.ts"),
+  );
+}
+
 describe("isWorkflowHarnessChange", () => {
   it("matches workflow and composite action paths", () => {
     expect(isWorkflowHarnessChange(ciWorkflowPath)).toBe(true);
@@ -67,14 +78,7 @@ describe("runFleetAdoptionDocCheckCli", () => {
       mkdirSync(join(tempDir, ".github/workflows"), { recursive: true });
       writeFileSync(join(tempDir, ciWorkflowPath), "name: CI\n", "utf8");
       const head = gitCommitPaths(tempDir, "workflow", [ciWorkflowPath], gitExecutable);
-      cpSync(
-        resolve(fileURLToPath(new URL(fleetAdoptionCheckSource, import.meta.url))),
-        join(tempDir, fleetAdoptionCheckBasename),
-      );
-      cpSync(
-        resolve(fileURLToPath(new URL(gitListChangedSource, import.meta.url))),
-        join(tempDir, "scripts/git-list-changed-paths.ts"),
-      );
+      copyFleetAdoptionHarnessInto(tempDir);
       const moduleUrl = new URL(`file://${join(tempDir, fleetAdoptionCheckBasename)}`).href;
       const code = runFleetAdoptionDocCheckCli(moduleUrl, [base, head]);
       expect(code).toBe(1);
@@ -99,14 +103,7 @@ describe("runFleetAdoptionDocCheckCli", () => {
         [ciWorkflowPath, FLEET_ADOPTION_DOC_PATH],
         gitExecutable,
       );
-      cpSync(
-        resolve(fileURLToPath(new URL(fleetAdoptionCheckSource, import.meta.url))),
-        join(tempDir, fleetAdoptionCheckBasename),
-      );
-      cpSync(
-        resolve(fileURLToPath(new URL(gitListChangedSource, import.meta.url))),
-        join(tempDir, "scripts/git-list-changed-paths.ts"),
-      );
+      copyFleetAdoptionHarnessInto(tempDir);
       const moduleUrl = new URL(`file://${join(tempDir, fleetAdoptionCheckBasename)}`).href;
       const code = runFleetAdoptionDocCheckCli(moduleUrl, [base, head]);
       expect(code).toBe(0);

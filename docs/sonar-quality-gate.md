@@ -43,8 +43,9 @@ npm run list-rules --prefix packages/eslint-sonarjs
 ```
 
 Pre-commit (after `npm run prepare`): Lefthook ([ADR 0009](adr/0009-tooling-and-quality-gate-stack.md)) runs
-**`npm run precommit`** (Oxlint, suppression baseline, SonarJS ESLint, jscpd, typecheck, and Vitest). Run
-**`npm run agents:check`** as part of full **`npm run check`** (and in **`npm run check:fast`** while iterating).
+**`npm run precommit`** (Oxlint, suppression baseline, SonarJS ESLint, jscpd on TypeScript/JavaScript and
+docs at 3%, typecheck, and Vitest). Run **`npm run agents:check`** as part of full **`npm run check`** (and in
+**`npm run check:fast`** while iterating).
 CI **Quality** runs the same command so `--no-verify` commits still fail in Actions.
 
 ## Before you push
@@ -90,10 +91,11 @@ do not enable scripts globally “just in case”.
 - Vitest **`toThrow()`** must include a message or regex (Oxlint `vitest/require-to-throw-message`).
 - Keep cyclomatic complexity, promise safety, and import-cycle rules in
   [`.oxlintrc.json`](../.oxlintrc.json)—they reduce correctness issues Sonar may also report.
-- Do not duplicate long guidance across markdown files; `npm run lint:dup` (jscpd) enforces a **0%**
-  duplication threshold on Markdown, workflow YAML, and shell. TypeScript and JavaScript duplication is owned
-  by SonarCloud (Sonar way fails above **3%** duplicated new lines on the pull request) plus the org
-  zero-open-issues gate — refactor shared helpers instead of copying blocks.
+- Avoid copy-pasted blocks in source and docs; `npm run lint:dup` (jscpd) enforces the same **3%**
+  duplication threshold as SonarCloud duplicated-lines-on-new-code on TypeScript, JavaScript, Markdown,
+  workflow YAML, and shell under `.jscpd.json`. SonarCloud still runs on the pull request for duplicated-lines-on-new-code,
+  org zero-open-issues, and other Sonar rules — refactor shared helpers instead of copying blocks. Lefthook runs
+  `lint:dup` via **`npm run precommit`** on every commit.
 
 ## Change checklist (agents and humans)
 
