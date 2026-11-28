@@ -1,5 +1,5 @@
-# Guardrail / agent harness files — replace @osloer-industries/platform with your maintainer team.
-# Branch protection can require review from these owners (see CONTRIBUTING.md).
+# Guardrail / agent harness files — @osloer-industries/platform.
+# CI blocks harness edits without harness-approval environment deployment (ADR 0012).
 
 /.dependency-cruiser.cjs @osloer-industries/platform
 /AGENTS.md @osloer-industries/platform
@@ -9,15 +9,19 @@
 /.github/ @osloer-industries/platform
 /.oxlintrc.json @osloer-industries/platform
 /lefthook.yml @osloer-industries/platform
+/vitest.config.ts @osloer-industries/platform
+/tsconfig.json @osloer-industries/platform
+/tsconfig.*.json @osloer-industries/platform
 /scripts/suppression-baseline.json @osloer-industries/platform
 /scripts/count-suppressions.ts @osloer-industries/platform
 /scripts/check-ts-only.ts @osloer-industries/platform
 /scripts/shrink-only-ratchet.ts @osloer-industries/platform
 /quality/ @osloer-industries/platform
-/scripts/oxlint-plugin-osloer.ts @osloer-industries/platform
+/scripts/gate-self.test.ts @osloer-industries/platform
 /scripts/check-guardrail-changes.ts @osloer-industries/platform
 /scripts/agents-check.ts @osloer-industries/platform
 /scripts/check-fleet-adoption-doc.ts @osloer-industries/platform
 /docs/fleet-adoption.md @osloer-industries/platform
+/scripts/oxlint-plugin-osloer.ts @osloer-industries/platform
 /scripts/agent-hooks/ @osloer-industries/platform
 /packages/eslint-sonarjs/ @osloer-industries/platform

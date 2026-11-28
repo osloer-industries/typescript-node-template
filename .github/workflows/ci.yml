@@ -11,7 +11,8 @@ permissions:
   actions: read
   pull-requests: read
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Per PR head SHA so a prior run waiting on harness-approval does not block newer commits (ADR 0012).
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.head.sha || github.ref }}
   cancel-in-progress: true
 jobs:
   workflow-security:
@@ -20,12 +21,50 @@ jobs:
       contents: read
       actions: read
 
+  guardrail-detect:
+    name: Guardrail detect
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      guardrail_changed: ${{ steps.guardrail.outputs.guardrail_changed || steps.guardrail-skip.outputs.guardrail_changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false, fetch-depth: 0 }
+      - id: guardrail-skip
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "guardrail_changed=false" >> "$GITHUB_OUTPUT"
+          echo "No guardrail path changes detected."
+      - id: guardrail
+        if: github.event_name == 'pull_request'
+        env:
+          GUARDRAIL_BASE_REF: ${{ github.event.pull_request.base.sha }}
+          GUARDRAIL_HEAD_REF: HEAD
+        run: node scripts/check-guardrail-changes.ts
+
+  harness-approval:
+    name: harness-approval
+    needs: guardrail-detect
+    if: always() && needs.guardrail-detect.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4320
+    environment: >-
+      ${{ needs.guardrail-detect.outputs.guardrail_changed == 'true'
+      && 'harness-approval' }}
+    permissions: {}
+    steps:
+      - name: Waive harness approval when guardrails unchanged
+        if: needs.guardrail-detect.outputs.guardrail_changed != 'true'
+        run: echo "No harness path changes; approval not required."
+      - name: Record approved commit
+        if: needs.guardrail-detect.outputs.guardrail_changed == 'true'
+        run: echo "Harness guardrail approval recorded for commit ${{ github.sha }}"
+
   quality:
     uses: osloer-industries/.github/.github/workflows/node-npm-quality.yml@b7de8bdeeaf4d7646d37b4d1b0ee51e4d72640eb # v0.1.10
     with:
       check-npm-script: precommit
       fetch-depth: 0
-      pr-pre-check-script: scripts/check-guardrail-changes.ts
       npm-prefixes-json: '["packages/eslint-sonarjs"]'
 
   mutation:
@@ -97,6 +136,8 @@ jobs:
     name: ci-passed
     needs:
       - workflow-security
+      - guardrail-detect
+      - harness-approval
       - quality
       - mutation
       - setup-smoke

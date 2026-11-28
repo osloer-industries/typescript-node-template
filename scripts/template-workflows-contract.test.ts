@@ -48,6 +48,14 @@ describe("template GitHub workflow callers", () => {
     }
   });
 
+  it("includes harness guardrail jobs and ci-passed aggregate in CI", () => {
+    const ciYaml = readFileSync(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8");
+    expect(ciYaml).toContain("\n  guardrail-detect:\n");
+    expect(ciYaml).toContain("\n  harness-approval:\n");
+    expect(ciYaml).toContain("\n  ci-passed:\n");
+    expect(ciYaml).toMatch(/needs-json:\s*\$\{\{\s*toJSON\(needs\)\s*\}\}/u);
+  });
+
   it("pins org auto-merge reusable with squash and release/Dependabot flags", () => {
     const autoMergeYaml = readFileSync(
       new URL("../.github/workflows/auto-merge.yml", import.meta.url),

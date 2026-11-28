@@ -85,4 +85,5 @@ Use it while iterating; run full `npm run check` before opening a pull request (
 
 To fail locally when staging guardrail paths (human or agent), add a `pre-commit` command that
 passes staged paths into `block-guardrail-edits`. The template does not enable this by default so
-maintainers can edit harness files with CODEOWNERS review only.
+maintainers can edit harness files locally; CI blocks merges until the CODEOWNER approves the
+`harness-approval` deployment on the pull request ([ADR 0012](adr/0012-blocking-guardrail-change-check.md)).

@@ -314,5 +314,8 @@ Browser automation dependencies (for example Playwright) must follow
   `Release-As: 1.0.0`. New repos from the template should reset `.release-please-manifest.json` to `0.0.0`
   (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 - Never bypass required reviews, checks, or organization rules.
+- Harness/guardrail path edits require the **`harness-approval`** GitHub Environment deployment
+  (CODEOWNER approves via **Review deployments** → **Approve** on the PR checks); see
+  [CONTRIBUTING.md](CONTRIBUTING.md) and [ADR 0012](docs/adr/0012-blocking-guardrail-change-check.md).
 
 For system design and scenario behavior, read [docs/architecture.md](docs/architecture.md).

@@ -27,3 +27,4 @@ Each ADR is a markdown file named `NNNN-short-title.md` with:
 | [0009](0009-tooling-and-quality-gate-stack.md) | Tooling and quality-gate stack |
 | [0010](0010-agent-and-local-files-not-committed.md) | Agent and local working files are not committed |
 | [0011](0011-fleet-adoption-table.md) | Fleet adoption table and workflow sync gate |
+| [0012](0012-blocking-guardrail-change-check.md) | Blocking guardrail change check in CI |
