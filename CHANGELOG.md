@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/osloer-industries/typescript-node-template/compare/v0.6.0...v0.7.0) (2026-11-28)
+
+
+### Features
+
+* catch TS/JS duplication locally with jscpd pre-commit ([#141](https://github.com/osloer-industries/typescript-node-template/issues/141)) ([015c4e3](https://github.com/osloer-industries/typescript-node-template/commit/015c4e3afd3a75db3642d03cefc68d0b3a50765c))
+
 ## [0.6.0](https://github.com/osloer-industries/typescript-node-template/compare/v0.5.0...v0.6.0) (2026-11-27)
 
 
